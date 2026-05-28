@@ -61,6 +61,14 @@ public class FeastDay
     [ProtoMember(5)] public int LastFiredYear { get; set; }
 
     /// <summary>
+    ///     Last in-game year an advance-notice toast fired for this feast
+    ///     (one in-game day before the feast). Same idempotency guarantee
+    ///     as <see cref="LastFiredYear"/> — at most one advance toast per
+    ///     in-game year, even across save/reload.
+    /// </summary>
+    [ProtoMember(7)] public int LastAdvanceFiredYear { get; set; }
+
+    /// <summary>
     ///     Fixed patron's-day per domain (#375). Defined here so the ticker, the
     ///     religion manager, and tests share a single source of truth.
     /// </summary>

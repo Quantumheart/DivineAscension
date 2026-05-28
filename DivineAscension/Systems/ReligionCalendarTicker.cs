@@ -63,27 +63,43 @@ public sealed class ReligionCalendarTicker
         var (month, day) = SacredCalendar.GetCurrentMonthDay(_worldService);
         var year = SacredCalendar.GetCurrentYear(_worldService);
         if (month <= 0 || day <= 0 || year <= 0) return;
-        var daysPerMonth = _worldService.Calendar?.DaysPerMonth ?? 0;
+        var calendar = _worldService.Calendar;
+        var daysPerMonth = calendar?.DaysPerMonth ?? 0;
         if (daysPerMonth <= 0) return;
+        var daysPerYear = calendar?.DaysPerYear ?? 0;
+        if (daysPerYear <= 0) daysPerYear = daysPerMonth * 12;
+        var todayDoy = (month - 1) * daysPerMonth + (day - 1);
 
         foreach (var religion in _religionManager.GetAllReligions())
         {
             foreach (var feast in religion.FeastDays)
             {
-                if (feast.Month != month) continue;
                 // Clamp feast.Day down to DaysPerMonth so feasts intended for
                 // day-of-month > the world's month length still fire on the
                 // last day of the month (#375). Vanilla DaysPerMonth presets
                 // go as low as 3, so the Harvest patron (day 12) would never
                 // fire on the default 9-day month otherwise.
                 var effectiveDay = Math.Min(feast.Day, daysPerMonth);
-                if (effectiveDay != day) continue;
-                if (feast.LastFiredYear >= year) continue;
-                if (!religion.TryMarkFeastFired(feast, year)) continue;
+                var feastDoy = (feast.Month - 1) * daysPerMonth + (effectiveDay - 1);
+                var daysUntil = feastDoy - todayDoy;
+                if (daysUntil < 0) daysUntil += daysPerYear;
 
-                _religionManager.RecordFeastDay(religion.ReligionUID, feast);
-                BroadcastFeast(religion, feast);
-                PushToast(religion, feast);
+                if (daysUntil == 0)
+                {
+                    if (feast.LastFiredYear >= year) continue;
+                    if (!religion.TryMarkFeastFired(feast, year)) continue;
+                    _religionManager.RecordFeastDay(religion.ReligionUID, feast);
+                    BroadcastFeast(religion, feast);
+                    PushToast(religion, feast, advance: false);
+                }
+                else if (daysUntil == 1)
+                {
+                    // Advance toast — one in-game day before. No chronicle
+                    // entry, no chat broadcast; just the heads-up toast.
+                    if (feast.LastAdvanceFiredYear >= year) continue;
+                    if (!religion.TryMarkFeastAdvanceFired(feast, year)) continue;
+                    PushToast(religion, feast, advance: true);
+                }
             }
         }
     }
@@ -105,12 +121,14 @@ public sealed class ReligionCalendarTicker
     ///     The toast is informational — clicking it only dismisses; the
     ///     chronicle and Letters page are the durable surfaces.
     /// </summary>
-    private void PushToast(ReligionData religion, FeastDay feast)
+    private void PushToast(ReligionData religion, FeastDay feast, bool advance)
     {
+        var bodyKey = advance
+            ? LocalizationKeys.UI_HOLIDAY_TOAST_BODY_RELIGION_ADVANCE
+            : LocalizationKeys.UI_HOLIDAY_TOAST_BODY_RELIGION;
         var packet = new HolidayKeptToastPacket(
             feastName: feast.Name,
-            description: LocalizationService.Instance.Get(
-                LocalizationKeys.UI_HOLIDAY_TOAST_BODY_RELIGION, religion.ReligionName),
+            description: LocalizationService.Instance.Get(bodyKey, religion.ReligionName),
             domain: religion.PatronDomain.ToString());
 
         foreach (var player in _worldService.GetAllOnlinePlayers()

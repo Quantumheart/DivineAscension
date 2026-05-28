@@ -161,6 +161,22 @@ public class CivilizationManager : ICivilizationManager
     }
 
     /// <summary>
+    ///     Mirror of <see cref="TryMarkFoundingDayFired"/> for the advance
+    ///     toast (one in-game day before Founding Day).
+    /// </summary>
+    public bool TryMarkFoundingDayAdvanceFired(string civId, int year)
+    {
+        lock (Lock)
+        {
+            var civ = _data.Civilizations.GetValueOrDefault(civId);
+            if (civ == null) return false;
+            if (civ.FoundingDayAdvanceFiredYear >= year) return false;
+            civ.FoundingDayAdvanceFiredYear = year;
+            return true;
+        }
+    }
+
+    /// <summary>
     ///     Wires the holy-site manager dependency after construction so capital cascades
     ///     can fire. Called from the system initializer once both managers exist.
     /// </summary>

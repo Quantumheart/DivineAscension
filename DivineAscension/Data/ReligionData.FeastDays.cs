@@ -65,17 +65,38 @@ public partial class ReligionData
     {
         lock (Lock)
         {
-            // Match by FeastId when both have one (post-#422); fall back to
-            // legacy key for entries still carrying Guid.Empty (autos from
-            // #535 saves that pre-date the FeastId field).
-            var stored = _feastDays.FirstOrDefault(f =>
-                feast.FeastId != Guid.Empty && f.FeastId == feast.FeastId)
-                ?? _feastDays.FirstOrDefault(f =>
-                    f.Kind == feast.Kind && f.Month == feast.Month && f.Day == feast.Day && f.Name == feast.Name);
+            var stored = FindStored(feast);
             if (stored == null || stored.LastFiredYear >= year) return false;
             stored.LastFiredYear = year;
             return true;
         }
+    }
+
+    /// <summary>
+    ///     Records that the given feast's advance toast fired in
+    ///     <paramref name="year"/>. Returns false if it already fired this
+    ///     year — guarantees one advance toast per in-game year.
+    /// </summary>
+    public bool TryMarkFeastAdvanceFired(FeastDay feast, int year)
+    {
+        lock (Lock)
+        {
+            var stored = FindStored(feast);
+            if (stored == null || stored.LastAdvanceFiredYear >= year) return false;
+            stored.LastAdvanceFiredYear = year;
+            return true;
+        }
+    }
+
+    private FeastDay? FindStored(FeastDay feast)
+    {
+        // Match by FeastId when both have one (post-#422); fall back to
+        // legacy key for entries still carrying Guid.Empty (autos from
+        // #535 saves that pre-date the FeastId field).
+        return _feastDays.FirstOrDefault(f =>
+            feast.FeastId != Guid.Empty && f.FeastId == feast.FeastId)
+            ?? _feastDays.FirstOrDefault(f =>
+                f.Kind == feast.Kind && f.Month == feast.Month && f.Day == feast.Day && f.Name == feast.Name);
     }
 
     /// <summary>

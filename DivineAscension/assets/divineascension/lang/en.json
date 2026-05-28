@@ -700,6 +700,8 @@
   "divineascension:ui.holiday.toast.title.civ_founding": "Founding Day",
   "divineascension:ui.holiday.toast.body.religion": "Kept by {0} today.",
   "divineascension:ui.holiday.toast.body.civ": "The realm of {0} keeps its Founding Day.",
+  "divineascension:ui.holiday.toast.body.religion.advance": "{0} keeps a holy day on the morrow. Make ready.",
+  "divineascension:ui.holiday.toast.body.civ.advance": "The realm of {0} keeps its Founding Day on the morrow.",
   "divineascension:ui.rankup.view_blessings": "View Blessings (Shift+G)",
   "divineascension:ui.rankup.slots.title": "Blessing slots: {0}",
   "divineascension:ui.rankup.slots.description": "You can now hold {0} active blessings (+{1}).",
