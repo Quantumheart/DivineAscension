@@ -78,6 +78,9 @@ public class CivilizationMilestoneManager : ICivilizationMilestoneManager
         _religionManager.OnMemberAdded += HandleMemberAdded;
         _religionManager.OnMemberRemoved += HandleMemberRemoved;
 
+        // Subscribe to NPC trader transactions for the trade_hub milestone (Caravan)
+        Patches.TraderPatches.OnTraderTransaction += HandleTraderTransaction;
+
         _logger.Notification("[DivineAscension] Civilization Milestone Manager initialized");
     }
 
@@ -118,6 +121,8 @@ public class CivilizationMilestoneManager : ICivilizationMilestoneManager
 
         if (_pvpManager != null)
             _pvpManager.OnWarKill -= HandleWarKill;
+
+        Patches.TraderPatches.OnTraderTransaction -= HandleTraderTransaction;
 
         OnMilestoneUnlocked = null;
         OnRankIncreased = null;
@@ -266,6 +271,19 @@ public class CivilizationMilestoneManager : ICivilizationMilestoneManager
     }
 
     /// <inheritdoc />
+    public void RecordNpcTrade(string civId)
+    {
+        var civ = _civilizationManager.GetCivilization(civId);
+        if (civ == null)
+            return;
+
+        civ.NpcTradeCount++;
+        _logger.Debug($"[DivineAscension MilestoneManager] NPC trade recorded for {civ.Name}: {civ.NpcTradeCount} total");
+
+        CheckMilestones(civId);
+    }
+
+    /// <inheritdoc />
     public int GetBonusHolySiteSlots(string civId)
     {
         return GetActiveBonuses(civId).BonusHolySiteSlots;
@@ -325,6 +343,20 @@ public class CivilizationMilestoneManager : ICivilizationMilestoneManager
     {
         _logger.Debug($"[DivineAscension MilestoneManager] War kill event received for civilization {civId}");
         RecordWarKill(civId);
+    }
+
+    private void HandleTraderTransaction(Vintagestory.API.Common.IPlayer player, int valueInGears)
+    {
+        if (string.IsNullOrEmpty(player?.PlayerUID))
+            return;
+
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
+        if (religion == null) return;
+
+        var civ = _civilizationManager.GetCivilizationByReligion(religion.ReligionUID);
+        if (civ == null) return;
+
+        RecordNpcTrade(civ.CivId);
     }
 
     private void HandleMemberAdded(string religionUID, string playerUID)
@@ -446,6 +478,7 @@ public class CivilizationMilestoneManager : ICivilizationMilestoneManager
             MilestoneTriggerType.HolySiteTier => GetHighestHolySiteTier(civ),
             MilestoneTriggerType.DiplomaticRelationship => GetDiplomaticRelationshipCount(civId),
             MilestoneTriggerType.AllMajorMilestones => GetCompletedMajorMilestoneCount(civ),
+            MilestoneTriggerType.NpcTradeCount => civ.NpcTradeCount,
             _ => 0
         };
     }

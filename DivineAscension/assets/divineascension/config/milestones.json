@@ -114,6 +114,24 @@
       "prestigePayout": 200
     },
     {
+      "id": "trade_hub",
+      "name": "The Crossroads Endured",
+      "description": "Complete 50 NPC trader transactions across the civilization.",
+      "chronicleLine": "Fifty trades had been sealed at the civilization's posts.",
+      "type": "minor",
+      "trigger": {
+        "type": "npc_trade_count",
+        "threshold": 50
+      },
+      "rankReward": 0,
+      "prestigePayout": 300,
+      "temporaryBenefit": {
+        "type": "favor_multiplier",
+        "amount": 0.05,
+        "durationDays": 7
+      }
+    },
+    {
       "id": "war_heroes",
       "name": "Fifty Spears, Fifty Names",
       "description": "Achieve 50 PvP kills during active wars.",

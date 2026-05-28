@@ -493,6 +493,59 @@ public class CivilizationMilestoneManagerTests
 
     #endregion
 
+    #region RecordNpcTrade Tests
+
+    [Fact]
+    public void RecordNpcTrade_IncrementsCount()
+    {
+        var civId = "test-civ-trade-1";
+        var civ = CreateTestCivilization(civId);
+        civ.NpcTradeCount = 12;
+
+        _mockCivilizationManager.Setup(c => c.GetCivilization(civId)).Returns(civ);
+        _mockMilestoneLoader.Setup(m => m.GetAllMilestones()).Returns(new List<MilestoneDefinition>());
+
+        _milestoneManager.RecordNpcTrade(civId);
+
+        Assert.Equal(13, civ.NpcTradeCount);
+    }
+
+    [Fact]
+    public void RecordNpcTrade_TriggersTradeHubMilestone()
+    {
+        var civId = "test-civ-trade-2";
+        var civ = CreateTestCivilization(civId);
+        civ.NpcTradeCount = 49; // one more trade completes the 50 threshold
+
+        var milestone = new MilestoneDefinition(
+            "trade_hub",
+            "The Crossroads Endured",
+            "Complete 50 NPC trader transactions",
+            MilestoneType.Minor,
+            new MilestoneTrigger(MilestoneTriggerType.NpcTradeCount, 50),
+            0,
+            300);
+
+        _mockCivilizationManager.Setup(c => c.GetCivilization(civId)).Returns(civ);
+        _mockMilestoneLoader.Setup(m => m.GetAllMilestones()).Returns(new List<MilestoneDefinition> { milestone });
+
+        _milestoneManager.RecordNpcTrade(civId);
+
+        Assert.Contains("trade_hub", civ.CompletedMilestones);
+    }
+
+    [Fact]
+    public void RecordNpcTrade_UnknownCiv_NoThrow()
+    {
+        _mockCivilizationManager.Setup(c => c.GetCivilization(It.IsAny<string>())).Returns((Civilization?)null);
+
+        var ex = Record.Exception(() => _milestoneManager.RecordNpcTrade("missing"));
+
+        Assert.Null(ex);
+    }
+
+    #endregion
+
     #region GetMilestoneProgress Tests
 
     [Fact]

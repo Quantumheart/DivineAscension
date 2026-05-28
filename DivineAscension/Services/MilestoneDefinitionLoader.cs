@@ -243,6 +243,7 @@ public class MilestoneDefinitionLoader : IMilestoneDefinitionLoader
             "holy_site_tier" => (type = MilestoneTriggerType.HolySiteTier) == type,
             "diplomatic_relationship" => (type = MilestoneTriggerType.DiplomaticRelationship) == type,
             "all_major_milestones" => (type = MilestoneTriggerType.AllMajorMilestones) == type,
+            "npc_trade_count" => (type = MilestoneTriggerType.NpcTradeCount) == type,
             _ => false
         };
     }
