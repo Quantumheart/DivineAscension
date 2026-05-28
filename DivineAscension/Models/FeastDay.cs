@@ -51,7 +51,7 @@ public class FeastDay
             [DeityDomain.Craft] = (2, 1),
             [DeityDomain.Wild] = (4, 15),
             [DeityDomain.Conquest] = (7, 4),
-            [DeityDomain.Harvest] = (9, 22),
+            [DeityDomain.Harvest] = (9, 12),
             [DeityDomain.Stone] = (11, 1)
         };
 }

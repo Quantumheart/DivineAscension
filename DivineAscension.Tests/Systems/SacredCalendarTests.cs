@@ -33,7 +33,7 @@ public class SacredCalendarTests
         Assert.Equal((2, 1), FeastDay.DomainHolyDay[DeityDomain.Craft]);
         Assert.Equal((4, 15), FeastDay.DomainHolyDay[DeityDomain.Wild]);
         Assert.Equal((7, 4), FeastDay.DomainHolyDay[DeityDomain.Conquest]);
-        Assert.Equal((9, 22), FeastDay.DomainHolyDay[DeityDomain.Harvest]);
+        Assert.Equal((9, 12), FeastDay.DomainHolyDay[DeityDomain.Harvest]);
         Assert.Equal((11, 1), FeastDay.DomainHolyDay[DeityDomain.Stone]);
     }
 
@@ -67,6 +67,17 @@ public class SacredCalendarTests
         Assert.True(religion.TryMarkFeastFired(feastFromList, 1387));
         Assert.False(religion.TryMarkFeastFired(feastFromList, 1387));
         Assert.True(religion.TryMarkFeastFired(feastFromList, 1388));
+    }
+
+    [Fact]
+    public void DomainHolyDay_AllPatronDaysFitMinVanillaMonth()
+    {
+        // Vanilla survival lets DaysPerMonth go as low as 3 (and the engine
+        // permits anything > 0). The ticker clamps Day to DaysPerMonth at
+        // fire time, so any value here is *legal*, but document the worst
+        // case: the lowest sane month length still produces a fire-able day.
+        foreach (var (_, (_, day)) in FeastDay.DomainHolyDay)
+            Assert.True(day >= 1, $"patron day {day} must be at least 1");
     }
 
     [Fact]

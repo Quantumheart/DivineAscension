@@ -57,12 +57,21 @@ public sealed class ReligionCalendarTicker
         var (month, day) = SacredCalendar.GetCurrentMonthDay(_worldService);
         var year = SacredCalendar.GetCurrentYear(_worldService);
         if (month <= 0 || day <= 0 || year <= 0) return;
+        var daysPerMonth = _worldService.Calendar?.DaysPerMonth ?? 0;
+        if (daysPerMonth <= 0) return;
 
         foreach (var religion in _religionManager.GetAllReligions())
         {
             foreach (var feast in religion.FeastDays)
             {
-                if (feast.Month != month || feast.Day != day) continue;
+                if (feast.Month != month) continue;
+                // Clamp feast.Day down to DaysPerMonth so feasts intended for
+                // day-of-month > the world's month length still fire on the
+                // last day of the month (#375). Vanilla DaysPerMonth presets
+                // go as low as 3, so the Harvest patron (day 12) would never
+                // fire on the default 9-day month otherwise.
+                var effectiveDay = Math.Min(feast.Day, daysPerMonth);
+                if (effectiveDay != day) continue;
                 if (feast.LastFiredYear >= year) continue;
                 if (!religion.TryMarkFeastFired(feast, year)) continue;
 
