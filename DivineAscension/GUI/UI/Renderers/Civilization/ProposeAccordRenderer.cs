@@ -21,7 +21,7 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 /// <summary>
 /// Pure renderer for the "Propose an Accord" ledger chapter (#330). Sibling
 /// of "The Accords" (II.v). Reuses the diplomacy VM / event union so the
-/// existing reducer in <c>CivilizationStateManager.ProcessDiplomacyEvents</c>
+/// existing reducer in <c>CivilizationDiplomacyPresenter.ProcessEvents</c>
 /// handles dropdown toggling, selection, and the Propose request. Founder-
 /// only — the sidebar gates entry, but the renderer also mirrors the check.
 /// </summary>
