@@ -102,6 +102,10 @@ public class NotificationManager(ISoundManager soundManager) : INotificationMana
         State.RankDescription = notification.RankDescription;
         State.DeityDomain = notification.Deity;
         State.ElapsedTime = 0f;
+        // Read-only holiday toasts dismiss faster (~platform-standard ~4 s);
+        // rank-up keeps the longer 8 s window because the toast is actionable
+        // (click opens Blessings) and the user needs reading time to decide.
+        State.DisplayDuration = notification.Type == NotificationType.HolidayKept ? 4f : 8f;
         State.IsVisible = true;
 
         // Trigger ImGui to show so notification can be rendered
