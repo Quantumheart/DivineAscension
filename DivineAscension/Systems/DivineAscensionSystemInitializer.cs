@@ -98,6 +98,14 @@ public static class DivineAscensionSystemInitializer
         // Create messenger service after managers are initialized
         var messengerService = new PlayerMessengerService(worldService, religionManager, civilizationManager);
 
+        // Religion sacred calendar (#375): polls the in-game calendar daily so
+        // feast days fire chronicle entries + member broadcasts. Needs the
+        // religion manager (chronicler back-end) and the messenger.
+        var religionCalendarTicker = new ReligionCalendarTicker(
+            LoggingService.Instance.CreateLogger("ReligionCalendarTicker"),
+            eventService, worldService, religionManager, messengerService);
+        religionCalendarTicker.Initialize();
+
         var playerReligionDataManager = new PlayerProgressionDataManager(
             LoggingService.Instance.CreateLogger("PlayerProgressionDataManager")
             , eventService, persistenceService,

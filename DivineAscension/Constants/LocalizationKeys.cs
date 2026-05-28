@@ -858,6 +858,26 @@ public static class LocalizationKeys
     public const string CHRONICLE_RELIGION_LEFT_CIVILIZATION = "divineascension:chronicle.religion.left_civilization";
     public const string CHRONICLE_RELIGION_DISBANDED = "divineascension:chronicle.religion.disbanded";
 
+    // Sacred Calendar / feast days (#375)
+    public const string FEAST_FOUNDING_NAME = "divineascension:feast.founding.name";
+    public const string FEAST_PATRON_CRAFT_NAME = "divineascension:feast.patron.craft.name";
+    public const string FEAST_PATRON_WILD_NAME = "divineascension:feast.patron.wild.name";
+    public const string FEAST_PATRON_CONQUEST_NAME = "divineascension:feast.patron.conquest.name";
+    public const string FEAST_PATRON_HARVEST_NAME = "divineascension:feast.patron.harvest.name";
+    public const string FEAST_PATRON_STONE_NAME = "divineascension:feast.patron.stone.name";
+    public const string FEAST_FIRED_CHRONICLE_FOUNDING = "divineascension:feast.fired.chronicle.founding";
+    public const string FEAST_FIRED_CHRONICLE_PATRON = "divineascension:feast.fired.chronicle.patron";
+    public const string FEAST_FIRED_CHRONICLE_CUSTOM = "divineascension:feast.fired.chronicle.custom";
+    public const string FEAST_FIRED_BROADCAST_FOUNDING = "divineascension:feast.fired.broadcast.founding";
+    public const string FEAST_FIRED_BROADCAST_PATRON = "divineascension:feast.fired.broadcast.patron";
+    public const string FEAST_FIRED_BROADCAST_CUSTOM = "divineascension:feast.fired.broadcast.custom";
+    public const string UI_SACREDCALENDAR_TITLE = "divineascension:ui.sacredcalendar.title";
+    public const string UI_SACREDCALENDAR_INTRO = "divineascension:ui.sacredcalendar.intro";
+    public const string UI_SACREDCALENDAR_EMPTY = "divineascension:ui.sacredcalendar.empty";
+    public const string UI_SACREDCALENDAR_TODAY = "divineascension:ui.sacredcalendar.today";
+    public const string UI_SACREDCALENDAR_INDAYS = "divineascension:ui.sacredcalendar.indays";
+    public const string UI_RELIGION_TAB_SACREDCALENDAR = "divineascension:ui.religion.tab.sacredcalendar";
+
     // Civilization edit dialog
     public const string UI_CIVILIZATION_EDIT_TITLE = "divineascension:ui.civilization.edit.title";
     public const string UI_CIVILIZATION_EDIT_CIV_LABEL = "divineascension:ui.civilization.edit.civ_label";

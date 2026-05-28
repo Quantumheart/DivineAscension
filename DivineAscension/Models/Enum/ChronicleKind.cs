@@ -23,5 +23,6 @@ public enum ChronicleKind
     JoinedCivilization = 12,
     LeftCivilization = 13,
     WarParticipation = 14,
-    Sainted = 15
+    Sainted = 15,
+    FeastDay = 16
 }

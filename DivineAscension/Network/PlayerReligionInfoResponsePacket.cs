@@ -60,6 +60,38 @@ public class PlayerReligionInfoResponsePacket
     public List<ChronicleEntryDto> Chronicle { get; set; } = new();
 
     /// <summary>
+    ///     Sacred calendar feast days, ordered by next-occurrence ascending
+    ///     server-side (#375). The client just renders the list.
+    /// </summary>
+    [ProtoMember(19)]
+    public List<FeastDayDto> FeastDays { get; set; } = new();
+
+    /// <summary>In-game days per month, for date formatting / countdown math.</summary>
+    [ProtoMember(20)] public int DaysPerMonth { get; set; }
+
+    /// <summary>In-game months per year (typically 12).</summary>
+    [ProtoMember(21)] public int MonthsPerYear { get; set; }
+
+    /// <summary>Current in-game month (1-based), or 0 when unknown.</summary>
+    [ProtoMember(22)] public int CurrentMonth { get; set; }
+
+    /// <summary>Current in-game day-of-month (1-based), or 0 when unknown.</summary>
+    [ProtoMember(23)] public int CurrentDay { get; set; }
+
+    /// <summary>A single feast day sent to the client (#375).</summary>
+    [ProtoContract]
+    public class FeastDayDto
+    {
+        [ProtoMember(1)] public string Name { get; set; } = string.Empty;
+        [ProtoMember(2)] public int Month { get; set; }
+        [ProtoMember(3)] public int Day { get; set; }
+        /// <summary>Mirror of <see cref="DivineAscension.Models.Enum.FeastKind"/>.</summary>
+        [ProtoMember(4)] public int Kind { get; set; }
+        /// <summary>Pre-computed days until the next occurrence (0 = today).</summary>
+        [ProtoMember(5)] public int DaysUntil { get; set; }
+    }
+
+    /// <summary>
     ///     A single chronicle entry sent to the client for display.
     /// </summary>
     [ProtoContract]

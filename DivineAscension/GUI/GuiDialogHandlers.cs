@@ -236,7 +236,7 @@ public partial class GuiDialog
         var currentNav = _state.Sidebar.CurrentNav;
         var shouldSwitchTab = currentNav switch
         {
-            SidebarNavId.ReligionInfo or SidebarNavId.ReligionRoster or SidebarNavId.ReligionActivity or SidebarNavId.ReligionChronicle or SidebarNavId.ReligionRoles => !hasReligion,
+            SidebarNavId.ReligionInfo or SidebarNavId.ReligionRoster or SidebarNavId.ReligionActivity or SidebarNavId.ReligionChronicle or SidebarNavId.ReligionSacredCalendar or SidebarNavId.ReligionRoles => !hasReligion,
             SidebarNavId.ReligionInvites or SidebarNavId.ReligionCreate => hasReligion,
             _ => false
         };
@@ -356,7 +356,7 @@ public partial class GuiDialog
                 // AUTO-CORRECT NAV: snap away from member-only destinations.
                 var currentNav = _state.Sidebar.CurrentNav;
                 if (currentNav is SidebarNavId.ReligionInfo or SidebarNavId.ReligionActivity
-                    or SidebarNavId.ReligionChronicle or SidebarNavId.ReligionRoles)
+                    or SidebarNavId.ReligionChronicle or SidebarNavId.ReligionSacredCalendar or SidebarNavId.ReligionRoles)
                 {
                     _logger?.Debug(
                         $"[DivineAscension] Switching nav from {currentNav} to ReligionBrowse after leaving religion");

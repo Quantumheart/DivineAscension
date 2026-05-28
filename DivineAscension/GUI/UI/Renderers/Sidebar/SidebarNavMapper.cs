@@ -137,6 +137,10 @@ public static class SidebarNavMapper
             Item(SidebarNavId.ReligionChronicle,
                 LocalizationKeys.UI_RELIGION_TAB_CHRONICLE, "church",
                 ctx, !ctx.HasReligion, LocalizationKeys.SIDEBAR_DISABLED_NEED_RELIGION),
+            // Sacred Calendar — annual feast days (#375); same gate.
+            Item(SidebarNavId.ReligionSacredCalendar,
+                LocalizationKeys.UI_RELIGION_TAB_SACREDCALENDAR, "church",
+                ctx, !ctx.HasReligion, LocalizationKeys.SIDEBAR_DISABLED_NEED_RELIGION),
             // Roles — needs religion AND founder permission.
             Item(SidebarNavId.ReligionRoles,
                 LocalizationKeys.UI_RELIGION_TAB_ROLES, "roles",

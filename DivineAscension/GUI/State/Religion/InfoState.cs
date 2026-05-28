@@ -8,6 +8,7 @@ public class InfoState
     public float MyReligionScrollY { get; set; }
     public float MemberScrollY { get; set; }
     public float ChronicleScrollY { get; set; }
+    public float SacredCalendarScrollY { get; set; }
     public string InvitePlayerName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public bool Loading { get; set; }
@@ -37,6 +38,7 @@ public class InfoState
         MyReligionScrollY = 0f;
         MemberScrollY = 0f;
         ChronicleScrollY = 0f;
+        SacredCalendarScrollY = 0f;
         InvitePlayerName = string.Empty;
         Description = string.Empty;
         Loading = false;
