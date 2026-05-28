@@ -96,7 +96,7 @@ public class PlayerProgressionData
     ///     Soft cap on tracked discovered chunks per player. Past this, <see cref="TryAddDiscoveredChunk"/>
     ///     stops awarding to bound memory growth for explorers who roam tens of thousands of chunks.
     /// </summary>
-    public const int DiscoveredChunksSoftCap = 1_000_000;
+    public const int DiscoveredChunksSoftCap = 100_000;
 
     /// <summary>
     ///     Accumulated fractional favor per deity domain (not yet awarded) for passive generation.
