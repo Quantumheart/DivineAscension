@@ -141,6 +141,10 @@ public static class SidebarNavMapper
             Item(SidebarNavId.ReligionSacredCalendar,
                 LocalizationKeys.UI_RELIGION_TAB_SACREDCALENDAR, "church",
                 ctx, !ctx.HasReligion, LocalizationKeys.SIDEBAR_DISABLED_NEED_RELIGION),
+            // Holiday notices — projection of upcoming + recent feast days as Letters.
+            Item(SidebarNavId.ReligionNotices,
+                LocalizationKeys.UI_RELIGION_TAB_NOTICES, "envelope",
+                ctx, !ctx.HasReligion, LocalizationKeys.SIDEBAR_DISABLED_NEED_RELIGION),
             // Roles — needs religion AND founder permission.
             Item(SidebarNavId.ReligionRoles,
                 LocalizationKeys.UI_RELIGION_TAB_ROLES, "roles",

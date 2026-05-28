@@ -13,7 +13,10 @@ using DivineAscension.GUI.Models.Religion.Info;
 using DivineAscension.GUI.Models.Religion.Invites;
 using DivineAscension.GUI.Models.Religion.Roles;
 using DivineAscension.GUI.Models.Religion.Roster;
+using DivineAscension.GUI.Models.Letters;
 using DivineAscension.GUI.Models.Religion.SacredCalendar;
+using DivineAscension.GUI.UI.Adapters.Notices;
+using DivineAscension.GUI.UI.Renderers.Components;
 using DivineAscension.GUI.Models.Religion.Tab;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI.Adapters.Bans;
@@ -280,6 +283,46 @@ public class ReligionStateManager : IReligionStateManager
 
         // Process events (side effects)
         ProcessInvitesEvents(result.Events);
+    }
+
+    /// <summary>
+    ///     Draws the read-only Letters page projecting upcoming + recent
+    ///     feast days from the player's religion info response. Reuses the
+    ///     shared <see cref="LettersRenderer"/> and ignores any Accept /
+    ///     Refuse events (notices are informational).
+    /// </summary>
+    public void DrawReligionNotices(float x, float y, float width, float height)
+    {
+        var religion = State.InfoState.MyReligionInfo;
+        if (religion == null && !State.InfoState.Loading)
+            RequestPlayerReligionInfo();
+
+        var letters = religion != null
+            ? HolidayNoticeAdapter.Build(religion)
+            : System.Array.Empty<LetterEntry>();
+
+        var loc = LocalizationService.Instance;
+        var vm = new LettersViewModel(
+            title: loc.Get(LocalizationKeys.UI_NOTICES_TITLE),
+            intro: letters.Count == 0
+                ? loc.Get(LocalizationKeys.UI_NOTICES_EMPTY)
+                : loc.Get(LocalizationKeys.UI_NOTICES_INTRO),
+            closingLine: loc.Get(LocalizationKeys.UI_NOTICES_CLOSING),
+            loadingText: loc.Get(LocalizationKeys.UI_RELIGION_INFO_LOADING),
+            // Accept/Refuse labels are unused (every letter has ShowActions=false),
+            // but the VM requires them — pass empties.
+            acceptLabel: string.Empty,
+            refuseLabel: string.Empty,
+            letters: letters,
+            isLoading: State.InfoState.Loading,
+            x: x, y: y, width: width, height: height,
+            scrollY: State.InfoState.NoticesScrollY);
+
+        var drawList = ImGui.GetWindowDrawList();
+        var result = LettersRenderer.Draw(drawList, vm);
+        foreach (var ev in result.Events)
+            if (ev is GUI.Events.Letters.LettersEvent.ScrollChanged sc)
+                State.InfoState.NoticesScrollY = sc.NewScrollY;
     }
 
     /// <summary>
@@ -1050,6 +1093,9 @@ public class ReligionStateManager : IReligionStateManager
                 break;
             case SidebarNavId.ReligionSacredCalendar:
                 DrawReligionSacredCalendar(x, contentY, width, contentHeight);
+                break;
+            case SidebarNavId.ReligionNotices:
+                DrawReligionNotices(x, contentY, width, contentHeight);
                 break;
             case SidebarNavId.ReligionInvites:
                 DrawReligionInvites(x, contentY, width, contentHeight);
