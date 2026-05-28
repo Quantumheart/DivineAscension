@@ -101,21 +101,26 @@ internal static class SacredCalendarRenderer
         currentY = DrawIntro(drawList, x, currentY, contentWidth);
         currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
+        const float removeBtnSize = 18f;
+        const float removeBtnGap = 8f;
         foreach (var feast in vm.Feasts)
         {
+            var isRemovable = vm.IsFounder &&
+                              (int)feast.Kind == (int)DivineAscension.Models.Enum.FeastKind.Custom;
+            // Reserve room for the trash button so the right-aligned countdown
+            // doesn't slide under it.
+            var leaderWidth = isRemovable ? contentWidth - removeBtnSize - removeBtnGap : contentWidth;
+
             var date = FormatDate(feast.Month, feast.Day);
             var countdown = FormatCountdown(feast.DaysUntil);
             var rowLabel = $"{feast.Name}  ·  {date}";
-            ChromeRenderer.DrawLeader(drawList, rowLabel, countdown, x, currentY, contentWidth);
+            ChromeRenderer.DrawLeader(drawList, rowLabel, countdown, x, currentY, leaderWidth);
 
-            // Founder gets a trash control to the right of custom feasts only.
-            // Auto Founding/Patron are never removable.
-            if (vm.IsFounder && (int)feast.Kind == (int)DivineAscension.Models.Enum.FeastKind.Custom)
+            if (isRemovable)
             {
-                var btnSize = 18f;
-                var btnX = x + contentWidth - btnSize;
-                if (ButtonRenderer.DrawButton(drawList, "×", btnX, currentY - 2f, btnSize, btnSize,
-                        isPrimary: false, enabled: true))
+                var btnX = x + contentWidth - removeBtnSize;
+                if (ButtonRenderer.DrawButton(drawList, "x", btnX, currentY - 2f,
+                        removeBtnSize, removeBtnSize, isPrimary: false, enabled: true))
                 {
                     events.Add(new SacredCalendarEvent.RemoveRequested(feast.FeastId, feast.Name));
                 }
