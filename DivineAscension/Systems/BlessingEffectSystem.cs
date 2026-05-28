@@ -414,9 +414,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         RegisterStatIfNeeded(stats, VintageStoryStats.CropYield, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.SeedDropChance, EnumStatBlendType.FlatSum); // Additive chance
         RegisterStatIfNeeded(stats, VintageStoryStats.CookingYield, EnumStatBlendType.WeightedSum);
-        RegisterStatIfNeeded(stats, VintageStoryStats.HeatResistance, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.RareCropChance, EnumStatBlendType.FlatSum); // Additive chance
-        RegisterStatIfNeeded(stats, VintageStoryStats.WildCropYield, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.CookedFoodSatiety, EnumStatBlendType.WeightedSum);
 
         // War (Blood & Battle)

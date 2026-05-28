@@ -294,9 +294,7 @@ public class BlessingLoader : IBlessingLoader
         "cropYield",
         "seedDropChance",
         "cookingYield",
-        "heatResistance",
         "rareCropChance",
-        "wildCropDropRate",
         "cookedFoodSatiety",
 
         // Stone Stats

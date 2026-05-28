@@ -63,9 +63,7 @@ public static class VintageStoryStats
     public const string CropYield = "cropYield";
     public const string SeedDropChance = "seedDropChance";
     public const string CookingYield = "cookingYield";
-    public const string HeatResistance = "heatResistance";
     public const string RareCropChance = "rareCropChance";
-    public const string WildCropYield = "wildCropDropRate";
     public const string CookedFoodSatiety = "cookedFoodSatiety";
 
     // Stone (Pottery & Clay) Stats
