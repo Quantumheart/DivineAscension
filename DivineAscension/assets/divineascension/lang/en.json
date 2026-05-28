@@ -518,6 +518,8 @@
   "divineascension:chronicle.peace_signed": "Peace was made with {0}.",
   "divineascension:chronicle.alliance_formed": "An alliance was forged with {0}.",
   "divineascension:chronicle.disbanded": "And so {0} passed into memory.",
+  "divineascension:civ.foundingday.chronicle": "The realm of {0} kept its Founding Day, marking another year of the banner.",
+  "divineascension:civ.foundingday.broadcast": "Today the realm keeps its Founding Day.",
   "divineascension:ui.religion.info.chronicle.heading": "Chronicle of the Order",
   "divineascension:ui.religion.info.chronicle.day": "Day {0}",
   "divineascension:ui.religion.chronicle.empty": "No deeds have yet been chronicled for this order.",

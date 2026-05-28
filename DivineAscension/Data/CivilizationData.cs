@@ -151,6 +151,27 @@ public class Civilization
     public int WarKillCount { get; set; } = 0;
 
     /// <summary>
+    ///     In-game month captured at civ creation; drives the annual
+    ///     Founding Day holiday. 0 for pre-feature civilizations (no migration).
+    /// </summary>
+    [ProtoMember(20)]
+    public int FoundingMonth { get; set; }
+
+    /// <summary>In-game day-of-month captured at civ creation.</summary>
+    [ProtoMember(21)]
+    public int FoundingDay { get; set; }
+
+    /// <summary>
+    ///     Last in-game year the Founding Day fired. The ticker only fires
+    ///     when <c>calendar.Year &gt; FoundingDayLastFiredYear</c>, which
+    ///     makes the day-rollover idempotent across save/reload. Stamped to
+    ///     the founding year at creation so the first-year "anniversary on
+    ///     the day of founding" doesn't fire.
+    /// </summary>
+    [ProtoMember(22)]
+    public int FoundingDayLastFiredYear { get; set; }
+
+    /// <summary>
     ///     Civilization-wide blessings unlocked via milestones
     /// </summary>
     [ProtoMember(14)]

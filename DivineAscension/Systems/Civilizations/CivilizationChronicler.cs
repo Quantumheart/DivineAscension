@@ -83,6 +83,17 @@ internal sealed class CivilizationChronicler
             religionId));
     }
 
+    /// <summary>
+    ///     Records the annual Founding Day "kept by the realm" entry. Fired
+    ///     by <see cref="CivilizationCalendarTicker"/> on the day each year.
+    /// </summary>
+    public void RecordFoundingDay(Civilization civ)
+    {
+        civ.AddChronicleEntry(BuildEntry(ChronicleKind.FeastDay,
+            LocalizationService.Instance.Get(LocalizationKeys.CIV_FOUNDING_DAY_CHRONICLE, civ.Name),
+            null));
+    }
+
     public void RecordDisbanded(Civilization civ)
     {
         civ.AddChronicleEntry(BuildEntry(ChronicleKind.Disbanded,

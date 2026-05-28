@@ -106,6 +106,13 @@ public static class DivineAscensionSystemInitializer
             eventService, worldService, religionManager, messengerService);
         religionCalendarTicker.Initialize();
 
+        // Civilization Founding Day holiday — single annual auto-feast per civ,
+        // no custom calendar. Mirrors the religion ticker pattern.
+        var civilizationCalendarTicker = new CivilizationCalendarTicker(
+            LoggingService.Instance.CreateLogger("CivilizationCalendarTicker"),
+            eventService, worldService, civilizationManager, messengerService);
+        civilizationCalendarTicker.Initialize();
+
         var playerReligionDataManager = new PlayerProgressionDataManager(
             LoggingService.Instance.CreateLogger("PlayerProgressionDataManager")
             , eventService, persistenceService,

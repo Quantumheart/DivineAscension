@@ -129,6 +129,38 @@ public class CivilizationManager : ICivilizationManager
     }
 
     /// <summary>
+    ///     Appends a Founding Day chronicle entry and persists. Used by the
+    ///     <see cref="CivilizationCalendarTicker"/>.
+    /// </summary>
+    public void RecordFoundingDay(string civId)
+    {
+        lock (Lock)
+        {
+            var civ = _data.Civilizations.GetValueOrDefault(civId);
+            if (civ == null) return;
+            _chronicler.RecordFoundingDay(civ);
+            _store.Save(_data);
+        }
+    }
+
+    /// <summary>
+    ///     Stamps the in-game year on the civ's Founding-Day idempotency
+    ///     stamp. Returns false if the stamp is already at or beyond
+    ///     <paramref name="year"/> (don't fire), true if newly stamped (fire).
+    /// </summary>
+    public bool TryMarkFoundingDayFired(string civId, int year)
+    {
+        lock (Lock)
+        {
+            var civ = _data.Civilizations.GetValueOrDefault(civId);
+            if (civ == null) return false;
+            if (civ.FoundingDayLastFiredYear >= year) return false;
+            civ.FoundingDayLastFiredYear = year;
+            return true;
+        }
+    }
+
+    /// <summary>
     ///     Wires the holy-site manager dependency after construction so capital cascades
     ///     can fire. Called from the system initializer once both managers exist.
     /// </summary>
