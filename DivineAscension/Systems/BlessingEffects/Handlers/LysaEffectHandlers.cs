@@ -4,7 +4,9 @@ using System.Linq;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using DivineAscension.Services;
+using DivineAscension.Systems.Patches;
 using Vintagestory.API.Common;
+using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
 using Vintagestory.GameContent;
@@ -233,6 +235,56 @@ public static class LysaEffectHandlers
                 // Proxy for finding rare items: chance to double quantity
                 if (_worldService!.World.Rand.NextDouble() < 0.5)
                     dropQuantityMultiplier *= 2.0f;
+        }
+    }
+
+    /// <summary>
+    ///     Carcass Communion: skinning/butchering an animal restores a flat amount of satiety.
+    ///     Stat-driven — the carcassCommunion stat (FlatSum, base 0) carries the satiety units to
+    ///     restore per skin event, so the effect fires whenever that stat blends to &gt; 0. Activation
+    ///     is therefore implicit in the stat and the per-player activation hooks are no-ops.
+    /// </summary>
+    public class CarcassCommunionEffect : ISpecialEffectHandler, IDisposable
+    {
+        private ILoggerWrapper? _logger;
+        public string EffectId => SpecialEffects.CarcassCommunion;
+
+        public void Initialize(ILoggerWrapper logger, IEventService eventService, IWorldService worldService)
+        {
+            _logger = logger;
+            SkinningPatches.OnAnimalSkinned += OnAnimalSkinned;
+            _logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
+        }
+
+        public void ActivateForPlayer(IServerPlayer player)
+        {
+        }
+
+        public void DeactivateForPlayer(IServerPlayer player)
+        {
+        }
+
+        public void OnTick(float deltaTime)
+        {
+        }
+
+        public void Dispose()
+        {
+            SkinningPatches.OnAnimalSkinned -= OnAnimalSkinned;
+        }
+
+        private void OnAnimalSkinned(IServerPlayer player, Entity entity, float weight)
+        {
+            if (player?.Entity?.Stats == null) return;
+
+            // FlatSum stat (base 0): the blended value is the satiety units to restore.
+            var satiety = player.Entity.Stats.GetBlended(VintageStoryStats.CarcassCommunion);
+            if (satiety <= 0) return;
+
+            var hunger = player.Entity.GetBehavior<EntityBehaviorHunger>();
+            if (hunger == null) return;
+
+            hunger.Saturation = Math.Min(hunger.MaxSaturation, hunger.Saturation + satiety);
         }
     }
 }

@@ -409,6 +409,8 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         RegisterStatIfNeeded(stats, VintageStoryStats.TemperatureResistance, EnumStatBlendType.FlatSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.AnimalHarvestTime, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.ForagingYield, EnumStatBlendType.WeightedSum);
+        // CarcassCommunion uses FlatSum (base 0): blended value is raw satiety units restored per skin
+        RegisterStatIfNeeded(stats, VintageStoryStats.CarcassCommunion, EnumStatBlendType.FlatSum);
 
         // Harvest (Agriculture & Cooking)
         RegisterStatIfNeeded(stats, VintageStoryStats.CropYield, EnumStatBlendType.WeightedSum);
@@ -574,6 +576,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.RareForageChanceEffect());
         _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.FoodSpoilageEffect());
         _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.TemperatureResistanceEffect());
+        _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.CarcassCommunionEffect());
 
         // Harvest (Agriculture & Light) handlers
         _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.NeverMalnourishedEffect());

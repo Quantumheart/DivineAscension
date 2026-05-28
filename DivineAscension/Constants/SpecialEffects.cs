@@ -27,6 +27,12 @@ public static class SpecialEffects
     /// </summary>
     public const string TemperatureResistance = "temperature_resistance";
 
+    /// <summary>
+    ///     Carcass Communion: Skinning an animal restores flat satiety. The amount is carried by
+    ///     the carcassCommunion stat, so the handler fires whenever that stat is &gt; 0.
+    /// </summary>
+    public const string CarcassCommunion = "carcass_communion";
+
     #endregion
 
     #region Craft (Forge & Craft) Effects

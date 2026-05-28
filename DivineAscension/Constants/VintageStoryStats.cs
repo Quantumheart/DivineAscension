@@ -59,6 +59,9 @@ public static class VintageStoryStats
     public const string AnimalHarvestTime = "animalHarvestingTime";
     public const string ForagingYield = "foragingYield";
 
+    // carcassCommunion: flat satiety units restored per animal-skin event (FlatSum, base 0)
+    public const string CarcassCommunion = "carcassCommunion";
+
     // Harvest (Agriculture & Cooking) Stats
     public const string CropYield = "cropYield";
     public const string SeedDropChance = "seedDropChance";
