@@ -880,13 +880,15 @@ public static class LocalizationKeys
 
     // Founder add/remove custom feast days (#422)
     public const string UI_FEASTDAY_ADD = "divineascension:ui.feastday.add";
+    public const string UI_FEASTDAY_ADD_TITLE = "divineascension:ui.feastday.add.title";
+    public const string UI_FEASTDAY_ADD_ACTION = "divineascension:ui.feastday.add.action";
     public const string UI_FEASTDAY_REMOVE_CONFIRM = "divineascension:ui.feastday.remove.confirm";
+    public const string UI_FEASTDAY_REMOVE_ACTION = "divineascension:ui.feastday.remove.action";
     public const string UI_FEASTDAY_NAME_PLACEHOLDER = "divineascension:ui.feastday.name.placeholder";
     public const string UI_FEASTDAY_MONTH = "divineascension:ui.feastday.month";
     public const string UI_FEASTDAY_DAY = "divineascension:ui.feastday.day";
     public const string UI_FEASTDAY_CAP = "divineascension:ui.feastday.cap";
     public const string UI_FEASTDAY_LOCKED = "divineascension:ui.feastday.locked";
-    public const string UI_FEASTDAY_SUBMIT = "divineascension:ui.feastday.submit";
     public const string UI_FEASTDAY_CANCEL = "divineascension:ui.feastday.cancel";
     public const string FEASTDAY_ERR_UNKNOWN_RELIGION = "divineascension:feastday.error.unknownreligion";
     public const string FEASTDAY_ERR_NOT_FOUNDER = "divineascension:feastday.error.notfounder";

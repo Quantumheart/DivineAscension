@@ -226,7 +226,7 @@ internal static class SacredCalendarRenderer
         var curY = dlgY + padding;
 
         TextRenderer.DrawLabel(drawList,
-            loc.Get(LocalizationKeys.UI_FEASTDAY_ADD),
+            loc.Get(LocalizationKeys.UI_FEASTDAY_ADD_TITLE),
             curX, curY, PageTitle, ColorPalette.Gold);
         curY += PageTitle + 6f;
         ChromeRenderer.DrawDivider(drawList, curX, curY, bodyWidth);
@@ -279,7 +279,7 @@ internal static class SacredCalendarRenderer
 
         var canAdd = !string.IsNullOrWhiteSpace(vm.AddName);
         if (ButtonRenderer.DrawButton(drawList,
-                loc.Get(LocalizationKeys.UI_FEASTDAY_SUBMIT),
+                loc.Get(LocalizationKeys.UI_FEASTDAY_ADD_ACTION),
                 addX, btnY, btnWidth, btnHeight, isPrimary: true, enabled: canAdd)
             && canAdd)
             events.Add(new SacredCalendarEvent.AddSubmitted((vm.AddName ?? string.Empty).Trim(), month, day));
@@ -389,7 +389,7 @@ internal static class SacredCalendarRenderer
             events.Add(new SacredCalendarEvent.RemoveCancel());
 
         if (ButtonRenderer.DrawButton(drawList,
-                loc.Get(LocalizationKeys.UI_FEASTDAY_SUBMIT),
+                loc.Get(LocalizationKeys.UI_FEASTDAY_REMOVE_ACTION),
                 removeX, btnY, btnWidth, btnHeight, isPrimary: true, enabled: true))
             events.Add(new SacredCalendarEvent.RemoveConfirmed(vm.RemoveConfirmFeastId!.Value));
 
