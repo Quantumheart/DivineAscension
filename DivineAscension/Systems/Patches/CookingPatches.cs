@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using DivineAscension.Constants;
 using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
@@ -43,6 +44,15 @@ public static class CookingPatches
         {
             /* ignore listener errors */
         }
+    }
+
+    // Scale a cooked output stack by the player's cookingYield blessing stat.
+    // Multiplier is a WeightedSum stat with base 1.0, so >1.0 means a bonus.
+    internal static void ApplyCookingYield(IServerPlayer player, ItemStack stack)
+    {
+        var yield = player.Entity?.Stats?.GetBlended(VintageStoryStats.CookingYield) ?? 1f;
+        if (yield <= 1f || stack.StackSize <= 0) return;
+        stack.StackSize = Math.Max(stack.StackSize, (int)Math.Round(stack.StackSize * yield));
     }
 
     // Track last interacting player via exact decompiled method
@@ -129,7 +139,10 @@ public static class CookingPatches
 
             // Consider it cooked if collectible code changed
             if (before == null || before.Collectible?.Code != after.Collectible?.Code)
+            {
+                ApplyCookingYield(player, after);
                 RaiseMealCooked(player, after.Clone(), __instance.Pos);
+            }
         }
     }
 
@@ -207,7 +220,10 @@ public static class CookingPatches
                     if (afterSlot == null || afterSlot.Empty) continue;
                     var after = afterSlot.Itemstack;
                     if (before == null || before.Collectible?.Code != after.Collectible?.Code)
+                    {
+                        ApplyCookingYield(player, after);
                         RaiseMealCooked(player, after.Clone(), be.Pos);
+                    }
                 }
             }
         }
