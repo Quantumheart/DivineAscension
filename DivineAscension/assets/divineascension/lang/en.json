@@ -1562,8 +1562,5 @@
   "caravantrade.partner_left": "Your trading partner left the table.",
   "caravantrade.error.too_far": "You are too far from the shrine to trade here.",
   "caravantrade.error.full": "This trade table is already occupied by two traders.",
-  "caravantrade.error.busy": "Finish your current trade before starting another.",
-  "trait-da_member": "Member of a Holy Order",
-  "trait-da_blessed": "Blessed",
-  "trait-da_favored": "Favored"
+  "caravantrade.error.busy": "Finish your current trade before starting another."
 }
