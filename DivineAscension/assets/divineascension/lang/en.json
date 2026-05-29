@@ -1539,5 +1539,13 @@
   "blockdesc-lectern-agedopen-north": "Right-click to open the codex.",
   "blockdesc-lectern-agedopen-east": "Right-click to open the codex.",
   "blockdesc-lectern-agedopen-south": "Right-click to open the codex.",
-  "blockdesc-lectern-agedopen-west": "Right-click to open the codex."
+  "blockdesc-lectern-agedopen-west": "Right-click to open the codex.",
+  "block-caravanshrine": "Caravan Shrine",
+  "blockdesc-caravanshrine": "A portable wayside shrine of the open road. Acts as a tier-1 altar. Granted by the Avatar of the Road blessing.",
+  "caravanshrine.error.no_blessing": "You must unlock 'Avatar of the Road' to place a Caravan Shrine.",
+  "caravanshrine.error.already_placed": "You already have a Caravan Shrine placed. Break it to relocate.",
+  "caravanshrine.error.foreign_holysite": "You cannot place a Caravan Shrine inside another religion's holy site.",
+  "caravanshrine.placed": "Caravan Shrine placed. May the road carry you far.",
+  "caravanshrine.granted": "The road provides — a Caravan Shrine has been added to your inventory.",
+  "caravanshrine.returned": "Caravan Shrine returned to your inventory."
 }

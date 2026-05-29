@@ -402,6 +402,61 @@ public class PlayerProgressionData
     [ProtoMember(117)] private HashSet<long> _discoveredTraderEntityIds = new();
 
     /// <summary>
+    ///     Currently-placed Caravan Shrine position, or <c>null</c> when the player has no
+    ///     shrine placed. Enforces the one-shrine-per-player rule across save/reload.
+    ///     Stored as a 3-int triple so negative world coords round-trip cleanly.
+    /// </summary>
+    [ProtoMember(118)] public int? PlacedCaravanShrineX { get; set; }
+
+    [ProtoMember(119)] public int? PlacedCaravanShrineY { get; set; }
+
+    [ProtoMember(120)] public int? PlacedCaravanShrineZ { get; set; }
+
+    /// <summary>
+    ///     True when the player currently has a Caravan Shrine placed in the world.
+    /// </summary>
+    [ProtoIgnore]
+    public bool HasPlacedCaravanShrine =>
+        PlacedCaravanShrineX.HasValue && PlacedCaravanShrineY.HasValue && PlacedCaravanShrineZ.HasValue;
+
+    /// <summary>
+    ///     Records the position of the player's newly-placed Caravan Shrine. Thread-safe.
+    /// </summary>
+    public void SetPlacedCaravanShrine(int x, int y, int z)
+    {
+        lock (Lock)
+        {
+            PlacedCaravanShrineX = x;
+            PlacedCaravanShrineY = y;
+            PlacedCaravanShrineZ = z;
+        }
+    }
+
+    /// <summary>
+    ///     Clears the recorded Caravan Shrine position. Thread-safe.
+    /// </summary>
+    public void ClearPlacedCaravanShrine()
+    {
+        lock (Lock)
+        {
+            PlacedCaravanShrineX = null;
+            PlacedCaravanShrineY = null;
+            PlacedCaravanShrineZ = null;
+        }
+    }
+
+    /// <summary>
+    ///     True when the recorded shrine pos matches the supplied coords. Thread-safe.
+    /// </summary>
+    public bool IsPlacedCaravanShrineAt(int x, int y, int z)
+    {
+        lock (Lock)
+        {
+            return PlacedCaravanShrineX == x && PlacedCaravanShrineY == y && PlacedCaravanShrineZ == z;
+        }
+    }
+
+    /// <summary>
     ///     Count of trader entities already credited for first-encounter bonus (thread-safe).
     /// </summary>
     public int DiscoveredTraderCount
