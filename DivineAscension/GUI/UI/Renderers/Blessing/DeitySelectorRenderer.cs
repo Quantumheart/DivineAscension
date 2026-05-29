@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.Configuration;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
@@ -20,14 +21,21 @@ internal static class DeitySelectorRenderer
     private const float PatronBorderThickness = 2.5f;
     private const float ActiveBorderThickness = 2f;
     public const float Height = TabSize + 4f;
-    public const int TabCount = 6;
+    public const int TabCount = FeatureFlags.CaravanDomainEnabled ? 6 : 5;
     public const float StripWidth = TabCount * TabSize + (TabCount - 1) * TabSpacing;
 
-    private static readonly DeityDomain[] Order =
-    {
-        DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest, DeityDomain.Harvest, DeityDomain.Stone,
-        DeityDomain.Caravan
-    };
+    // Caravan is appended only when its domain is enabled (see FeatureFlags). Keep the
+    // count above (TabCount) in sync with this array's length.
+    private static readonly DeityDomain[] Order = FeatureFlags.CaravanDomainEnabled
+        ? new[]
+        {
+            DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest, DeityDomain.Harvest, DeityDomain.Stone,
+            DeityDomain.Caravan
+        }
+        : new[]
+        {
+            DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest, DeityDomain.Harvest, DeityDomain.Stone
+        };
 
     /// <summary>
     ///     Draw the deity selector. Returns the deity the user clicked this frame, or null.

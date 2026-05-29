@@ -15,14 +15,24 @@ public class DomainHelperTests
     [Fact]
     public void DeityNames_ContainsAllDomains()
     {
-        // Assert - DeityNames is now an alias for DomainNames
-        Assert.Equal(6, DomainHelper.DeityNames.Length);
+        // DeityNames is an alias for DomainNames. Caravan is gated behind
+        // FeatureFlags.CaravanDomainEnabled, so it's present only when enabled.
         Assert.Contains("Craft", DomainHelper.DeityNames);
         Assert.Contains("Wild", DomainHelper.DeityNames);
         Assert.Contains("Conquest", DomainHelper.DeityNames);
         Assert.Contains("Harvest", DomainHelper.DeityNames);
         Assert.Contains("Stone", DomainHelper.DeityNames);
-        Assert.Contains("Caravan", DomainHelper.DeityNames);
+
+        if (DivineAscension.Configuration.FeatureFlags.CaravanDomainEnabled)
+        {
+            Assert.Equal(6, DomainHelper.DeityNames.Length);
+            Assert.Contains("Caravan", DomainHelper.DeityNames);
+        }
+        else
+        {
+            Assert.Equal(5, DomainHelper.DeityNames.Length);
+            Assert.DoesNotContain("Caravan", DomainHelper.DeityNames);
+        }
     }
 
     #endregion

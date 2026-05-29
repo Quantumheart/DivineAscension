@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using DivineAscension.Configuration;
 using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models;
@@ -78,8 +79,10 @@ public class CivilizationMilestoneManager : ICivilizationMilestoneManager
         _religionManager.OnMemberAdded += HandleMemberAdded;
         _religionManager.OnMemberRemoved += HandleMemberRemoved;
 
-        // Subscribe to NPC trader transactions for the trade_hub milestone (Caravan)
-        Patches.TraderPatches.OnTraderTransaction += HandleTraderTransaction;
+        // Subscribe to NPC trader transactions for the trade_hub milestone (Caravan).
+        // Gated: when the Caravan domain is off, NPC trades never feed the milestone.
+        if (FeatureFlags.CaravanDomainEnabled)
+            Patches.TraderPatches.OnTraderTransaction += HandleTraderTransaction;
 
         _logger.Notification("[DivineAscension] Civilization Milestone Manager initialized");
     }
