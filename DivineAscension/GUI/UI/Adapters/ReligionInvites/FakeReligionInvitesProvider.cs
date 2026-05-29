@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using DivineAscension.GUI.Models.Religion.Invites;
 using DivineAscension.Models.Enum;
 
@@ -37,11 +38,9 @@ internal sealed class FakeReligionInvitesProvider : IReligionInvitesProvider
         "A long missive that runs well past the comfortable single line so the truncation and ellipsis behaviour can be reviewed in the styled preview without a server."
     };
 
-    private static readonly DeityDomain[] Domains =
-    {
-        DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest,
-        DeityDomain.Harvest, DeityDomain.Stone
-    };
+    // Mirrors the domains a player can actually worship (Caravan appears only
+    // when its feature flag is on) — sourced from the SST (#558).
+    private static readonly DeityDomain[] Domains = DeityDomains.Selectable.ToArray();
 
     private IReadOnlyList<InviteData> _cache = Array.Empty<InviteData>();
     private int _count = 4;

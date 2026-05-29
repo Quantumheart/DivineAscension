@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using DivineAscension.Models.Enum;
 
 namespace DivineAscension.GUI.UI.Adapters.Religions;
@@ -25,7 +26,7 @@ internal sealed class FakeReligionProvider : IReligionProvider
     };
 
     private static readonly string[] Deities =
-        { nameof(DeityDomain.Craft), nameof(DeityDomain.Wild), nameof(DeityDomain.Harvest), nameof(DeityDomain.Stone) };
+        DeityDomains.Selectable.Select(d => d.ToString()).ToArray();
 
     private static readonly string[] DeityNames =
     {
