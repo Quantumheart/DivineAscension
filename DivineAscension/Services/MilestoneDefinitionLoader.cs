@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using DivineAscension.Configuration;
 using DivineAscension.Models;
 using DivineAscension.Services.Interfaces;
 using Vintagestory.API.Common;
@@ -63,6 +64,13 @@ public class MilestoneDefinitionLoader : IMilestoneDefinitionLoader
             {
                 try
                 {
+                    // Caravan domain gated off: drop its trade_hub milestone so it
+                    // doesn't show as a permanently-unreachable goal (see FeatureFlags).
+                    if (!FeatureFlags.CaravanDomainEnabled &&
+                        string.Equals(dto.Trigger?.Type, "npc_trade_count",
+                            StringComparison.OrdinalIgnoreCase))
+                        continue;
+
                     var milestone = ConvertToMilestoneDefinition(dto);
                     if (milestone != null)
                     {

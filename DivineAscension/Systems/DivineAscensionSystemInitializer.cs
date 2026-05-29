@@ -185,35 +185,44 @@ public static class DivineAscensionSystemInitializer
             altarEventEmitter);
         altarDestructionHandler.Initialize();
 
-        // Caravan shrine handlers reuse AltarEventEmitter; they filter on the caravanshrine
-        // block code so altar handlers above ignore the same events and vice versa.
-        var caravanShrinePlacementHandler = new CaravanShrinePlacementHandler(
-            LoggingService.Instance.CreateLogger("CaravanShrinePlacementHandler"),
-            altarEventEmitter,
-            playerReligionDataManager,
-            religionManager,
-            holySiteManager,
-            worldService,
-            messengerService);
-        caravanShrinePlacementHandler.Initialize();
+        // Caravan domain (#433) is gated behind FeatureFlags.CaravanDomainEnabled while it
+        // bakes. When off, none of the shrine/trade servers are constructed; the block stays
+        // registered but creative-only and the favor trackers no-op (no Caravan worshippers).
+        CaravanShrinePlacementHandler? caravanShrinePlacementHandler = null;
+        CaravanShrineDestructionHandler? caravanShrineDestructionHandler = null;
+        CaravanTradeSessionManager? caravanTradeSessionManager = null;
+        if (FeatureFlags.CaravanDomainEnabled)
+        {
+            // Caravan shrine handlers reuse AltarEventEmitter; they filter on the caravanshrine
+            // block code so altar handlers above ignore the same events and vice versa.
+            caravanShrinePlacementHandler = new CaravanShrinePlacementHandler(
+                LoggingService.Instance.CreateLogger("CaravanShrinePlacementHandler"),
+                altarEventEmitter,
+                playerReligionDataManager,
+                religionManager,
+                holySiteManager,
+                worldService,
+                messengerService);
+            caravanShrinePlacementHandler.Initialize();
 
-        var caravanShrineDestructionHandler = new CaravanShrineDestructionHandler(
-            LoggingService.Instance.CreateLogger("CaravanShrineDestructionHandler"),
-            altarEventEmitter,
-            playerReligionDataManager,
-            worldService,
-            messengerService);
-        caravanShrineDestructionHandler.Initialize();
+            caravanShrineDestructionHandler = new CaravanShrineDestructionHandler(
+                LoggingService.Instance.CreateLogger("CaravanShrineDestructionHandler"),
+                altarEventEmitter,
+                playerReligionDataManager,
+                worldService,
+                messengerService);
+            caravanShrineDestructionHandler.Initialize();
 
-        // Player-to-player trade table hosted at caravan shrines (#433). Server-authoritative
-        // session state + sync; subscribes to the trade request packets and player disconnect.
-        var caravanTradeSessionManager = new CaravanTradeSessionManager(
-            LoggingService.Instance.CreateLogger("CaravanTradeSessionManager"),
-            networkService,
-            worldService,
-            eventService,
-            messengerService);
-        caravanTradeSessionManager.Initialize();
+            // Player-to-player trade table hosted at caravan shrines (#433). Server-authoritative
+            // session state + sync; subscribes to the trade request packets and player disconnect.
+            caravanTradeSessionManager = new CaravanTradeSessionManager(
+                LoggingService.Instance.CreateLogger("CaravanTradeSessionManager"),
+                networkService,
+                worldService,
+                eventService,
+                messengerService);
+            caravanTradeSessionManager.Initialize();
+        }
 
         // NOTE: AltarPrayerHandler initialized after FavorSystem (needs IFavorSystem and IActivityLogManager)
 
@@ -607,9 +616,10 @@ public class InitializationResult
     public IHolySiteAreaTracker HolySiteAreaTracker { get; init; } = null!;
     public AltarPlacementHandler AltarPlacementHandler { get; init; } = null!;
     public AltarDestructionHandler AltarDestructionHandler { get; init; } = null!;
-    public CaravanShrinePlacementHandler CaravanShrinePlacementHandler { get; init; } = null!;
-    public CaravanShrineDestructionHandler CaravanShrineDestructionHandler { get; init; } = null!;
-    public CaravanTradeSessionManager CaravanTradeSessionManager { get; init; } = null!;
+    // Null when FeatureFlags.CaravanDomainEnabled is off (systems not constructed).
+    public CaravanShrinePlacementHandler? CaravanShrinePlacementHandler { get; init; }
+    public CaravanShrineDestructionHandler? CaravanShrineDestructionHandler { get; init; }
+    public CaravanTradeSessionManager? CaravanTradeSessionManager { get; init; }
     public AltarPrayerHandler AltarPrayerHandler { get; init; } = null!;
     public FavorSystem FavorSystem { get; init; } = null!;
     public ActivityLogManager ActivityLogManager { get; init; } = null!;

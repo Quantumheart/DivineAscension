@@ -114,6 +114,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
     {
         var domains = Enum.GetValues<DeityDomain>()
             .Where(d => d != DeityDomain.None)
+            // Caravan domain is gated until debugged/balanced (see FeatureFlags).
+            .Where(d => Configuration.FeatureFlags.CaravanDomainEnabled || d != DeityDomain.Caravan)
             .Select(d => d.ToString())
             .ToList();
 
@@ -407,8 +409,10 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             {
                 message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ALREADY_IN_RELIGION);
             }
-            else if (!Enum.TryParse<DeityDomain>(packet.Domain, out var domain) || domain == DeityDomain.None)
+            else if (!Enum.TryParse<DeityDomain>(packet.Domain, out var domain) || domain == DeityDomain.None ||
+                     (!Configuration.FeatureFlags.CaravanDomainEnabled && domain == DeityDomain.Caravan))
             {
+                // Reject gated domains server-side too — never trust the client to omit them.
                 message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVALID_DEITY);
             }
             else if (string.IsNullOrWhiteSpace(packet.DeityName))

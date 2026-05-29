@@ -11,12 +11,12 @@ namespace DivineAscension.GUI.UI.Utilities;
 internal static class DomainHelper
 {
     /// <summary>
-    ///     All domain names in order (6 domains)
+    ///     All selectable domain names in order. Caravan is appended only when its
+    ///     domain is enabled (see <see cref="Configuration.FeatureFlags.CaravanDomainEnabled"/>).
     /// </summary>
-    public static readonly string[] DomainNames =
-    {
-        "Craft", "Wild", "Conquest", "Harvest", "Stone", "Caravan"
-    };
+    public static readonly string[] DomainNames = Configuration.FeatureFlags.CaravanDomainEnabled
+        ? new[] { "Craft", "Wild", "Conquest", "Harvest", "Stone", "Caravan" }
+        : new[] { "Craft", "Wild", "Conquest", "Harvest", "Stone" };
 
     /// <summary>
     ///     Legacy: All deity names (now domain names) - alias for DomainNames
