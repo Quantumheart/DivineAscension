@@ -90,7 +90,7 @@ public class PlayerProgressionData
     ///     Data version (internal bookkeeping only — Pantheon 2.0 no longer carries cross-version save migrations).
     /// </summary>
     [ProtoMember(104)]
-    public int DataVersion { get; set; } = 8;
+    public int DataVersion { get; set; } = 9;
 
     /// <summary>
     ///     Soft cap on tracked discovered chunks per player. Past this, <see cref="TryAddDiscoveredChunk"/>
@@ -641,6 +641,72 @@ public class PlayerProgressionData
             var domainKey = (int)domain;
             _committedBranchesSerializable.Remove(domainKey);
             _lockedBranchesSerializable.Remove(domainKey);
+        }
+    }
+
+    #endregion
+
+    #region Granted Trait Codes (#559)
+
+    /// <summary>
+    ///     VS character-trait codes granted to this player by Divine Ascension
+    ///     (religion membership, blessings, favor tiers — wired in by later slices).
+    ///     Mirrors what is written into <c>EntityPlayer.WatchedAttributes["extraTraits"]</c>;
+    ///     re-applied on player join so stats survive restart.
+    /// </summary>
+    [ProtoMember(121)] private HashSet<string> _grantedTraitCodes = new();
+
+    /// <summary>
+    ///     Snapshot of granted trait codes for thread-safe enumeration.
+    /// </summary>
+    [ProtoIgnore]
+    public IReadOnlyCollection<string> GrantedTraitCodes
+    {
+        get
+        {
+            lock (Lock)
+            {
+                return _grantedTraitCodes.ToList();
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Adds a granted trait code. Returns true if it was newly added. Thread-safe.
+    /// </summary>
+    public bool AddGrantedTraitCode(string code)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            return false;
+        lock (Lock)
+        {
+            return _grantedTraitCodes.Add(code);
+        }
+    }
+
+    /// <summary>
+    ///     Removes a granted trait code. Returns true if it was present. Thread-safe.
+    /// </summary>
+    public bool RemoveGrantedTraitCode(string code)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            return false;
+        lock (Lock)
+        {
+            return _grantedTraitCodes.Remove(code);
+        }
+    }
+
+    /// <summary>
+    ///     Whether the given trait code has been granted by Divine Ascension. Thread-safe.
+    /// </summary>
+    public bool HasGrantedTraitCode(string code)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            return false;
+        lock (Lock)
+        {
+            return _grantedTraitCodes.Contains(code);
         }
     }
 
