@@ -4,9 +4,9 @@ A deity-driven religion and civilization system for Vintage Story.
 
 ## Quick Reference
 
-**Hotkey**: `Shift+G` opens the Divine Ascension GUI
+**Opening the menu**: Right-click a **Lectern** block. There is no global hotkey in release builds — every player needs lectern access. (Debug builds additionally bind `Shift+G`.)
 
-**Domains**: Craft, Wild, Conquest, Harvest, Stone
+**Domains**: Craft, Wild, Conquest, Harvest, Stone — you earn favor with **all five at once**; your patron deity gets a 1.5× bonus.
 
 | Command | Description |
 |---------|-------------|
@@ -30,24 +30,26 @@ A deity-driven religion and civilization system for Vintage Story.
 
 ## Getting Started
 
-1. **Create or join a religion**: `/religion create "My Religion" craft "Khoras" public`
-2. **Open the GUI**: Press `Shift+G`
-3. **Create a holy site**: Place an altar within your land claims
-4. **Earn favor**: Perform domain-aligned activities
-5. **Unlock blessings**: Spend favor on permanent bonuses
+1. **Craft a Lectern** (parchment + book + plank, vertical middle column). Three styles available: Lectern, Reading Stand, Weathered Lectern.
+2. **Right-click the Lectern** to open the codex menu. Walking more than ~4 blocks away auto-closes it.
+3. **Create or join a religion**: `/religion create "My Religion" craft "Khoras" public` — or browse public religions in the codex.
+4. **Create a holy site**: Place an altar within your land claims.
+5. **Earn favor**: Play naturally — every domain-aligned action fills its domain's pool. Your patron earns a 1.5× bonus on top.
+6. **Unlock blessings**: Spend favor on permanent bonuses (double-click in the blessing tree to inscribe).
 
 ### Core Concepts
 
-- **Favor**: Personal progression currency (individual)
+- **Favor**: Personal progression currency, tracked **per deity** — all five simultaneously
 - **Prestige**: Religion-wide reputation (shared)
-- **Blessings**: Permanent stat bonuses unlocked with favor
+- **Blessings**: Permanent stat bonuses unlocked with favor — can be **struck** (unlearned) for a refund
 - **Holy Sites**: Consecrated areas that multiply prayer rewards
+- **Codex Chapters**: Menu is organized into three sections — **I. Of Self · II. Of Orders · III. Of Realms**
 
 ---
 
 ## Domains
 
-Choose a domain when creating your religion. Each rewards different activities.
+Pick a **patron** domain when founding your religion — it earns a 1.5× favor multiplier and unlocks domain-locked capstone blessings. You still earn favor with the **other four** domains from their respective activities, just at base rate.
 
 ### Craft Domain
 
@@ -200,16 +202,41 @@ Ritual offerings award 50% normal favor (no cooldown).
 Blessings provide permanent stat bonuses. Two types:
 
 **Player Blessings**: Unlocked with your favor, benefit only you
-**Religion Blessings**: Unlocked by founders with prestige, benefit all members
+**Religion Blessings**: Unlocked by founders (or roles with the `UnlockBlessings` permission) using prestige, benefit all members
 
 ### Unlocking
 
-1. Open GUI (`Shift+G`) → Blessings tab
-2. Select a blessing
-3. Check requirements (rank, prerequisites, cost)
-4. Click Unlock
+1. Open the codex at a Lectern → **I. Of Self → Blessings** (or **II. Of Orders → Religion Blessings** for religion-wide)
+2. Browse the branching tree (parchment + wax-seal layout)
+3. Hover for blessing details and requirements (rank, prerequisites, cost)
+4. **Double-click** the blessing to inscribe (a confirmation modal opens for destructive choices)
 
 Spending favor on blessings does NOT reduce your rank (rank is based on lifetime earned).
+
+### Active Slot Cap
+
+Each religion can carry a limited number of **active** religion blessings at once, tied to the patron deity's favor rank. Rank up to grow your slot count. The slot cap is enforced server-side; trying to unlock past it is blocked. You can free a slot by **striking** an existing blessing (see below).
+
+Personal blessings have an analogous active slot cap that scales with your own favor rank.
+
+### Strike (Unlearn)
+
+Both personal and religion blessings can be **struck** (unlearned) for a favor refund:
+
+1. Find the blessing in the tree
+2. Open its detail panel and choose **Strike**
+3. A confirmation modal lists every blessing about to fall — **prerequisites cascade**, so dependent blessings are struck too
+4. Confirm to commit
+
+Refunds default to a percentage of the favor spent. If a server admin has opened a **free-respec window**, refunds are 100% for the duration of the window.
+
+### Apostasy Penalty
+
+Leaving a religion strips every **domain-locked** blessing you held (capstones, religion-specific gates). Cross-domain blessings stay. Plan religion changes carefully — there is no refund.
+
+### Branches
+
+Some blessings live on **mutually exclusive branches**. Picking one branch locks the others. Choose carefully.
 
 ---
 
@@ -274,13 +301,64 @@ Minor milestones provide one-time prestige payouts without advancing rank.
 
 #### Viewing Milestones
 
-Open the civilization panel to view your progress:
-1. Press `Shift+G` to open the GUI
-2. Navigate to the Civilizations tab
-3. Select your civilization
-4. Click the Milestones tab
+Open the codex at a Lectern → **III. Of Realms → This Realm → Laurels** to view your civilization's milestone progress.
+
+### Civic Boons
+
+Earned milestones surface as **civic boons** on the Civilization Detail page with distinct glyphs per boon and ornate dividers. Hover any boon for its value, source milestone, and the rule it modifies.
+
+### Ethos
+
+When founding a civilization, the founder picks an **Ethos** — an epithet (e.g. "Mercantile", "Crusading", "Eclectic") that flavors the civilization's character and shows up in chronicle entries and the create-form preview.
+
+### Capital Binding
+
+A civilization founder can bind one **holy site** within the civilization as the **capital**. The capital's name persists across reloads and shows on the civilization detail page.
+
+### Annual Founding Day
+
+Every civilization (and religion) celebrates its own **Founding Day** holiday on the in-game anniversary of its founding. The day-of fires a "holiday kept" toast and a chronicle entry; the prior in-game day fires an advance-notice toast.
 
 ---
+
+## Sacred Calendar
+
+Religions get holidays. Two flavors:
+
+**Automatic — Founding Day**: fires every in-game anniversary of the religion's founding. No setup needed.
+
+**Custom — Founder-defined feast days**: religion founders can add or remove custom feast days from the codex calendar. Each feast day fires:
+- An **advance-notice toast** one in-game day before
+- A **"holiday kept" toast** day-of
+- A **chronicle entry** logging the observance
+
+Open the codex → **II. Of Orders → This Order → Sacred Calendar** to manage feast days as founder, or just view them as a member.
+
+## Realm Chronicles
+
+Both religions and civilizations keep an automatic **chronicle of significant events**:
+
+- Founding, member joins, founder transfers
+- Holidays kept
+- Capital binding (civilizations)
+- Wars declared, peace accords signed
+- Major milestones
+
+Every entry is stamped with the in-game calendar date. Find them under **II. Of Orders → Chronicles** (religion) or **III. Of Realms → Chronicles** (civilization).
+
+## Standing of Realms
+
+The codex includes a **leaderboard chapter** that ranks public religions across three boards:
+
+| Board | Measures |
+|---|---|
+| **Conquest** | PvP kills, wars won |
+| **Endurance** | Longevity, member retention |
+| **Deeds** | Milestones, prestige |
+
+Your own religion's standing is **pinned** at the top even when you're not in the top ranks. Use the board selector at the top of the page to switch between boards.
+
+Find it under **III. Of Realms → Standing of Realms**.
 
 ## Diplomacy
 
@@ -317,7 +395,7 @@ Civilizations can form diplomatic relationships.
 |---------|-------------|
 | `/religion create <name> <domain> <deityname> [visibility]` | Create religion |
 | `/religion join <name>` | Join public religion |
-| `/religion leave` | Leave religion |
+| `/religion leave` | Leave religion (strips domain-locked blessings — apostasy penalty) |
 | `/religion list [domain]` | List religions |
 | `/religion info <name>` | Show religion details |
 | `/religion invite <player>` | Invite player |
@@ -325,7 +403,10 @@ Civilizations can form diplomatic relationships.
 | `/religion ban <player> [reason] [days]` | Ban player |
 | `/religion unban <player>` | Unban player |
 | `/religion setdeityname "name"` | Change deity name (founder) |
+| `/religion description "<text>"` | Set religion description / motto |
 | `/religion disband` | Delete religion (founder) |
+
+Most religion management is also available from the codex menu opened at a **Lectern**.
 
 ### Other
 
@@ -380,10 +461,13 @@ Perform activities matching your domain:
 - Check favor rank requirement
 - Check prerequisite blessings
 - Ensure you have enough favor
+- Check the **active slot cap** — you may need to strike an existing blessing first
+- Confirm the blessing isn't on a **locked-out exclusive branch**
 
-**GUI won't open?**
-- Press `Shift+G` (not just G)
-- Check for keybind conflicts
+**Codex menu won't open?**
+- Right-click a **Lectern** block (release builds have no global hotkey)
+- Make sure you're within ~4 blocks of the lectern — further than that and the dialog auto-closes
+- Debug builds only: try `Shift+G`
 
 **Can't leave religion as founder?**
 - Transfer founder status first, or
@@ -414,4 +498,4 @@ Perform activities matching your domain:
 
 ---
 
-*Last Updated: February 2, 2026*
+*Last Updated: 2026-05-29 (v5.0.0)*
