@@ -8,17 +8,20 @@
     "general": ["*"],
     "decorative": ["*"]
   },
-  "shape": { "base": "game:block/stone/looseboulders/free1" },
+  "shape": { "base": "game:block/basic/cube" },
   "textures": {
-    "rock": { "base": "game:block/stone/rock/granite1" }
+    "up": { "base": "game:block/stone/altar/top" },
+    "down": { "base": "game:block/stone/altar/bottom" },
+    "south": { "base": "game:block/stone/altar/front" },
+    "north": { "base": "game:block/stone/altar/back" },
+    "west": { "base": "game:block/stone/altar/left" },
+    "east": { "base": "game:block/stone/altar/right" }
   },
-  "collisionbox": { "x1": 0, "y1": 0, "z1": 0, "x2": 1, "y2": 0.5, "z2": 1 },
-  "selectionbox": { "x1": 0, "y1": 0, "z1": 0, "x2": 1, "y2": 0.5, "z2": 1 },
   "blockmaterial": "Stone",
   "resistance": 5,
-  "sidesolid": { "all": false },
-  "sideopaque": { "all": false },
-  "lightAbsorption": 0,
+  "sidesolid": { "all": true },
+  "sideopaque": { "all": true },
+  "lightAbsorption": 99,
   "replaceable": 500,
   "maxStackSize": 1,
   "attributes": {
