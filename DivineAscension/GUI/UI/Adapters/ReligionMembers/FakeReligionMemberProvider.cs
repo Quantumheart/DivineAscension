@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using DivineAscension.Models.Enum;
 
 namespace DivineAscension.GUI.UI.Adapters.ReligionMembers;
@@ -24,7 +25,7 @@ internal sealed class FakeReligionMemberProvider : IReligionMemberProvider
     };
 
     private static readonly string[] Deities =
-        { nameof(DeityDomain.Craft), nameof(DeityDomain.Wild), nameof(DeityDomain.Harvest), nameof(DeityDomain.Stone) };
+        DeityDomains.Selectable.Select(d => d.ToString()).ToArray();
 
     private IReadOnlyList<MemberVM> _cache = Array.Empty<MemberVM>();
     private int _count = 250;

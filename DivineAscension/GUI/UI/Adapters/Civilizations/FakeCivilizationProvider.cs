@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using DivineAscension.Models.Enum;
 
 namespace DivineAscension.GUI.UI.Adapters.Civilizations;
@@ -41,11 +42,11 @@ internal sealed class FakeCivilizationProvider : ICivilizationProvider
         "freemasonry", "cursed-star"
     };
 
+    // Mirrors the domains a player can actually worship (Caravan appears only
+    // when its feature flag is on) — sourced from the SST so a new domain shows
+    // up in dev previews automatically (#558).
     private static readonly string[] Deities =
-    {
-        nameof(DeityDomain.Craft), nameof(DeityDomain.Wild),
-        nameof(DeityDomain.Harvest), nameof(DeityDomain.Stone)
-    };
+        DeityDomains.Selectable.Select(d => d.ToString()).ToArray();
 
     private static readonly string[] ReligionPrefixes =
     {
