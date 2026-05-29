@@ -869,6 +869,7 @@ public static class LocalizationKeys
     public const string FEAST_PATRON_CONQUEST_NAME = "divineascension:feast.patron.conquest.name";
     public const string FEAST_PATRON_HARVEST_NAME = "divineascension:feast.patron.harvest.name";
     public const string FEAST_PATRON_STONE_NAME = "divineascension:feast.patron.stone.name";
+    public const string FEAST_PATRON_CARAVAN_NAME = "divineascension:feast.patron.caravan.name";
     public const string FEAST_FIRED_CHRONICLE_FOUNDING = "divineascension:feast.fired.chronicle.founding";
     public const string FEAST_FIRED_CHRONICLE_PATRON = "divineascension:feast.fired.chronicle.patron";
     public const string FEAST_FIRED_CHRONICLE_CUSTOM = "divineascension:feast.fired.chronicle.custom";
@@ -1098,6 +1099,10 @@ public static class LocalizationKeys
     public const string DOMAIN_WILD_TITLE = "divineascension:deity.domain.wild.title";
     public const string DOMAIN_WILD_DESCRIPTION = "divineascension:deity.domain.wild.description";
 
+    public const string DOMAIN_CONQUEST_NAME = "divineascension:deity.domain.conquest.name";
+    public const string DOMAIN_CONQUEST_TITLE = "divineascension:deity.domain.conquest.title";
+    public const string DOMAIN_CONQUEST_DESCRIPTION = "divineascension:deity.domain.conquest.description";
+
     public const string DOMAIN_HARVEST_NAME = "divineascension:deity.domain.harvest.name";
     public const string DOMAIN_HARVEST_TITLE = "divineascension:deity.domain.harvest.title";
     public const string DOMAIN_HARVEST_DESCRIPTION = "divineascension:deity.domain.harvest.description";
@@ -1105,6 +1110,10 @@ public static class LocalizationKeys
     public const string DOMAIN_STONE_NAME = "divineascension:deity.domain.stone.name";
     public const string DOMAIN_STONE_TITLE = "divineascension:deity.domain.stone.title";
     public const string DOMAIN_STONE_DESCRIPTION = "divineascension:deity.domain.stone.description";
+
+    public const string DOMAIN_CARAVAN_NAME = "divineascension:deity.domain.caravan.name";
+    public const string DOMAIN_CARAVAN_TITLE = "divineascension:deity.domain.caravan.title";
+    public const string DOMAIN_CARAVAN_DESCRIPTION = "divineascension:deity.domain.caravan.description";
 
     public const string DOMAIN_UNKNOWN_NAME = "divineascension:deity.domain.unknown.name";
     public const string DOMAIN_LABEL = "divineascension:deity.domain_label";
@@ -2192,6 +2201,7 @@ public static class LocalizationKeys
     public const string CIVILIZATION_EPITHET_WILD = "divineascension:civilization.epithet.wild";
     public const string CIVILIZATION_EPITHET_HARVEST = "divineascension:civilization.epithet.harvest";
     public const string CIVILIZATION_EPITHET_STONE = "divineascension:civilization.epithet.stone";
+    public const string CIVILIZATION_EPITHET_CARAVAN = "divineascension:civilization.epithet.caravan";
     public const string CIVILIZATION_EPITHET_DEFAULT = "divineascension:civilization.epithet.default";
 
     // Header row labels for the civ info chapter.

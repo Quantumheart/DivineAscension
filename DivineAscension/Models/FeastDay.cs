@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using DivineAscension.Models.Enum;
 using ProtoBuf;
@@ -69,18 +70,13 @@ public class FeastDay
     [ProtoMember(7)] public int LastAdvanceFiredYear { get; set; }
 
     /// <summary>
-    ///     Fixed patron's-day per domain (#375). Defined here so the ticker, the
-    ///     religion manager, and tests share a single source of truth.
+    ///     Fixed patron's-day per domain (#375). Sourced from
+    ///     <see cref="DeityDomainRegistry"/> so the ticker, the religion manager,
+    ///     and tests share one source of truth (#558) — adding a domain to the
+    ///     registry seeds its patron feast automatically.
     /// </summary>
     public static readonly IReadOnlyDictionary<DeityDomain, (int Month, int Day)> DomainHolyDay =
-        new Dictionary<DeityDomain, (int Month, int Day)>
-        {
-            [DeityDomain.Craft] = (2, 1),
-            [DeityDomain.Wild] = (4, 15),
-            [DeityDomain.Conquest] = (7, 4),
-            [DeityDomain.Harvest] = (9, 12),
-            [DeityDomain.Stone] = (11, 1)
-        };
+        DeityDomainRegistry.All.ToDictionary(m => m.Domain, m => m.HolyDay);
 
     /// <summary>
     ///     Deterministic Guid for an auto-seeded feast on a given religion.

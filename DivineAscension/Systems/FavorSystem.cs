@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
 using DivineAscension.Constants;
@@ -318,46 +319,8 @@ public class FavorSystem : IFavorSystem
         if (actionLower.Contains("passive") || actionLower.Contains("devotion"))
             return false;
 
-        return deity switch
-        {
-            DeityDomain.Craft =>
-                actionLower.Contains("mining") ||
-                actionLower.Contains("smithing") ||
-                actionLower.Contains("smelting") ||
-                actionLower.Contains("anvil"),
-
-            DeityDomain.Wild =>
-                actionLower.Contains("hunting") ||
-                actionLower.Contains("foraging") ||
-                actionLower.Contains("skinning") ||
-                actionLower.Contains("exploration"),
-
-            DeityDomain.Conquest =>
-                actionLower.Contains("combat") ||
-                actionLower.Contains("battle") ||
-                actionLower.Contains("fight") ||
-                actionLower.Contains("discovered") ||
-                actionLower.Contains("ruin") ||
-                actionLower.Contains("patrol"),
-
-            DeityDomain.Harvest =>
-                actionLower.Contains("harvest") ||
-                actionLower.Contains("planting") ||
-                actionLower.Contains("cooking"),
-
-            DeityDomain.Stone =>
-                actionLower.Contains("pottery") ||
-                actionLower.Contains("brick") ||
-                actionLower.Contains("clay") ||
-                actionLower.Contains("carving"),
-
-            DeityDomain.Caravan =>
-                actionLower.Contains("trade") ||
-                actionLower.Contains("discovered chunk") ||
-                actionLower.Contains("encountered trader"),
-
-            _ => false
-        };
+        return DeityDomainRegistry.TryGet(deity, out var meta)
+               && meta.PrestigeActivityKeywords.Any(actionLower.Contains);
     }
 
     /// <summary>

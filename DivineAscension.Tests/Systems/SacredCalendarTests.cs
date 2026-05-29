@@ -29,7 +29,11 @@ public class SacredCalendarTests
     [Fact]
     public void DomainHolyDay_HasOneEntryPerDomain()
     {
-        Assert.Equal(5, FeastDay.DomainHolyDay.Count);
+        // Sourced from DeityDomainRegistry (#558) — one entry per real domain.
+        Assert.Equal(DeityDomains.All.Count, FeastDay.DomainHolyDay.Count);
+        foreach (var domain in DeityDomains.All)
+            Assert.True(FeastDay.DomainHolyDay.ContainsKey(domain), $"missing holy day for {domain}");
+
         Assert.Equal((2, 1), FeastDay.DomainHolyDay[DeityDomain.Craft]);
         Assert.Equal((4, 15), FeastDay.DomainHolyDay[DeityDomain.Wild]);
         Assert.Equal((7, 4), FeastDay.DomainHolyDay[DeityDomain.Conquest]);

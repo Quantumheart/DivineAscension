@@ -20,43 +20,12 @@ internal static class DeityInfoHelper
     /// <summary>
     /// Get deity information by type
     /// </summary>
-    // todo: localize the strings in this text.
+    // todo: localize the strings in this text (TooltipDescription lives in DeityDomainRegistry).
     public static DomainInfo? GetDeityInfo(DeityDomain deityDomain)
     {
-        return deityDomain switch
-        {
-            DeityDomain.Craft => new DomainInfo(
-                Name: "Craft",
-                Description:
-                "The domain of the Forge and Craft. Followers are rewarded for their dedication to metalworking, smithing, and the creation of tools and weapons. Those who shape raw materials into works of utility and art earn the favor of this domain."
-            ),
-            DeityDomain.Wild => new DomainInfo(
-                Name: "Wild",
-                Description:
-                "The domain of the Hunt and Wild. Followers are rewarded for patience, precision, and tracking. Those who master the hunt and live in harmony with the wilderness earn the favor of this domain."
-            ),
-            DeityDomain.Conquest => new DomainInfo(
-                Name: "Conquest",
-                Description:
-                "The domain of Domination and Victory. Followers are rewarded for martial prowess, defeating enemies, and expanding their dominance through strength. Those who prove their superiority in combat and claim victory earn the favor of this domain."
-            ),
-            DeityDomain.Harvest => new DomainInfo(
-                Name: "Harvest",
-                Description:
-                "The domain of Agriculture and Light. Followers are rewarded for cultivation and nurturing growth through light and warmth. Those who tend the land and bring forth abundance earn the favor of this domain."
-            ),
-            DeityDomain.Stone => new DomainInfo(
-                Name: "Stone",
-                Description:
-                "The domain of Earth and Stone. Followers are rewarded for the transformative art of working with clay and earth. Those who shape pottery, form clay, and honor the elements of the ground earn the favor of this domain."
-            ),
-            DeityDomain.Caravan => new DomainInfo(
-                Name: "Caravan",
-                Description:
-                "The domain of Trade and Wayfaring. Followers are rewarded for honest exchange and miles travelled under open sky. Those who barter with strangers, carry goods between distant hearths, and walk the unmapped roads earn the favor of this domain."
-            ),
-            _ => null
-        };
+        return DeityDomainRegistry.TryGet(deityDomain, out var meta)
+            ? new DomainInfo(deityDomain.ToString(), meta.TooltipDescription)
+            : null;
     }
 }
 

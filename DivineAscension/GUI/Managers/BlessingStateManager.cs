@@ -20,11 +20,7 @@ namespace DivineAscension.GUI.Managers;
 /// </summary>
 public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISoundManager soundManager)
 {
-    private static readonly DeityDomain[] AllDeities =
-    {
-        DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest, DeityDomain.Harvest, DeityDomain.Stone,
-        DeityDomain.Caravan
-    };
+    private static readonly IReadOnlyList<DeityDomain> AllDeities = DeityDomains.All;
 
     private readonly ICoreClientAPI _coreClientApi = api ?? throw new ArgumentNullException(nameof(api));
 
@@ -656,7 +652,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         Dictionary<DeityDomain, int> totalFavorEarnedByDeity,
         int discipleThreshold, int zealotThreshold, int championThreshold, int avatarThreshold)
     {
-        var list = new List<DeityBlessingSummary>(AllDeities.Length);
+        var list = new List<DeityBlessingSummary>(AllDeities.Count);
         foreach (var domain in AllDeities)
         {
             var rank = favorRanksByDeity.GetValueOrDefault(domain);

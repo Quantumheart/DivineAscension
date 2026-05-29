@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using DivineAscension.API.Interfaces;
@@ -345,11 +346,7 @@ public class FavorCommands
         return TextCommandResult.Success(sb.ToString());
     }
 
-    private static readonly DeityDomain[] AllDeities =
-    {
-        DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest,
-        DeityDomain.Harvest, DeityDomain.Stone, DeityDomain.Caravan
-    };
+    private static readonly IReadOnlyList<DeityDomain> AllDeities = DeityDomains.All;
 
     /// <summary>
     ///     Reads `args[startIndex]` and `args[startIndex+1]` as two optional positional words and

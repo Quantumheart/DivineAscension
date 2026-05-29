@@ -15,7 +15,7 @@ namespace DivineAscension.Services;
 /// </summary>
 public class OfferingLoader(ILoggerWrapper logger, IAssetManager assetManager) : IOfferingLoader
 {
-    private static readonly string[] DomainFiles = { "craft", "wild", "conquest", "harvest", "stone", "caravan" };
+    private static readonly IReadOnlyList<string> DomainFiles = DeityDomains.AllCodes;
 
     private readonly IAssetManager
         _assetManager = assetManager ?? throw new ArgumentNullException(nameof(assetManager));

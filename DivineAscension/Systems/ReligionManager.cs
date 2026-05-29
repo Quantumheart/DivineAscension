@@ -982,15 +982,9 @@ public class ReligionManager : IReligionManager
 
         if (FeastDay.DomainHolyDay.TryGetValue(religion.PatronDomain, out var patron))
         {
-            var patronKey = religion.PatronDomain switch
-            {
-                DeityDomain.Craft => LocalizationKeys.FEAST_PATRON_CRAFT_NAME,
-                DeityDomain.Wild => LocalizationKeys.FEAST_PATRON_WILD_NAME,
-                DeityDomain.Conquest => LocalizationKeys.FEAST_PATRON_CONQUEST_NAME,
-                DeityDomain.Harvest => LocalizationKeys.FEAST_PATRON_HARVEST_NAME,
-                DeityDomain.Stone => LocalizationKeys.FEAST_PATRON_STONE_NAME,
-                _ => null
-            };
+            var patronKey = DeityDomainRegistry.TryGet(religion.PatronDomain, out var meta)
+                ? meta.FeastPatronLocKey
+                : null;
             if (patronKey != null)
             {
                 feasts.Add(new FeastDay(

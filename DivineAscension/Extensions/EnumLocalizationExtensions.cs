@@ -52,14 +52,9 @@ public static class EnumLocalizationExtensions
     /// <returns>Localized domain name</returns>
     public static string ToLocalizedString(this DeityDomain deity)
     {
-        return deity switch
-        {
-            DeityDomain.Craft => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_CRAFT_NAME),
-            DeityDomain.Wild => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_WILD_NAME),
-            DeityDomain.Harvest => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_HARVEST_NAME),
-            DeityDomain.Stone => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_STONE_NAME),
-            _ => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_UNKNOWN_NAME)
-        };
+        return DeityDomainRegistry.TryGet(deity, out var meta)
+            ? LocalizationService.Instance.Get(meta.NameLocKey)
+            : LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_UNKNOWN_NAME);
     }
 
     /// <summary>
@@ -71,14 +66,9 @@ public static class EnumLocalizationExtensions
     public static string ToLocalizedStringWithTitle(this DeityDomain deity)
     {
         var name = deity.ToLocalizedString();
-        var title = deity switch
-        {
-            DeityDomain.Craft => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_CRAFT_TITLE),
-            DeityDomain.Wild => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_WILD_TITLE),
-            DeityDomain.Harvest => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_HARVEST_TITLE),
-            DeityDomain.Stone => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_STONE_TITLE),
-            _ => ""
-        };
+        var title = DeityDomainRegistry.TryGet(deity, out var meta)
+            ? LocalizationService.Instance.Get(meta.TitleLocKey)
+            : "";
 
         return string.IsNullOrEmpty(title) ? name : $"{name} - {title}";
     }
@@ -90,13 +80,8 @@ public static class EnumLocalizationExtensions
     /// <returns>Localized domain description</returns>
     public static string ToLocalizedDescription(this DeityDomain deity)
     {
-        return deity switch
-        {
-            DeityDomain.Craft => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_CRAFT_DESCRIPTION),
-            DeityDomain.Wild => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_WILD_DESCRIPTION),
-            DeityDomain.Harvest => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_HARVEST_DESCRIPTION),
-            DeityDomain.Stone => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_STONE_DESCRIPTION),
-            _ => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_UNKNOWN_NAME)
-        };
+        return DeityDomainRegistry.TryGet(deity, out var meta)
+            ? LocalizationService.Instance.Get(meta.DescriptionLocKey)
+            : LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_UNKNOWN_NAME);
     }
 }
