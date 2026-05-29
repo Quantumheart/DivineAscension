@@ -1,0 +1,25 @@
+{
+  "code": "caravanshrine",
+  "class": "Block",
+  "behaviors": [
+    { "name": "DivineAscensionCaravanShrine" }
+  ],
+  "creativeinventory": {
+    "general": ["*"],
+    "decorative": ["*"]
+  },
+  "shape": { "base": "game:block/basic/cube" },
+  "textures": {
+    "all": { "base": "game:block/stone/rock/granite1" }
+  },
+  "blockmaterial": "Stone",
+  "resistance": 5,
+  "sidesolid": { "all": true },
+  "sideopaque": { "all": true },
+  "lightAbsorption": 99,
+  "replaceable": 100,
+  "maxStackSize": 1,
+  "attributes": {
+    "divineAscensionCaravanShrine": true
+  }
+}

@@ -43,6 +43,8 @@ public class DivineAscensionModSystem : ModSystem
     private AltarEventEmitter? _altarEventEmitter;
     private AltarPlacementHandler? _altarPlacementHandler;
     private AltarPrayerHandler? _altarPrayerHandler;
+    private CaravanShrinePlacementHandler? _caravanShrinePlacementHandler;
+    private CaravanShrineDestructionHandler? _caravanShrineDestructionHandler;
     private LecternEventEmitter? _lecternEventEmitter;
     private LecternInteractionHandler? _lecternInteractionHandler;
     private BlessingNetworkHandler? _blessingNetworkHandler;
@@ -107,6 +109,7 @@ public class DivineAscensionModSystem : ModSystem
         // Register BlockBehavior classes
         // Required for JSON patching and client-server serialization
         api.RegisterBlockBehaviorClass("DivineAscensionAltar", typeof(BlockBehaviorAltar));
+        api.RegisterBlockBehaviorClass("DivineAscensionCaravanShrine", typeof(BlockBehaviorCaravanShrine));
         api.RegisterBlockBehaviorClass("DivineAscensionLectern", typeof(BlockBehaviorLectern));
         api.RegisterBlockBehaviorClass("DivineAscensionStone", typeof(BlockBehaviorStone));
         api.RegisterBlockBehaviorClass("DivineAscensionOre", typeof(BlockBehaviorOre));
@@ -246,6 +249,8 @@ public class DivineAscensionModSystem : ModSystem
         _civilizationManager = result.CivilizationManager;
         _altarPlacementHandler = result.AltarPlacementHandler;
         _altarDestructionHandler = result.AltarDestructionHandler;
+        _caravanShrinePlacementHandler = result.CaravanShrinePlacementHandler;
+        _caravanShrineDestructionHandler = result.CaravanShrineDestructionHandler;
         _altarPrayerHandler = result.AltarPrayerHandler;
         _altarEventEmitter = result.AltarEventEmitter;
         _lecternEventEmitter = result.LecternEventEmitter;
@@ -329,6 +334,8 @@ public class DivineAscensionModSystem : ModSystem
         _holySiteManager?.Dispose();
         _altarPlacementHandler?.Dispose();
         _altarDestructionHandler?.Dispose();
+        _caravanShrinePlacementHandler?.Dispose();
+        _caravanShrineDestructionHandler?.Dispose();
         _altarPrayerHandler?.Dispose();
         _lecternInteractionHandler?.Dispose();
         _playerReligionDataManager?.Dispose();

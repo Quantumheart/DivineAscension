@@ -582,6 +582,10 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         // Stone (Pottery & Clay) handlers
         _specialEffectRegistry.RegisterHandler(new GaiaEffectHandlers.PotteryBatchCompletionEffect());
 
+        // Caravan (Trade & Wayfaring) handlers
+        _specialEffectRegistry.RegisterHandler(
+            new CaravanEffectHandlers.GrantsCaravanShrineEffect(_playerProgressionDataManager));
+
         // Conquest (Domination & Victory) handlers
         _specialEffectRegistry.RegisterHandler(new ConquestEffectHandlers.BattleFuryEffect());
         _specialEffectRegistry.RegisterHandler(new ConquestEffectHandlers.BloodlustEffect());

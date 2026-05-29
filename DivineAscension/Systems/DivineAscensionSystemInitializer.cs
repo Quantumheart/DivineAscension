@@ -126,9 +126,10 @@ public static class DivineAscensionSystemInitializer
                 , worldService, religionManager, gameBalanceConfig);
         religionPrestigeManager.Initialize();
 
-        // Create AltarEventEmitter (service locator for BlockBehaviorAltar)
+        // Create AltarEventEmitter (service locator for BlockBehaviorAltar + BlockBehaviorCaravanShrine)
         var altarEventEmitter = new AltarEventEmitter();
         BlockBehaviorAltar.SetEventEmitter(altarEventEmitter);
+        BlockBehaviorCaravanShrine.SetEventEmitter(altarEventEmitter);
 
         // Create LecternEventEmitter (service locator for BlockBehaviorLectern)
         var lecternEventEmitter = new LecternEventEmitter();
@@ -182,6 +183,26 @@ public static class DivineAscensionSystemInitializer
             messengerService,
             altarEventEmitter);
         altarDestructionHandler.Initialize();
+
+        // Caravan shrine handlers reuse AltarEventEmitter; they filter on the caravanshrine
+        // block code so altar handlers above ignore the same events and vice versa.
+        var caravanShrinePlacementHandler = new CaravanShrinePlacementHandler(
+            LoggingService.Instance.CreateLogger("CaravanShrinePlacementHandler"),
+            altarEventEmitter,
+            playerReligionDataManager,
+            religionManager,
+            holySiteManager,
+            worldService,
+            messengerService);
+        caravanShrinePlacementHandler.Initialize();
+
+        var caravanShrineDestructionHandler = new CaravanShrineDestructionHandler(
+            LoggingService.Instance.CreateLogger("CaravanShrineDestructionHandler"),
+            altarEventEmitter,
+            playerReligionDataManager,
+            worldService,
+            messengerService);
+        caravanShrineDestructionHandler.Initialize();
 
         // NOTE: AltarPrayerHandler initialized after FavorSystem (needs IFavorSystem and IActivityLogManager)
 
@@ -523,6 +544,8 @@ public static class DivineAscensionSystemInitializer
             HolySiteAreaTracker = holySiteAreaTracker,
             AltarPlacementHandler = altarPlacementHandler,
             AltarDestructionHandler = altarDestructionHandler,
+            CaravanShrinePlacementHandler = caravanShrinePlacementHandler,
+            CaravanShrineDestructionHandler = caravanShrineDestructionHandler,
             AltarPrayerHandler = altarPrayerHandler,
             FavorSystem = favorSystem,
             ActivityLogManager = activityLogManager,
@@ -572,6 +595,8 @@ public class InitializationResult
     public IHolySiteAreaTracker HolySiteAreaTracker { get; init; } = null!;
     public AltarPlacementHandler AltarPlacementHandler { get; init; } = null!;
     public AltarDestructionHandler AltarDestructionHandler { get; init; } = null!;
+    public CaravanShrinePlacementHandler CaravanShrinePlacementHandler { get; init; } = null!;
+    public CaravanShrineDestructionHandler CaravanShrineDestructionHandler { get; init; } = null!;
     public AltarPrayerHandler AltarPrayerHandler { get; init; } = null!;
     public FavorSystem FavorSystem { get; init; } = null!;
     public ActivityLogManager ActivityLogManager { get; init; } = null!;

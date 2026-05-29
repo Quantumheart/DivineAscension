@@ -106,6 +106,16 @@ public static class SpecialEffects
 
     #endregion
 
+    #region Caravan (Trade & Wayfaring) Effects
+
+    /// <summary>
+    ///     Grants the player a placeable Caravan Shrine item (one per player). Tier-1 altar
+    ///     surface that becomes the anchor for the Caravan trade table in a later phase.
+    /// </summary>
+    public const string GrantsCaravanShrine = "grants_caravan_shrine";
+
+    #endregion
+
     #region Stone (Earth & Stone) Effects
 
     /// <summary>
