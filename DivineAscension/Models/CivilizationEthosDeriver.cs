@@ -16,14 +16,8 @@ public static class CivilizationEthosDeriver
     /// </summary>
     public static (CivilizationEthos Ethos, string EpithetLocKey) Derive(DeityDomain patronDomain)
     {
-        return patronDomain switch
-        {
-            DeityDomain.Craft => (CivilizationEthos.Mercantile, LocalizationKeys.CIVILIZATION_EPITHET_CRAFT),
-            DeityDomain.Conquest => (CivilizationEthos.Martial, LocalizationKeys.CIVILIZATION_EPITHET_CONQUEST),
-            DeityDomain.Wild => (CivilizationEthos.Mystic, LocalizationKeys.CIVILIZATION_EPITHET_WILD),
-            DeityDomain.Harvest => (CivilizationEthos.Ascetic, LocalizationKeys.CIVILIZATION_EPITHET_HARVEST),
-            DeityDomain.Stone => (CivilizationEthos.Sovereign, LocalizationKeys.CIVILIZATION_EPITHET_STONE),
-            _ => (CivilizationEthos.Sovereign, LocalizationKeys.CIVILIZATION_EPITHET_DEFAULT)
-        };
+        return DeityDomainRegistry.TryGet(patronDomain, out var meta)
+            ? (meta.Ethos, meta.EpithetLocKey)
+            : (CivilizationEthos.Sovereign, LocalizationKeys.CIVILIZATION_EPITHET_DEFAULT);
     }
 }

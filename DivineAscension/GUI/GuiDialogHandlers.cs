@@ -155,11 +155,7 @@ public partial class GuiDialog
 
         // Preload blessing textures for every deity to prevent stuttering when switching tabs.
         var allBlessings = playerBlessings.Concat(religionBlessings).ToList();
-        foreach (var domain in new[]
-                 {
-                     DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest, DeityDomain.Harvest, DeityDomain.Stone,
-                     DeityDomain.Caravan
-                 })
+        foreach (var domain in DeityDomains.All)
             BlessingIconLoader.PreloadDeityTextures(
                 allBlessings.Where(b => b.Domain == domain).ToList(), domain);
         _logger?.Debug(

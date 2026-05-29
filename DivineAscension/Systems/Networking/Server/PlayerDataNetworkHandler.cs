@@ -20,11 +20,7 @@ namespace DivineAscension.Systems.Networking.Server;
 [ExcludeFromCodeCoverage]
 public class PlayerDataNetworkHandler : IServerNetworkHandler
 {
-    private static readonly DeityDomain[] AllDeities =
-    {
-        DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest,
-        DeityDomain.Harvest, DeityDomain.Stone
-    };
+    private static readonly IReadOnlyList<DeityDomain> AllDeities = DeityDomains.All;
 
     private readonly IPlayerProgressionDataManager? _playerProgressionDataManager;
     private readonly IReligionManager? _religionManager;

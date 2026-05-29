@@ -22,11 +22,7 @@ namespace DivineAscension.Systems.Networking.Server;
 [ExcludeFromCodeCoverage]
 public class BlessingNetworkHandler : IServerNetworkHandler
 {
-    private static readonly DeityDomain[] AllDeities =
-    {
-        DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest,
-        DeityDomain.Harvest, DeityDomain.Stone, DeityDomain.Caravan
-    };
+    private static readonly IReadOnlyList<DeityDomain> AllDeities = DeityDomains.All;
 
     private readonly ILogger _logger;
     private readonly BlessingRegistry _blessingRegistry;

@@ -65,14 +65,6 @@ internal static class CrossDeitySummaryRenderer
         }
     }
 
-    private static string DomainShort(DeityDomain d) => d switch
-    {
-        DeityDomain.Craft => "C",
-        DeityDomain.Wild => "W",
-        DeityDomain.Conquest => "Q",
-        DeityDomain.Harvest => "H",
-        DeityDomain.Stone => "S",
-        DeityDomain.Caravan => "R",
-        _ => "?"
-    };
+    private static string DomainShort(DeityDomain d) =>
+        DeityDomainRegistry.TryGet(d, out var meta) ? meta.ShortCode : "?";
 }

@@ -14,6 +14,7 @@ public class CivilizationEthosDeriverTests
     [InlineData(DeityDomain.Wild, CivilizationEthos.Mystic, LocalizationKeys.CIVILIZATION_EPITHET_WILD)]
     [InlineData(DeityDomain.Harvest, CivilizationEthos.Ascetic, LocalizationKeys.CIVILIZATION_EPITHET_HARVEST)]
     [InlineData(DeityDomain.Stone, CivilizationEthos.Sovereign, LocalizationKeys.CIVILIZATION_EPITHET_STONE)]
+    [InlineData(DeityDomain.Caravan, CivilizationEthos.Mercantile, LocalizationKeys.CIVILIZATION_EPITHET_CARAVAN)]
     [InlineData(DeityDomain.None, CivilizationEthos.Sovereign, LocalizationKeys.CIVILIZATION_EPITHET_DEFAULT)]
     public void Derive_MapsDomainToEthosAndEpithetKey(
         DeityDomain domain, CivilizationEthos expectedEthos, string expectedKey)

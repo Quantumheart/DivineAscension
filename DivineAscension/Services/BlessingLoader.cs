@@ -17,7 +17,7 @@ namespace DivineAscension.Services;
 /// </summary>
 public class BlessingLoader : IBlessingLoader
 {
-    private static readonly string[] DomainFiles = { "craft", "wild", "conquest", "harvest", "stone", "caravan" };
+    private static readonly IReadOnlyList<string> DomainFiles = DeityDomains.AllCodes;
 
     private readonly ICoreAPI _api;
     private readonly List<Blessing> _loadedBlessings = new();

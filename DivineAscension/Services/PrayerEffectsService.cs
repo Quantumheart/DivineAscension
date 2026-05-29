@@ -131,15 +131,9 @@ public class PrayerEffectsService : IPrayerEffectsService
         };
 
         // Domain-based color (ARGB format: Alpha, Red, Green, Blue)
-        var color = domain switch
-        {
-            DeityDomain.Craft => ColorUtil.ToRgba(255, 255, 60, 40), // Red/orange for forging
-            DeityDomain.Wild => ColorUtil.ToRgba(255, 50, 220, 80), // Green for nature
-            DeityDomain.Conquest => ColorUtil.ToRgba(255, 140, 20, 30), // Crimson/blood for battle
-            DeityDomain.Harvest => ColorUtil.ToRgba(255, 255, 200, 50), // Golden for crops
-            DeityDomain.Stone => ColorUtil.ToRgba(255, 160, 140, 120), // Brown/tan for earth
-            _ => ColorUtil.ToRgba(255, 255, 255, 200) // White/silver default
-        };
+        var color = DeityDomainRegistry.TryGet(domain, out var meta)
+            ? meta.PrayerParticleRgba
+            : ColorUtil.ToRgba(255, 255, 255, 200); // White/silver default
 
         var particles = new SimpleParticleProperties
         {

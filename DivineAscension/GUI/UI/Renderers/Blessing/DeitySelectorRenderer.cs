@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using DivineAscension.Configuration;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
@@ -21,21 +21,11 @@ internal static class DeitySelectorRenderer
     private const float PatronBorderThickness = 2.5f;
     private const float ActiveBorderThickness = 2f;
     public const float Height = TabSize + 4f;
-    public const int TabCount = FeatureFlags.CaravanDomainEnabled ? 6 : 5;
-    public const float StripWidth = TabCount * TabSize + (TabCount - 1) * TabSpacing;
-
-    // Caravan is appended only when its domain is enabled (see FeatureFlags). Keep the
-    // count above (TabCount) in sync with this array's length.
-    private static readonly DeityDomain[] Order = FeatureFlags.CaravanDomainEnabled
-        ? new[]
-        {
-            DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest, DeityDomain.Harvest, DeityDomain.Stone,
-            DeityDomain.Caravan
-        }
-        : new[]
-        {
-            DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest, DeityDomain.Harvest, DeityDomain.Stone
-        };
+    // The selectable domains drive both the tab order and the count; Caravan is
+    // included only when its feature flag is on (see DeityDomains.Selectable).
+    private static readonly IReadOnlyList<DeityDomain> Order = DeityDomains.Selectable;
+    public static readonly int TabCount = Order.Count;
+    public static readonly float StripWidth = TabCount * TabSize + (TabCount - 1) * TabSpacing;
 
     /// <summary>
     ///     Draw the deity selector. Returns the deity the user clicked this frame, or null.
@@ -49,7 +39,7 @@ internal static class DeitySelectorRenderer
         DeityDomain? requested = null;
         var cursorX = x;
 
-        for (var i = 0; i < Order.Length; i++)
+        for (var i = 0; i < Order.Count; i++)
         {
             var domain = Order[i];
             var isPatron = patronDomain != DeityDomain.None && domain == patronDomain;
