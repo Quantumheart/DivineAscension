@@ -34,7 +34,7 @@ public class PlayerProgressionDataTests
         Assert.Equal(0, data.GetFavor(DeityDomain.Craft));
         Assert.Equal(0, data.GetTotalFavorEarned(DeityDomain.Craft));
         Assert.Equal(0f, data.GetAccumulatedFractionalFavor(DeityDomain.Craft));
-        Assert.Equal(9, data.DataVersion); // v9: GrantedTraitCodes (#559 PlayerTraitService)
+        Assert.Equal(8, data.DataVersion); // v8: DiscoveredTraderEntityIds (Caravan trader bonus)
         Assert.Equal(0, data.DiscoveredChunkCount);
         Assert.Equal(0, data.DiscoveredTraderCount);
         Assert.Empty(data.UnlockedBlessings);
