@@ -17,10 +17,12 @@ public class TraderTransactionFavorTrackerTests
 {
     private static TraderTransactionFavorTracker CreateTracker(
         Mock<IWorldService> mockWorldService,
-        Mock<IFavorSystem> mockFavor)
+        Mock<IFavorSystem> mockFavor,
+        DivineAscension.Configuration.GameBalanceConfig? config = null)
     {
         var mockLogger = new Mock<ILoggerWrapper>();
-        return new TraderTransactionFavorTracker(mockLogger.Object, mockWorldService.Object, mockFavor.Object);
+        return new TraderTransactionFavorTracker(mockLogger.Object, mockWorldService.Object, mockFavor.Object,
+            config ?? new DivineAscension.Configuration.GameBalanceConfig());
     }
 
     [Fact]
@@ -110,4 +112,43 @@ public class TraderTransactionFavorTrackerTests
     // Note: Initialize/Dispose subscribe/unsubscribe from the static TraderPatches event,
     // which can't be invoked from outside the declaring type. The HandleTraderTransaction
     // tests above cover the favor-award path the subscription routes to.
+
+    [Fact]
+    public void HandleTraderTransaction_AppliesConfigTradeMultiplier()
+    {
+        var mockFavor = TestFixtures.CreateMockFavorSystem();
+        var config = new DivineAscension.Configuration.GameBalanceConfig
+        {
+            CaravanTradeFavorMultiplier = 2.5f
+        };
+        var tracker = CreateTracker(new Mock<IWorldService>(), mockFavor, config);
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.SetupGet(p => p.PlayerName).Returns("Multiplied");
+
+        tracker.HandleTraderTransaction(mockPlayer.Object, valueInGears: 50);
+
+        // Base 2 + 50/10 = 7, times 2.5 = 17.5
+        mockFavor.Verify(f => f.AwardFavorForAction(mockPlayer.Object, "trade",
+            17.5f, DeityDomain.Caravan), Times.Once);
+    }
+
+    [Fact]
+    public void HandleTraderTransaction_AppliesConfigPerTradeCap()
+    {
+        var mockFavor = TestFixtures.CreateMockFavorSystem();
+        // Lower the cap so a mid-size trade hits it.
+        var config = new DivineAscension.Configuration.GameBalanceConfig
+        {
+            CaravanPerTradeFavorCap = 5
+        };
+        var tracker = CreateTracker(new Mock<IWorldService>(), mockFavor, config);
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.SetupGet(p => p.PlayerName).Returns("Capped");
+
+        tracker.HandleTraderTransaction(mockPlayer.Object, valueInGears: 1000);
+
+        // Raw 102, clamped to config cap 5, multiplier default 1.0.
+        mockFavor.Verify(f => f.AwardFavorForAction(mockPlayer.Object, "trade",
+            5f, DeityDomain.Caravan), Times.Once);
+    }
 }

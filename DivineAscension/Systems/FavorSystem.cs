@@ -155,10 +155,10 @@ public class FavorSystem : IFavorSystem
         _ruinDiscoveryFavorTracker.Initialize();
 
         _explorationFavorTracker = new ExplorationFavorTracker(_logger, _eventService, _worldService,
-            _playerProgressionDataManager, this);
+            _playerProgressionDataManager, this, _config);
         _explorationFavorTracker.Initialize();
 
-        _traderTransactionFavorTracker = new TraderTransactionFavorTracker(_logger, _worldService, this);
+        _traderTransactionFavorTracker = new TraderTransactionFavorTracker(_logger, _worldService, this, _config);
         _traderTransactionFavorTracker.Initialize();
 
         // Initialize patrol tracker only if dependencies were set

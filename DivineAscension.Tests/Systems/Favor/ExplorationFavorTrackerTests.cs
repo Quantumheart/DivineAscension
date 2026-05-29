@@ -18,11 +18,13 @@ public class ExplorationFavorTrackerTests
         Mock<IEventService> mockEventService,
         Mock<IWorldService> mockWorldService,
         Mock<IPlayerProgressionDataManager> mockPlayerProgression,
-        Mock<IFavorSystem> mockFavor)
+        Mock<IFavorSystem> mockFavor,
+        DivineAscension.Configuration.GameBalanceConfig? config = null)
     {
         var mockLogger = new Mock<ILoggerWrapper>();
         return new ExplorationFavorTracker(mockLogger.Object, mockEventService.Object,
-            mockWorldService.Object, mockPlayerProgression.Object, mockFavor.Object);
+            mockWorldService.Object, mockPlayerProgression.Object, mockFavor.Object,
+            config ?? new DivineAscension.Configuration.GameBalanceConfig());
     }
 
     private static (Mock<IServerPlayer>, PlayerProgressionData) WirePlayer(
@@ -160,6 +162,46 @@ public class ExplorationFavorTrackerTests
         Assert.False(second);
         mockFavor.Verify(f => f.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(),
             It.IsAny<float>(), It.IsAny<DeityDomain>()), Times.Once);
+    }
+
+    [Fact]
+    public void TryAwardChunkFavor_AppliesConfigExplorationMultiplier()
+    {
+        var mockMgr = TestFixtures.CreateMockPlayerProgressionDataManager();
+        var mockFavor = TestFixtures.CreateMockFavorSystem();
+        var (mockPlayer, _) = WirePlayer(mockMgr);
+        var config = new DivineAscension.Configuration.GameBalanceConfig
+        {
+            CaravanExplorationFavorMultiplier = 3.0f
+        };
+        var tracker = CreateTracker(new Mock<IEventService>(), new Mock<IWorldService>(),
+            mockMgr, mockFavor, config);
+
+        tracker.TryAwardChunkFavor(mockPlayer.Object, 7L, multiplier: 1.0f);
+
+        // BASE_CHUNK_FAVOR (1) * stat-multiplier (1) * config (3) = 3
+        mockFavor.Verify(f => f.AwardFavorForAction(mockPlayer.Object, "discovered chunk",
+            3f, DeityDomain.Caravan), Times.Once);
+    }
+
+    [Fact]
+    public void TryAwardTraderBonus_AppliesConfigExplorationMultiplier()
+    {
+        var mockMgr = TestFixtures.CreateMockPlayerProgressionDataManager();
+        var mockFavor = TestFixtures.CreateMockFavorSystem();
+        var (mockPlayer, _) = WirePlayer(mockMgr);
+        var config = new DivineAscension.Configuration.GameBalanceConfig
+        {
+            CaravanExplorationFavorMultiplier = 0.5f
+        };
+        var tracker = CreateTracker(new Mock<IEventService>(), new Mock<IWorldService>(),
+            mockMgr, mockFavor, config);
+
+        tracker.TryAwardTraderBonus(mockPlayer.Object, 555L);
+
+        // TRADER_BONUS_FAVOR (10) * 0.5 = 5
+        mockFavor.Verify(f => f.AwardFavorForAction(mockPlayer.Object, "encountered trader",
+            5f, DeityDomain.Caravan), Times.Once);
     }
 
     [Fact]
