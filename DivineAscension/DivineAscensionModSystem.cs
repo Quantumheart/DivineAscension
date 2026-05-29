@@ -66,6 +66,7 @@ public class DivineAscensionModSystem : ModSystem
     private HashSet<string> _migratedReligionUIDs = new();
     private PlayerDataNetworkHandler? _playerDataNetworkHandler;
     private PlayerProgressionDataManager? _playerReligionDataManager;
+    private PlayerTraitService? _playerTraitService;
     private ReligionManager? _religionManager;
     private ReligionNetworkHandler? _religionNetworkHandler;
     private ICoreServerAPI? _sapi;
@@ -253,6 +254,7 @@ public class DivineAscensionModSystem : ModSystem
         _cooldownManager = result.CooldownManager;
         _religionManager = result.ReligionManager;
         _playerReligionDataManager = result.PlayerProgressionDataManager;
+        _playerTraitService = result.PlayerTraitService;
         _favorSystem = result.FavorSystem;
         _holySiteManager = result.HolySiteManager;
         _civilizationManager = result.CivilizationManager;
@@ -349,6 +351,7 @@ public class DivineAscensionModSystem : ModSystem
         _caravanTradeSessionManager?.Dispose();
         _altarPrayerHandler?.Dispose();
         _lecternInteractionHandler?.Dispose();
+        _playerTraitService?.Dispose();
         _playerReligionDataManager?.Dispose();
         _religionManager?.Dispose();
         _civilizationManager?.Dispose();

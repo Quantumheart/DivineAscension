@@ -381,6 +381,16 @@ public static class DivineAscensionSystemInitializer
                 religionManager);
         blessingEffectSystem.Initialize();
 
+        // CRITICAL: Must be called AFTER BlessingEffectSystem is initialized (#559).
+        // Consumers (religion/blessing/favor) will back-wire in later slices (#560-#562).
+        var playerTraitService = new PlayerTraitService(
+            LoggingService.Instance.CreateLogger("PlayerTraitService"),
+            eventService,
+            worldService,
+            playerReligionDataManager,
+            api);
+        playerTraitService.Initialize();
+
         // CRITICAL: Must be called AFTER BlessingEffectSystem is initialized
         religionPrestigeManager.SetBlessingSystems(blessingRegistry, blessingEffectSystem);
 
@@ -574,6 +584,7 @@ public static class DivineAscensionSystemInitializer
             DiplomacyManager = diplomacyManager,
             BlessingRegistry = blessingRegistry,
             BlessingEffectSystem = blessingEffectSystem,
+            PlayerTraitService = playerTraitService,
             RoleManager = roleManager,
             AltarEventEmitter = altarEventEmitter,
             LecternEventEmitter = lecternEventEmitter,
@@ -627,6 +638,7 @@ public class InitializationResult
     public DiplomacyManager DiplomacyManager { get; init; } = null!;
     public BlessingRegistry BlessingRegistry { get; init; } = null!;
     public BlessingEffectSystem BlessingEffectSystem { get; init; } = null!;
+    public PlayerTraitService PlayerTraitService { get; init; } = null!;
     public RoleManager RoleManager { get; init; } = null!;
     public AltarEventEmitter AltarEventEmitter { get; init; } = null!;
     public LecternEventEmitter LecternEventEmitter { get; init; } = null!;
