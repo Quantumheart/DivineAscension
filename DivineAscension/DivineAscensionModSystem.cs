@@ -11,11 +11,13 @@ using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.GUI.State;
 using DivineAscension.Network;
+using DivineAscension.Network.Caravan;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Network.Diplomacy;
 using DivineAscension.Network.HolySite;
 using DivineAscension.Services;
 using DivineAscension.Systems;
+using DivineAscension.Systems.Caravan;
 using DivineAscension.Systems.Altar;
 using DivineAscension.Systems.Lectern;
 using DivineAscension.Systems.Interfaces;
@@ -45,6 +47,7 @@ public class DivineAscensionModSystem : ModSystem
     private AltarPrayerHandler? _altarPrayerHandler;
     private CaravanShrinePlacementHandler? _caravanShrinePlacementHandler;
     private CaravanShrineDestructionHandler? _caravanShrineDestructionHandler;
+    private CaravanTradeSessionManager? _caravanTradeSessionManager;
     private LecternEventEmitter? _lecternEventEmitter;
     private LecternInteractionHandler? _lecternInteractionHandler;
     private BlessingNetworkHandler? _blessingNetworkHandler;
@@ -205,7 +208,13 @@ public class DivineAscensionModSystem : ModSystem
             .RegisterMessageType<MilestoneProgressResponsePacket>()
             .RegisterMessageType<MilestoneUnlockedPacket>()
             .RegisterMessageType<OpenMenuPacket>()
-            .RegisterMessageType<CloseMenuPacket>();
+            .RegisterMessageType<CloseMenuPacket>()
+            .RegisterMessageType<OpenTradeRequestPacket>()
+            .RegisterMessageType<JoinTradeRequestPacket>()
+            .RegisterMessageType<OfferUpdatePacket>()
+            .RegisterMessageType<SetReadyPacket>()
+            .RegisterMessageType<CancelTradePacket>()
+            .RegisterMessageType<TradeStateSyncPacket>();
     }
 
     public override void AssetsFinalize(ICoreAPI api)
@@ -251,6 +260,7 @@ public class DivineAscensionModSystem : ModSystem
         _altarDestructionHandler = result.AltarDestructionHandler;
         _caravanShrinePlacementHandler = result.CaravanShrinePlacementHandler;
         _caravanShrineDestructionHandler = result.CaravanShrineDestructionHandler;
+        _caravanTradeSessionManager = result.CaravanTradeSessionManager;
         _altarPrayerHandler = result.AltarPrayerHandler;
         _altarEventEmitter = result.AltarEventEmitter;
         _lecternEventEmitter = result.LecternEventEmitter;
@@ -336,6 +346,7 @@ public class DivineAscensionModSystem : ModSystem
         _altarDestructionHandler?.Dispose();
         _caravanShrinePlacementHandler?.Dispose();
         _caravanShrineDestructionHandler?.Dispose();
+        _caravanTradeSessionManager?.Dispose();
         _altarPrayerHandler?.Dispose();
         _lecternInteractionHandler?.Dispose();
         _playerReligionDataManager?.Dispose();

@@ -12,6 +12,7 @@ using DivineAscension.Systems.Altar;
 using DivineAscension.Systems.Altar.Pipeline;
 using DivineAscension.Systems.Altar.Pipeline.Steps;
 using DivineAscension.Systems.BuffSystem;
+using DivineAscension.Systems.Caravan;
 using DivineAscension.Systems.HolySite;
 using DivineAscension.Systems.Lectern;
 using DivineAscension.Systems.Interfaces;
@@ -203,6 +204,16 @@ public static class DivineAscensionSystemInitializer
             worldService,
             messengerService);
         caravanShrineDestructionHandler.Initialize();
+
+        // Player-to-player trade table hosted at caravan shrines (#433). Server-authoritative
+        // session state + sync; subscribes to the trade request packets and player disconnect.
+        var caravanTradeSessionManager = new CaravanTradeSessionManager(
+            LoggingService.Instance.CreateLogger("CaravanTradeSessionManager"),
+            networkService,
+            worldService,
+            eventService,
+            messengerService);
+        caravanTradeSessionManager.Initialize();
 
         // NOTE: AltarPrayerHandler initialized after FavorSystem (needs IFavorSystem and IActivityLogManager)
 
@@ -546,6 +557,7 @@ public static class DivineAscensionSystemInitializer
             AltarDestructionHandler = altarDestructionHandler,
             CaravanShrinePlacementHandler = caravanShrinePlacementHandler,
             CaravanShrineDestructionHandler = caravanShrineDestructionHandler,
+            CaravanTradeSessionManager = caravanTradeSessionManager,
             AltarPrayerHandler = altarPrayerHandler,
             FavorSystem = favorSystem,
             ActivityLogManager = activityLogManager,
@@ -597,6 +609,7 @@ public class InitializationResult
     public AltarDestructionHandler AltarDestructionHandler { get; init; } = null!;
     public CaravanShrinePlacementHandler CaravanShrinePlacementHandler { get; init; } = null!;
     public CaravanShrineDestructionHandler CaravanShrineDestructionHandler { get; init; } = null!;
+    public CaravanTradeSessionManager CaravanTradeSessionManager { get; init; } = null!;
     public AltarPrayerHandler AltarPrayerHandler { get; init; } = null!;
     public FavorSystem FavorSystem { get; init; } = null!;
     public ActivityLogManager ActivityLogManager { get; init; } = null!;

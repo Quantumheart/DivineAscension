@@ -5,11 +5,13 @@ using DivineAscension.API.Interfaces;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.Utilities;
 using DivineAscension.Network;
+using DivineAscension.Network.Caravan;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Network.Diplomacy;
 using DivineAscension.Network.HolySite;
 using DivineAscension.Systems.Networking.Interfaces;
 using Vintagestory.API.Client;
+using Vintagestory.API.MathTools;
 using GuiDialog = DivineAscension.GUI.GuiDialog;
 
 namespace DivineAscension.Systems.Networking.Client;
@@ -107,6 +109,9 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _clientChannel.SetMessageHandler<OpenMenuPacket>(OnOpenMenu);
         _clientChannel.SetMessageHandler<CloseMenuPacket>(OnCloseMenu);
 
+        // Caravan trade table (#433)
+        _clientChannel.SetMessageHandler<TradeStateSyncPacket>(OnTradeStateSync);
+
         _clientChannel.RegisterMessageType(typeof(PlayerReligionDataPacket));
     }
 
@@ -142,6 +147,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         LeaderboardReceived = null;
         OpenMenuRequested = null;
         CloseMenuRequested = null;
+        TradeStateReceived = null;
     }
 
     #endregion
@@ -1367,6 +1373,71 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     private void OnCloseMenu(CloseMenuPacket packet)
     {
         CloseMenuRequested?.Invoke(packet);
+    }
+
+    #endregion
+
+    #region Caravan trade table (#433)
+
+    /// <summary>
+    ///     Authoritative trade-session snapshot received from the server. The trade dialog
+    ///     opens on the first sync and closes when <c>Phase == Closed</c>.
+    /// </summary>
+    public event Action<TradeStateSyncPacket>? TradeStateReceived;
+
+    private void OnTradeStateSync(TradeStateSyncPacket packet)
+    {
+        TradeStateReceived?.Invoke(packet);
+    }
+
+    /// <summary>Request to sit down at the trade table hosted by the shrine at <paramref name="shrinePos" />.</summary>
+    public void SendOpenTradeRequest(BlockPos shrinePos)
+    {
+        if (!IsNetworkAvailable() || shrinePos == null) return;
+        _clientChannel?.SendPacket(new OpenTradeRequestPacket
+        {
+            ShrineX = shrinePos.X,
+            ShrineY = shrinePos.Y,
+            ShrineZ = shrinePos.Z
+        });
+    }
+
+    /// <summary>Replace the local player's offer at the given shrine's table.</summary>
+    public void SendOfferUpdate(BlockPos shrinePos, List<TradeOfferSlot> offer)
+    {
+        if (!IsNetworkAvailable() || shrinePos == null) return;
+        _clientChannel?.SendPacket(new OfferUpdatePacket
+        {
+            ShrineX = shrinePos.X,
+            ShrineY = shrinePos.Y,
+            ShrineZ = shrinePos.Z,
+            Offer = offer ?? new List<TradeOfferSlot>()
+        });
+    }
+
+    /// <summary>Seal or un-seal the local player's offer.</summary>
+    public void SendSetReady(BlockPos shrinePos, bool ready)
+    {
+        if (!IsNetworkAvailable() || shrinePos == null) return;
+        _clientChannel?.SendPacket(new SetReadyPacket
+        {
+            ShrineX = shrinePos.X,
+            ShrineY = shrinePos.Y,
+            ShrineZ = shrinePos.Z,
+            Ready = ready
+        });
+    }
+
+    /// <summary>Leave the trade table; tears the session down for both parties.</summary>
+    public void SendCancelTrade(BlockPos shrinePos)
+    {
+        if (!IsNetworkAvailable() || shrinePos == null) return;
+        _clientChannel?.SendPacket(new CancelTradePacket
+        {
+            ShrineX = shrinePos.X,
+            ShrineY = shrinePos.Y,
+            ShrineZ = shrinePos.Z
+        });
     }
 
     #endregion

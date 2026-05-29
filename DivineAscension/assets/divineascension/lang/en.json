@@ -1547,5 +1547,20 @@
   "caravanshrine.error.foreign_holysite": "You cannot place a Caravan Shrine inside another religion's holy site.",
   "caravanshrine.placed": "Caravan Shrine placed. May the road carry you far.",
   "caravanshrine.granted": "The road provides — a Caravan Shrine has been added to your inventory.",
-  "caravanshrine.returned": "Caravan Shrine returned to your inventory."
+  "caravanshrine.returned": "Caravan Shrine returned to your inventory.",
+  "caravantrade.title": "Bill of Barter",
+  "caravantrade.intro": "Two travelers meet at the wayside shrine and lay out their wares. Lay items on the table, then seal your offer when the bargain is fair.",
+  "caravantrade.awaiting_partner": "Awaiting a trader…",
+  "caravantrade.your_pack": "Your pack — click an entry to lay it on the table:",
+  "caravantrade.switcheroo_note": "Any hand reaching for the table breaks the other's seal.",
+  "caravantrade.sealed": "sealed",
+  "caravantrade.pondering": "pondering",
+  "caravantrade.seal": "Seal my offer",
+  "caravantrade.unseal": "Unseal my offer",
+  "caravantrade.leave": "Leave the table",
+  "caravantrade.cancelled": "The trade was called off.",
+  "caravantrade.partner_left": "Your trading partner left the table.",
+  "caravantrade.error.too_far": "You are too far from the shrine to trade here.",
+  "caravantrade.error.full": "This trade table is already occupied by two traders.",
+  "caravantrade.error.busy": "Finish your current trade before starting another."
 }
