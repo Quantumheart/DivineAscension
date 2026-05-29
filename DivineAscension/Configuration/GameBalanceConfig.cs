@@ -163,6 +163,33 @@ public class GameBalanceConfig
     /// <summary>Prestige multiplier during war (default: 1.5)</summary>
     public float WarPrestigeMultiplier { get; set; } = 1.5f;
 
+    // === CARAVAN DOMAIN ===
+
+    /// <summary>
+    ///     Multiplier applied to favor awarded by completed NPC trader transactions
+    ///     (consumed by <c>TraderTransactionFavorTracker</c>). Default 1.0.
+    /// </summary>
+    public float CaravanTradeFavorMultiplier { get; set; } = 1.0f;
+
+    /// <summary>
+    ///     Multiplier applied to favor awarded on first-time chunk discovery
+    ///     (consumed by <c>ExplorationFavorTracker</c>). Default 1.0.
+    /// </summary>
+    public float CaravanExplorationFavorMultiplier { get; set; } = 1.0f;
+
+    /// <summary>
+    ///     Multiplier applied to favor awarded by the player-to-player trade table
+    ///     (consumed once #435 lands). Default 1.0.
+    /// </summary>
+    public float CaravanTradeTableFavorMultiplier { get; set; } = 1.0f;
+
+    /// <summary>
+    ///     Hard cap on favor awarded per single NPC trade. Overrides the tracker's
+    ///     compiled <c>MaxFavorPerTrade</c> when set, so admins can rebalance whale-trade
+    ///     anti-farming without a code release. Default 20.
+    /// </summary>
+    public int CaravanPerTradeFavorCap { get; set; } = 20;
+
     // === HOLY SITE BUFFS ===
 
     /// <summary>Favor/Prestige multiplier for Tier 1 holy sites (default: 1.25)</summary>
@@ -260,6 +287,17 @@ public class GameBalanceConfig
         if (UnlearnRefundPercent < 0f || UnlearnRefundPercent > 1f)
         {
             throw new InvalidOperationException("UnlearnRefundPercent must be between 0 and 1");
+        }
+
+        if (CaravanTradeFavorMultiplier <= 0 || CaravanExplorationFavorMultiplier <= 0 ||
+            CaravanTradeTableFavorMultiplier <= 0)
+        {
+            throw new InvalidOperationException("Caravan favor multipliers must be positive");
+        }
+
+        if (CaravanPerTradeFavorCap <= 0 || CaravanPerTradeFavorCap > 1000)
+        {
+            throw new InvalidOperationException("CaravanPerTradeFavorCap must be between 1 and 1000");
         }
     }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DivineAscension.API.Interfaces;
+using DivineAscension.Configuration;
 using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
@@ -24,8 +25,10 @@ public class ExplorationFavorTracker(
     IEventService eventService,
     IWorldService worldService,
     IPlayerProgressionDataManager playerProgressionDataManager,
-    IFavorSystem favorSystem) : IFavorTracker, IDisposable
+    IFavorSystem favorSystem,
+    GameBalanceConfig config) : IFavorTracker, IDisposable
 {
+    private readonly GameBalanceConfig _config = config ?? throw new ArgumentNullException(nameof(config));
     internal const int TICK_INTERVAL_MS = 2000;
     internal const float BASE_CHUNK_FAVOR = 1.0f;
     internal const float TRADER_BONUS_FAVOR = 10.0f;
@@ -116,7 +119,8 @@ public class ExplorationFavorTracker(
         if (!data.TryAddDiscoveredChunk(chunkKey))
             return false;
 
-        _favorSystem.AwardFavorForAction(player, "discovered chunk", BASE_CHUNK_FAVOR * multiplier,
+        _favorSystem.AwardFavorForAction(player, "discovered chunk",
+            BASE_CHUNK_FAVOR * multiplier * _config.CaravanExplorationFavorMultiplier,
             DeityDomain.Caravan);
         return true;
     }
@@ -145,7 +149,8 @@ public class ExplorationFavorTracker(
         if (!data.TryAddDiscoveredTrader(traderEntityId))
             return false;
 
-        _favorSystem.AwardFavorForAction(player, "encountered trader", TRADER_BONUS_FAVOR,
+        _favorSystem.AwardFavorForAction(player, "encountered trader",
+            TRADER_BONUS_FAVOR * _config.CaravanExplorationFavorMultiplier,
             DeityDomain.Caravan);
         return true;
     }

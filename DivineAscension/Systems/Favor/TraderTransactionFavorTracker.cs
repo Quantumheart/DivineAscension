@@ -1,5 +1,6 @@
 using System;
 using DivineAscension.API.Interfaces;
+using DivineAscension.Configuration;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
@@ -17,7 +18,8 @@ namespace DivineAscension.Systems.Favor;
 public class TraderTransactionFavorTracker(
     ILoggerWrapper logger,
     IWorldService worldService,
-    IFavorSystem favorSystem) : IFavorTracker, IDisposable
+    IFavorSystem favorSystem,
+    GameBalanceConfig config) : IFavorTracker, IDisposable
 {
     internal const int BaseFavor = 2;
     internal const int DivisorGears = 10;
@@ -25,6 +27,7 @@ public class TraderTransactionFavorTracker(
 
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
     private readonly ILoggerWrapper _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly GameBalanceConfig _config = config ?? throw new ArgumentNullException(nameof(config));
 
     private readonly IWorldService
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
@@ -52,21 +55,27 @@ public class TraderTransactionFavorTracker(
         if (player is not IServerPlayer serverPlayer) return;
         if (valueInGears <= 0) return;
 
-        var favor = ComputeFavor(valueInGears);
+        var favor = ComputeFavor(valueInGears, _config.CaravanPerTradeFavorCap) *
+                    _config.CaravanTradeFavorMultiplier;
         _favorSystem.AwardFavorForAction(serverPlayer, "trade", favor, DeityDomain.Caravan);
         _logger.Debug(
             $"[TraderTransactionFavorTracker] Awarded {favor} favor to {serverPlayer.PlayerName} for NPC trade worth {valueInGears} gears");
     }
 
     /// <summary>
-    ///     <c>BaseFavor + floor(value / DivisorGears)</c>, clamped to
-    ///     <see cref="MaxFavorPerTrade"/>. The clamp is the anti-whale guard — without it,
-    ///     a single 1000-gear swap would dwarf the favor income of a normal trader run.
+    ///     <c>BaseFavor + floor(value / DivisorGears)</c>, clamped to <paramref name="cap"/>
+    ///     (the live config cap). The clamp is the anti-whale guard — without it, a single
+    ///     1000-gear swap would dwarf the favor income of a normal trader run.
     /// </summary>
-    internal static int ComputeFavor(int valueInGears)
+    internal static int ComputeFavor(int valueInGears, int cap)
     {
         if (valueInGears <= 0) return 0;
         var raw = BaseFavor + valueInGears / DivisorGears;
-        return raw > MaxFavorPerTrade ? MaxFavorPerTrade : raw;
+        return raw > cap ? cap : raw;
     }
+
+    /// <summary>
+    ///     Back-compat overload using the compiled <see cref="MaxFavorPerTrade"/> default.
+    /// </summary>
+    internal static int ComputeFavor(int valueInGears) => ComputeFavor(valueInGears, MaxFavorPerTrade);
 }
