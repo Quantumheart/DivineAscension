@@ -65,19 +65,17 @@ public class PlayerTraitService : IDisposable
     public bool GrantTrait(IServerPlayer player, string code)
     {
         if (player == null) throw new ArgumentNullException(nameof(player));
-        return GrantTraitInternal(player.PlayerUID, player, code);
-    }
+        if (string.IsNullOrWhiteSpace(code)) return false;
 
-    /// <summary>
-    ///     Grants a trait code by player UID. Used for offline-safe paths (cascade
-    ///     revoke on religion disband etc.). When the player is online, stats are
-    ///     re-applied live; when offline, the next <c>PlayerJoin</c> picks it up.
-    /// </summary>
-    public bool GrantTrait(string playerUID, string code)
-    {
-        if (string.IsNullOrWhiteSpace(playerUID)) return false;
-        var player = _worldService.GetPlayerByUID(playerUID);
-        return GrantTraitInternal(playerUID, player, code);
+        var data = _playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
+        var added = data.AddGrantedTraitCode(code);
+
+        SyncExtraTraitsAttribute(player, data);
+        ReapplyCharacterClass(player);
+
+        if (added)
+            _logger.Notification($"[DivineAscension] Granted trait '{code}' to {player.PlayerUID}");
+        return added;
     }
 
     /// <summary>
@@ -86,52 +84,16 @@ public class PlayerTraitService : IDisposable
     public bool RevokeTrait(IServerPlayer player, string code)
     {
         if (player == null) throw new ArgumentNullException(nameof(player));
-        return RevokeTraitInternal(player.PlayerUID, player, code);
-    }
-
-    /// <summary>
-    ///     Revokes a trait code by player UID. Offline-safe; see <see cref="GrantTrait(string, string)"/>.
-    /// </summary>
-    public bool RevokeTrait(string playerUID, string code)
-    {
-        if (string.IsNullOrWhiteSpace(playerUID)) return false;
-        var player = _worldService.GetPlayerByUID(playerUID);
-        return RevokeTraitInternal(playerUID, player, code);
-    }
-
-    private bool GrantTraitInternal(string playerUID, IServerPlayer? player, string code)
-    {
         if (string.IsNullOrWhiteSpace(code)) return false;
 
-        var data = _playerProgressionDataManager.GetOrCreatePlayerData(playerUID);
-        var added = data.AddGrantedTraitCode(code);
-
-        if (player != null)
-        {
-            SyncExtraTraitsAttribute(player, data);
-            ReapplyCharacterClass(player);
-        }
-
-        if (added)
-            _logger.Notification($"[DivineAscension] Granted trait '{code}' to {playerUID}");
-        return added;
-    }
-
-    private bool RevokeTraitInternal(string playerUID, IServerPlayer? player, string code)
-    {
-        if (string.IsNullOrWhiteSpace(code)) return false;
-
-        var data = _playerProgressionDataManager.GetOrCreatePlayerData(playerUID);
+        var data = _playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
         var removed = data.RemoveGrantedTraitCode(code);
 
-        if (player != null)
-        {
-            SyncExtraTraitsAttribute(player, data);
-            ReapplyCharacterClass(player);
-        }
+        SyncExtraTraitsAttribute(player, data);
+        ReapplyCharacterClass(player);
 
         if (removed)
-            _logger.Notification($"[DivineAscension] Revoked trait '{code}' from {playerUID}");
+            _logger.Notification($"[DivineAscension] Revoked trait '{code}' from {player.PlayerUID}");
         return removed;
     }
 

@@ -29,7 +29,6 @@ public class ReligionManager : IReligionManager
     private readonly IWorldService _worldService;
     private readonly ReligionChronicler _chronicler;
     private ReligionWorldData _inviteData = new();
-    private PlayerTraitService? _playerTraitService;
 
     public ReligionManager(
         ILogger logger,
@@ -46,16 +45,6 @@ public class ReligionManager : IReligionManager
 
 
     internal IReadOnlyDictionary<string, string> PlayerToReligionIndex => _playerToReligionIndex;
-
-    /// <summary>
-    ///     Late binds the <see cref="PlayerTraitService"/> so membership grants/revokes
-    ///     the <c>da_member</c> VS character trait (#560). Called by the system initializer
-    ///     after the trait service is constructed.
-    /// </summary>
-    public void SetPlayerTraitService(PlayerTraitService playerTraitService)
-    {
-        _playerTraitService = playerTraitService ?? throw new ArgumentNullException(nameof(playerTraitService));
-    }
 
     /// <summary>
     ///     Event fired when a religion is deleted (either manually or automatically)
@@ -133,10 +122,6 @@ public class ReligionManager : IReligionManager
         // Store in dictionary (thread-safe)
         _religions[religionUID] = religion;
         _playerToReligionIndex.TryAdd(founderUID, religionUID);
-
-        // Grant the membership VS trait to the founder (#560). CreateReligion
-        // bypasses AddMember, so it must grant the trait directly.
-        _playerTraitService?.GrantTrait(founderUID, TraitCodes.Member);
 
         // Chronicle: the founding is the first permanent entry (#373).
         _chronicler.RecordFounded(religion);
@@ -238,10 +223,6 @@ public class ReligionManager : IReligionManager
         // Save immediately to prevent data loss
         Save(religion);
 
-        // Grant the membership VS trait (#560). Offline-safe — the UID overload
-        // mutates persisted player data even if the player isn't online.
-        _playerTraitService?.GrantTrait(playerUID, TraitCodes.Member);
-
         // Fire member added event
         OnMemberAdded?.Invoke(religionUID, playerUID);
     }
@@ -263,9 +244,6 @@ public class ReligionManager : IReligionManager
         {
             _playerToReligionIndex.TryRemove(playerUID, out _);
             _logger.Debug($"[DivineAscension] Removed player {playerUID} from religion {religion.ReligionName}");
-
-            // Revoke the membership VS trait (#560).
-            _playerTraitService?.RevokeTrait(playerUID, TraitCodes.Member);
 
             // Fire member removed event before potential religion deletion
             OnMemberRemoved?.Invoke(religionUID, playerUID);
@@ -719,9 +697,7 @@ public class ReligionManager : IReligionManager
         _logger.Notification(
             $"[DivineAscension] Deleting religion {religion.ReligionName} with {memberCount} member(s)...");
 
-        // Remove all members from the index before deleting religion (thread-safe).
-        // Snapshot member list first so we can also cascade-revoke their membership
-        // trait (#560) — religion.MemberUIDs is cleared as part of deletion below.
+        // Remove all members from the index before deleting religion (thread-safe)
         var removedCount = 0;
         foreach (var memberUID in religion.MemberUIDs.ToList())
         {
@@ -730,8 +706,6 @@ public class ReligionManager : IReligionManager
                 removedCount++;
                 _logger.Debug($"[DivineAscension] Removed player {memberUID} from index during religion deletion");
             }
-
-            _playerTraitService?.RevokeTrait(memberUID, TraitCodes.Member);
         }
 
         _logger.Notification(

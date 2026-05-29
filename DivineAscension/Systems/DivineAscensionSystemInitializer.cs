@@ -391,9 +391,6 @@ public static class DivineAscensionSystemInitializer
             api);
         playerTraitService.Initialize();
 
-        // Back-wire: religion membership grants/revokes the da_member trait (#560).
-        religionManager.SetPlayerTraitService(playerTraitService);
-
         // CRITICAL: Must be called AFTER BlessingEffectSystem is initialized
         religionPrestigeManager.SetBlessingSystems(blessingRegistry, blessingEffectSystem);
 
