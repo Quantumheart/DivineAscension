@@ -46,13 +46,40 @@ public static class CookingPatches
         }
     }
 
-    // Scale a cooked output stack by the player's cookingYield blessing stat.
+    // Scale a cooked food output stack by the player's cookingYield blessing stat.
     // Multiplier is a WeightedSum stat with base 1.0, so >1.0 means a bonus.
+    //
+    // The bonus must ONLY ever touch genuine food outputs. Earlier this scaled
+    // whatever collectible changed in a firepit slot, which also caught the
+    // cookware containers themselves (cooking pots, cauldrons) and non-food
+    // smelting outputs (crucibles, ore -> metal). Because only StackSize was
+    // bumped, the rounding turned a single item into two -- duplicating the
+    // container (and the meal stored in its attributes) or the smelted metal.
+    // See the firepit duplication exploit report.
     internal static void ApplyCookingYield(IServerPlayer player, ItemStack stack)
     {
+        if (!IsScalableFoodOutput(stack)) return;
+
         var yield = player.Entity?.Stats?.GetBlended(VintageStoryStats.CookingYield) ?? 1f;
-        if (yield <= 1f || stack.StackSize <= 0) return;
-        stack.StackSize = Math.Max(stack.StackSize, (int)Math.Round(stack.StackSize * yield));
+        stack.StackSize = ComputeScaledStackSize(stack.StackSize, yield);
+    }
+
+    // A stack may only be scaled if it is real food (carries nutrition props).
+    // Containers (cooking pots, cauldrons), crucibles and smelting outputs have
+    // no NutritionProps and are therefore never multiplied.
+    internal static bool IsScalableFoodOutput(ItemStack? stack)
+    {
+        return stack is { StackSize: > 0 } && stack.Collectible?.NutritionProps != null;
+    }
+
+    // Never shrink the stack and never let rounding mint extra items when there
+    // is no bonus. With a bonus, round the scaled amount to the nearest whole.
+    internal static int ComputeScaledStackSize(int currentStackSize, float yield)
+    {
+        if (yield <= 1f || currentStackSize <= 0) return currentStackSize;
+
+        var scaled = (int)Math.Round(currentStackSize * yield, MidpointRounding.AwayFromZero);
+        return Math.Max(currentStackSize, scaled);
     }
 
     // Track last interacting player via exact decompiled method
