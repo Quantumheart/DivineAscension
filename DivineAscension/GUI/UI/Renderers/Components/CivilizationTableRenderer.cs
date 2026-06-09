@@ -190,7 +190,7 @@ internal static class CivilizationTableRenderer
         float tableWidth, float nameColumnWidth, float religionsColumnWidth, float descriptionColumnWidth)
     {
         var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
-        const float fontSize = TableHeader;
+        var fontSize = TableHeader;
 
         // Column 1: "Name" — sigil column is hidden (see #385), so the name
         // text area now spans the full Name column.

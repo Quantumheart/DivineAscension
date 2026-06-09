@@ -27,9 +27,10 @@ public static class TextRenderer
         string text,
         float x,
         float y,
-        float fontSize = FontSizes.SubsectionLabel,
+        float fontSize = -1f,
         Vector4? color = null)
     {
+        if (fontSize < 0f) fontSize = FontSizes.SubsectionLabel;
         var textColor = ImGui.ColorConvertFloat4ToU32(color ?? ColorPalette.White);
         drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(x, y), textColor, text);
     }
@@ -117,9 +118,10 @@ public static class TextRenderer
         float x,
         float y,
         float width,
-        float fontSize = FontSizes.Secondary,
+        float fontSize = -1f,
         Vector4? color = null)
     {
+        if (fontSize < 0f) fontSize = FontSizes.Secondary;
         // Use a lighter grey (0.8, 0.8, 0.8) for better contrast on dark backgrounds
         var defaultColor = new Vector4(0.8f, 0.8f, 0.8f, 1.0f);
         var textColor = ImGui.ColorConvertFloat4ToU32(color ?? defaultColor);
@@ -179,8 +181,9 @@ public static class TextRenderer
     /// <param name="width">Maximum width for wrapping</param>
     /// <param name="fontSize">Font size used when rendering (default FontSizes.Secondary)</param>
     /// <returns>Total height in pixels required to render the wrapped text</returns>
-    public static float MeasureWrappedHeight(string text, float width, float fontSize = FontSizes.Secondary)
+    public static float MeasureWrappedHeight(string text, float width, float fontSize = -1f)
     {
+        if (fontSize < 0f) fontSize = FontSizes.Secondary;
         // Mirror DrawInfoText: hard breaks then per-paragraph word wrap.
         var lines = 0;
         var lineHeight = fontSize + 6f;
@@ -235,8 +238,9 @@ public static class TextRenderer
         string text,
         float x,
         float y,
-        float fontSize = FontSizes.Body)
+        float fontSize = -1f)
     {
+        if (fontSize < 0f) fontSize = FontSizes.Body;
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Red);
         drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(x, y), textColor, text);
     }
@@ -254,8 +258,9 @@ public static class TextRenderer
         string text,
         float x,
         float y,
-        float fontSize = FontSizes.Body)
+        float fontSize = -1f)
     {
+        if (fontSize < 0f) fontSize = FontSizes.Body;
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Green);
         drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(x, y), textColor, text);
     }
@@ -273,8 +278,9 @@ public static class TextRenderer
         string text,
         float x,
         float y,
-        float fontSize = FontSizes.Body)
+        float fontSize = -1f)
     {
+        if (fontSize < 0f) fontSize = FontSizes.Body;
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Yellow);
         drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(x, y), textColor, text);
     }
