@@ -43,8 +43,9 @@ internal static class Dropdown
         float height,
         string selectedText,
         bool isOpen,
-        float fontSize = FontSizes.Body)
+        float fontSize = -1f)
     {
+        if (fontSize < 0f) fontSize = FontSizes.Body;
         var dropdownStart = new Vector2(x, y);
         var dropdownEnd = new Vector2(x + width, y + height);
 
@@ -214,9 +215,10 @@ internal static class Dropdown
         string[] items,
         int selectedIndex,
         float itemHeight = 40f,
-        float fontSize = FontSizes.Body,
+        float fontSize = -1f,
         int maxVisibleItems = 8)
     {
+        if (fontSize < 0f) fontSize = FontSizes.Body;
         var mousePos = ImGui.GetMousePos();
         var menuTop = y + height + 2f;
         var menuStart = new Vector2(x, menuTop);
