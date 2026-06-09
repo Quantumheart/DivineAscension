@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using Vintagestory.API.Config;
 
 namespace DivineAscension.GUI.UI.Utilities;
 
@@ -57,4 +58,19 @@ internal static class UiScale
     ///     rounding each component independently.
     /// </summary>
     public static Vector2 Scaled(Vector2 baseValue) => new(Scaled(baseValue.X), Scaled(baseValue.Y));
+
+    /// <summary>
+    ///     Mirror the player's chosen GUI scale onto <see cref="Factor" />. ImGui
+    ///     renders independently of VS's GuiElement system, so
+    ///     <see cref="RuntimeEnv.GUIScale" /> — the live value vanilla uses to scale
+    ///     its own GUI — is not applied to our dialogs automatically. Call this each
+    ///     frame before drawing so changing the setting takes effect without
+    ///     reopening. Non-positive values (uninitialised / bogus) are ignored;
+    ///     <see cref="Factor" /> clamps the rest to its supported range.
+    /// </summary>
+    public static void SyncFromGameSettings()
+    {
+        var scale = RuntimeEnv.GUIScale;
+        if (scale > 0f) Factor = scale;
+    }
 }

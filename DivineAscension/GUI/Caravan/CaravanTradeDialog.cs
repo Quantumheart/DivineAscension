@@ -98,6 +98,7 @@ public class CaravanTradeDialog : ModSystem
             return CallbackGUIStatus.Closed;
         }
 
+        UiScale.SyncFromGameSettings();
         DrawWindow();
         return CallbackGUIStatus.GrabMouse;
     }
