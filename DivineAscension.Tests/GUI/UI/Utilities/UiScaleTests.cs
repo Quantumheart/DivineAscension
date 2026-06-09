@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.GUI.UI.Utilities;
+using Vintagestory.API.Config;
 
 namespace DivineAscension.Tests.GUI.UI.Utilities;
 
@@ -65,5 +66,56 @@ public class UiScaleTests
         UiScale.Factor = 2.0f;
         UiScale.Factor = bad;
         Assert.Equal(2.0f, UiScale.Factor);
+    }
+
+    [Fact]
+    public void SyncFromGameSettings_AppliesGuiScale()
+    {
+        var original = RuntimeEnv.GUIScale;
+        try
+        {
+            RuntimeEnv.GUIScale = 1.5f;
+            UiScale.SyncFromGameSettings();
+            Assert.Equal(1.5f, UiScale.Factor);
+        }
+        finally
+        {
+            RuntimeEnv.GUIScale = original;
+        }
+    }
+
+    [Fact]
+    public void SyncFromGameSettings_ClampsOutOfRangeGuiScale()
+    {
+        var original = RuntimeEnv.GUIScale;
+        try
+        {
+            RuntimeEnv.GUIScale = 10f;
+            UiScale.SyncFromGameSettings();
+            Assert.Equal(UiScale.MaxFactor, UiScale.Factor);
+        }
+        finally
+        {
+            RuntimeEnv.GUIScale = original;
+        }
+    }
+
+    [Theory]
+    [InlineData(0f)]
+    [InlineData(-1f)]
+    public void SyncFromGameSettings_IgnoresNonPositiveGuiScale(float bogus)
+    {
+        var original = RuntimeEnv.GUIScale;
+        try
+        {
+            UiScale.Factor = 2.0f;
+            RuntimeEnv.GUIScale = bogus;
+            UiScale.SyncFromGameSettings();
+            Assert.Equal(2.0f, UiScale.Factor); // unchanged
+        }
+        finally
+        {
+            RuntimeEnv.GUIScale = original;
+        }
     }
 }

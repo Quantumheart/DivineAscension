@@ -294,6 +294,7 @@ public partial class GuiDialog : ModSystem
             PlayPageTurn();
         }
 
+        UiScale.SyncFromGameSettings();
         DrawWindow();
 
         return CallbackGUIStatus.GrabMouse;
@@ -319,6 +320,8 @@ public partial class GuiDialog : ModSystem
 
         // Update notification timer
         _manager.NotificationManager.Update(deltaSeconds);
+
+        UiScale.SyncFromGameSettings();
 
         // Toast anchors to the bottom-right of the full viewport.
         var windowWidth = _viewport.Size.X;
