@@ -28,15 +28,15 @@ internal static class ChapterStripRenderer
     ///     pane width so chrome lines up regardless of whether the page is
     ///     actually scrolling right now.
     /// </summary>
-    public const float ScrollbarGutter = 20f;
+    public static float ScrollbarGutter => UiScale.Scaled(20f);
 
     /// <summary>Top padding above the title strip — first line of vellum.</summary>
-    public const float TopPadding = 8f;
+    public static float TopPadding => UiScale.Scaled(8f);
 
-    private const float GlyphGap = 8f;
-    private const float PencilGap = 8f;
-    private const float PencilWidth = 22f;
-    private const float PencilHeight = 22f;
+    private static float GlyphGap => UiScale.Scaled(8f);
+    private static float PencilGap => UiScale.Scaled(8f);
+    private static float PencilWidth => UiScale.Scaled(22f);
+    private static float PencilHeight => UiScale.Scaled(22f);
 
     public readonly record struct Result(float ContentWidth, float BodyY, bool PencilClicked);
 
@@ -96,7 +96,7 @@ internal static class ChapterStripRenderer
             var anchorX = x + contentWidth - pencilReservation - glyphReservation;
             if (glyphReservation > 0f) anchorX -= GlyphGap;
             var rightX = anchorX - rightTextWidth;
-            TextRenderer.DrawSerifLabel(drawList, rightTitle, rightX, stripY + 4f,
+            TextRenderer.DrawSerifLabel(drawList, rightTitle, rightX, stripY + UiScale.Scaled(4f),
                 FontSizes.PageTitle, ColorPalette.Gold);
         }
 
@@ -109,14 +109,14 @@ internal static class ChapterStripRenderer
             DomainGlyphRenderer.Draw(drawList, rightGlyph.Value, glyphMin, glyphMax);
             drawList.AddRect(glyphMin, glyphMax,
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f),
-                4f, ImDrawFlags.None, 1f);
+                UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(1f));
         }
 
         var pencilClicked = false;
         if (showPencil)
         {
             var px = x + contentWidth - PencilWidth;
-            var py = stripY + 6f;
+            var py = stripY + UiScale.Scaled(6f);
             if (ButtonRenderer.DrawButton(drawList, string.Empty,
                     px, py, PencilWidth, PencilHeight,
                     isPrimary: false, enabled: true))
@@ -126,7 +126,7 @@ internal static class ChapterStripRenderer
             ChromeRenderer.DrawPencil(drawList,
                 px + PencilWidth / 2f,
                 py + PencilHeight / 2f,
-                PencilHeight - 8f,
+                PencilHeight - UiScale.Scaled(8f),
                 ColorPalette.LightText);
         }
 

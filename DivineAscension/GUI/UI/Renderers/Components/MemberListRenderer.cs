@@ -36,15 +36,15 @@ public static class MemberListRenderer
         var scrollY = viewModel.ScrollY;
         var currentPlayerUid = viewModel.CurrentPlayerUID;
 
-        const float itemHeight = 30f;
-        const float itemSpacing = 4f;
-        const float scrollbarWidth = 16f;
+        var itemHeight = UiScale.Scaled(30f);
+        var itemSpacing = UiScale.Scaled(4f);
+        var scrollbarWidth = UiScale.Scaled(16f);
 
         // Draw background
         var listStart = new Vector2(x, y);
         var listEnd = new Vector2(x + width, y + height);
         var listBgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.5f);
-        drawList.AddRectFilled(listStart, listEnd, listBgColor, 4f);
+        drawList.AddRectFilled(listStart, listEnd, listBgColor, UiScale.Scaled(4f));
 
         if (members.Count == 0)
         {
@@ -69,7 +69,7 @@ public static class MemberListRenderer
             var wheel = ImGui.GetIO().MouseWheel;
             if (wheel != 0)
             {
-                var newScroll = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                var newScroll = Math.Clamp(scrollY - wheel * UiScale.Scaled(30f), 0f, maxScroll);
                 if (Math.Abs(newScroll - scrollY) > 0.001f)
                 {
                     scrollY = newScroll;
@@ -93,7 +93,7 @@ public static class MemberListRenderer
                 continue;
             }
 
-            DrawMemberItem(drawList, member, x, itemY, width - scrollbarWidth - 4f, itemHeight,
+            DrawMemberItem(drawList, member, x, itemY, width - scrollbarWidth - UiScale.Scaled(4f), itemHeight,
                 currentPlayerUid, events);
             itemY += itemHeight + itemSpacing;
         }
@@ -120,19 +120,19 @@ public static class MemberListRenderer
         string currentPlayerUid,
         List<MemberListEvent> events)
     {
-        const float padding = 8f;
-        const float buttonWidth = 50f;
-        const float buttonSpacing = 5f;
+        var padding = UiScale.Scaled(8f);
+        var buttonWidth = UiScale.Scaled(50f);
+        var buttonSpacing = UiScale.Scaled(5f);
 
         // Draw background
         var itemStart = new Vector2(x, y);
         var itemEnd = new Vector2(x + width, y + height);
         var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.8f);
-        drawList.AddRectFilled(itemStart, itemEnd, bgColor, 3f);
+        drawList.AddRectFilled(itemStart, itemEnd, bgColor, UiScale.Scaled(3f));
 
         // Player name with role
         var nameText = $"{member.PlayerName} [{member.RoleName}]";
-        var namePos = new Vector2(x + padding, y + (height - 14f) / 2);
+        var namePos = new Vector2(x + padding, y + (height - UiScale.Scaled(14f)) / 2);
         var nameColor = ImGui.ColorConvertFloat4ToU32(member.IsFounder ? ColorPalette.Gold : ColorPalette.White);
         drawList.AddText(namePos, nameColor, nameText);
 
@@ -142,21 +142,21 @@ public static class MemberListRenderer
 
         var buttonAreaWidth = buttonWidth + buttonSpacing + padding;
 
-        var rankPos = new Vector2(x + width - buttonAreaWidth - rankSize.X, y + (height - 14f) / 2);
+        var rankPos = new Vector2(x + width - buttonAreaWidth - rankSize.X, y + (height - UiScale.Scaled(14f)) / 2);
         var rankColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         drawList.AddText(rankPos, rankColor, rankText);
 
         // Action buttons (only if not founder and not self)
         if (!member.IsFounder && member.PlayerUID != currentPlayerUid)
         {
-            var buttonY = y + (height - 22f) / 2;
+            var buttonY = y + (height - UiScale.Scaled(22f)) / 2;
 
             // Ban button (leftmost if both buttons present)
             var banButtonX = x + width - buttonWidth - padding;
 
             if (ButtonRenderer.DrawSmallButton(drawList,
                     LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_BAN_BUTTON),
-                    banButtonX, buttonY, buttonWidth, 22f))
+                    banButtonX, buttonY, buttonWidth, UiScale.Scaled(22f)))
             {
                 events.Add(new MemberListEvent.BanClicked(member.PlayerUID));
             }

@@ -46,24 +46,24 @@ internal static class ErrorBannerRenderer
         var bgEnd = new Vector2(x + width, y + height);
         var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Red * 0.35f);
         var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Red * 0.8f);
-        drawList.AddRectFilled(bgStart, bgEnd, bgColor, 6f);
-        drawList.AddRect(bgStart, bgEnd, borderColor, 6f, ImDrawFlags.None, 1.5f);
+        drawList.AddRectFilled(bgStart, bgEnd, bgColor, UiScale.Scaled(6f));
+        drawList.AddRect(bgStart, bgEnd, borderColor, UiScale.Scaled(6f), ImDrawFlags.None, UiScale.Scaled(1.5f));
 
         // Icon (exclamation) circle
-        var iconCenter = new Vector2(x + 16f, y + height / 2f);
-        drawList.AddCircleFilled(iconCenter, 10f, ImGui.ColorConvertFloat4ToU32(ColorPalette.Red * 0.8f));
-        var exPos = new Vector2(iconCenter.X - 3.5f, iconCenter.Y - 7f);
+        var iconCenter = new Vector2(x + UiScale.Scaled(16f), y + height / 2f);
+        drawList.AddCircleFilled(iconCenter, UiScale.Scaled(10f), ImGui.ColorConvertFloat4ToU32(ColorPalette.Red * 0.8f));
+        var exPos = new Vector2(iconCenter.X - UiScale.Scaled(3.5f), iconCenter.Y - UiScale.Scaled(7f));
         drawList.AddText(exPos, ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText), "!");
 
         // Message text
-        var textX = x + 36f;
+        var textX = x + UiScale.Scaled(36f);
         var textY = y + (height - ImGui.CalcTextSize(message).Y) / 2f;
         drawList.AddText(new Vector2(textX, textY), ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText), message);
 
         // Action buttons on the right
-        var btnW = 86f;
-        var btnH = 28f;
-        var rightPadding = 10f;
+        var btnW = UiScale.Scaled(86f);
+        var btnH = UiScale.Scaled(28f);
+        var rightPadding = UiScale.Scaled(10f);
         var btnY = y + (height - btnH) / 2f;
         var curX = x + width - rightPadding - btnW;
 
@@ -72,7 +72,7 @@ internal static class ErrorBannerRenderer
                 LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_DISMISS), curX, btnY, btnW, btnH,
                 ColorPalette.DarkBrown))
             dismissClicked = true;
-        curX -= btnW + 8f;
+        curX -= btnW + UiScale.Scaled(8f);
 
         if (showRetry)
             if (ButtonRenderer.DrawSmallButton(drawList,
@@ -80,6 +80,6 @@ internal static class ErrorBannerRenderer
                     ColorPalette.Gold * 0.8f))
                 retryClicked = true;
 
-        return height + 8f; // include small spacing after banner
+        return height + UiScale.Scaled(8f); // include small spacing after banner
     }
 }

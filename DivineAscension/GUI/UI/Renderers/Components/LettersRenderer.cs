@@ -28,40 +28,40 @@ namespace DivineAscension.GUI.UI.Renderers.Components;
 internal static class LettersRenderer
 {
     // Chapter-level layout.
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float ScrollbarWidth = 16f;
-    private const float ClosingLineHeight = 24f;
-    private const float ClosingLineTopSpacing = 6f;
-    private const float IntroLineHeight = 18f;
-    private const float IntroBottomSpacing = 10f;
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
+    private static float ClosingLineHeight => UiScale.Scaled(24f);
+    private static float ClosingLineTopSpacing => UiScale.Scaled(6f);
+    private static float IntroLineHeight => UiScale.Scaled(18f);
+    private static float IntroBottomSpacing => UiScale.Scaled(10f);
 
     // Letter-row layout — see DrawLetter for the geometry.
-    private const float EnvelopeSize = 18f;
-    private const float GlyphSize = 16f;
-    private const float GlyphGap = 6f;
-    private const float MarkColumnWidth = EnvelopeSize + GlyphGap + GlyphSize + 8f;
-    private const float HeaderLineHeight = 22f;
-    private const float QuoteLineHeight = 20f;
-    private const float ButtonHeight = 26f;
-    private const float ButtonWidth = 88f;
-    private const float ButtonGap = 10f;
-    private const float ButtonTopSpacing = 6f;
-    private const float ButtonBottomSpacing = 8f;
-    private const float RowLeftPadding = 16f;
+    private static float EnvelopeSize => UiScale.Scaled(18f);
+    private static float GlyphSize => UiScale.Scaled(16f);
+    private static float GlyphGap => UiScale.Scaled(6f);
+    private static float MarkColumnWidth => EnvelopeSize + GlyphGap + GlyphSize + UiScale.Scaled(8f);
+    private static float HeaderLineHeight => UiScale.Scaled(22f);
+    private static float QuoteLineHeight => UiScale.Scaled(20f);
+    private static float ButtonHeight => UiScale.Scaled(26f);
+    private static float ButtonWidth => UiScale.Scaled(88f);
+    private static float ButtonGap => UiScale.Scaled(10f);
+    private static float ButtonTopSpacing => UiScale.Scaled(6f);
+    private static float ButtonBottomSpacing => UiScale.Scaled(8f);
+    private static float RowLeftPadding => UiScale.Scaled(16f);
 
-    private const float RowHeight =
+    private static float RowHeight =>
         HeaderLineHeight + QuoteLineHeight + ButtonTopSpacing + ButtonHeight + ButtonBottomSpacing;
 
     /// <summary>
     ///     Row height for read-only / informational letters (no Accept/Refuse).
     ///     Used by holiday-notice letters projected from the chronicle.
     /// </summary>
-    private const float ReadOnlyRowHeight =
+    private static float ReadOnlyRowHeight =>
         HeaderLineHeight + QuoteLineHeight + ButtonBottomSpacing;
 
-    private const float SlimDividerHeight = 18f;
-    private const float SlimDividerYPadding = 4f;
+    private static float SlimDividerHeight => UiScale.Scaled(18f);
+    private static float SlimDividerYPadding => UiScale.Scaled(4f);
 
     public static LettersRenderResult Draw(
         ImDrawListPtr drawList,
@@ -91,7 +91,7 @@ internal static class LettersRenderer
             var wheel = ImGui.GetIO().MouseWheel;
             if (wheel != 0)
             {
-                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                var newScrollY = Math.Clamp(scrollY - wheel * UiScale.Scaled(30f), 0f, maxScroll);
                 if (Math.Abs(newScrollY - scrollY) > 0.001f)
                 {
                     scrollY = newScrollY;
@@ -188,7 +188,7 @@ internal static class LettersRenderer
 
         var textX = x + MarkColumnWidth;
         drawList.AddText(ImGui.GetFont(), Body,
-            new Vector2(textX, y + 2f),
+            new Vector2(textX, y + UiScale.Scaled(2f)),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White), letter.SenderText);
 
         var quoteY = y + HeaderLineHeight;

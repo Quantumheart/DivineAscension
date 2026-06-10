@@ -67,10 +67,10 @@ public static class IconButtonGroup
         string iconDirectory,
         string iconName)
     {
-        const float iconSize = 20f;
-        const float leftPadding = 8f;
-        const float iconSpacing = 6f;
-        const float rightPadding = 8f;
+        var iconSize = UiScale.Scaled(20f);
+        var leftPadding = UiScale.Scaled(8f);
+        var iconSpacing = UiScale.Scaled(6f);
+        var rightPadding = UiScale.Scaled(8f);
 
         var topLeft = new Vector2(x, y);
         var bottomRight = new Vector2(x + width, y + height);
@@ -87,10 +87,10 @@ public static class IconButtonGroup
         if (isHovering && !isSelected) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
         drawList.AddRectFilled(topLeft, bottomRight,
-            ImGui.ColorConvertFloat4ToU32(bgColor), 4f);
+            ImGui.ColorConvertFloat4ToU32(bgColor), UiScale.Scaled(4f));
         drawList.AddRect(topLeft, bottomRight,
             ImGui.ColorConvertFloat4ToU32(isSelected ? ColorPalette.Gold : ColorPalette.BorderColor),
-            4f, ImDrawFlags.None, 2f);
+            UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(2f));
 
         var hasIcon = !string.IsNullOrEmpty(iconDirectory) && !string.IsNullOrEmpty(iconName);
         if (hasIcon)

@@ -38,7 +38,7 @@ internal static class ProgressBarRenderer
         var bgMin = new Vector2(x, y);
         var bgMax = new Vector2(x + width, y + height);
         var bgColorU32 = ImGui.ColorConvertFloat4ToU32(backgroundColor);
-        drawList.AddRectFilled(bgMin, bgMax, bgColorU32, 4f);
+        drawList.AddRectFilled(bgMin, bgMax, bgColorU32, UiScale.Scaled(4f));
 
         // Fill (progress)
         if (percentage > 0)
@@ -46,7 +46,7 @@ internal static class ProgressBarRenderer
             var fillWidth = width * Math.Clamp(percentage, 0f, 1f);
             var fillMax = new Vector2(x + fillWidth, y + height);
             var fillColorU32 = ImGui.ColorConvertFloat4ToU32(fillColor);
-            drawList.AddRectFilled(bgMin, fillMax, fillColorU32, 4f);
+            drawList.AddRectFilled(bgMin, fillMax, fillColorU32, UiScale.Scaled(4f));
 
             // Glow effect (if >80% progress)
             if (showGlow && percentage > 0.8f)
@@ -54,13 +54,13 @@ internal static class ProgressBarRenderer
                 var glowAlpha = (float)(Math.Sin(ImGui.GetTime() * 3.0) * 0.3 + 0.7);
                 var glowColor = new Vector4(fillColor.X, fillColor.Y, fillColor.Z, glowAlpha);
                 var glowColorU32 = ImGui.ColorConvertFloat4ToU32(glowColor);
-                drawList.AddRect(bgMin, fillMax, glowColorU32, 4f, ImDrawFlags.None, 2f);
+                drawList.AddRect(bgMin, fillMax, glowColorU32, UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(2f));
             }
         }
 
         // Border
         var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.5f);
-        drawList.AddRect(bgMin, bgMax, borderColor, 4f, ImDrawFlags.None, 1f);
+        drawList.AddRect(bgMin, bgMax, borderColor, UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(1f));
 
         // Label text — drawn twice with clipping so each half reads against
         // whatever background sits behind it. Dark ink on the gold fill,

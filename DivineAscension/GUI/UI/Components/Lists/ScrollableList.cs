@@ -48,15 +48,17 @@ public static class ScrollableList
         string? emptyText = null,
         string? loadingText = null,
         Vector4? backgroundColor = null,
-        float scrollbarWidth = 16f,
+        float scrollbarWidth = -1f,
         float wheelSpeed = 30f)
     {
+        if (scrollbarWidth < 0f) scrollbarWidth = UiScale.Scaled(16f);
+
         // Draw background
         var listStart = new Vector2(x, y);
         var listEnd = new Vector2(x + width, y + height);
         var bgColor = backgroundColor ?? ColorPalette.DarkBrown * 0.5f;
         var listBgColor = ImGui.ColorConvertFloat4ToU32(bgColor);
-        drawList.AddRectFilled(listStart, listEnd, listBgColor, 4f);
+        drawList.AddRectFilled(listStart, listEnd, listBgColor, UiScale.Scaled(4f));
 
         // Loading state
         if (loadingText != null)

@@ -27,22 +27,22 @@ internal static class CivilizationTableRenderer
     private const float NameWeight = 0.30f;
     private const float ReligionsWeight = 0.15f;
     private const float DescriptionWeight = 0.55f;
-    private const float MinNameColumnWidth = 160f;
-    private const float MinReligionsColumnWidth = 80f;
-    private const float MinDescriptionColumnWidth = 240f;
-    private const float HeaderHeight = 27f;
-    private const float MinRowHeight = 80f;
-    private const float RowPaddingVertical = 12f;
-    private const float RowSpacing = 8f;
-    private const float ScrollbarWidth = 16f;
+    private static float MinNameColumnWidth => UiScale.Scaled(160f);
+    private static float MinReligionsColumnWidth => UiScale.Scaled(80f);
+    private static float MinDescriptionColumnWidth => UiScale.Scaled(240f);
+    private static float HeaderHeight => UiScale.Scaled(27f);
+    private static float MinRowHeight => UiScale.Scaled(80f);
+    private static float RowPaddingVertical => UiScale.Scaled(12f);
+    private static float RowSpacing => UiScale.Scaled(8f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
     // Civ sigil column hidden until the ledger redesign — see #385. Set to 0
     // so the Name column reclaims the space; the loader and asset PNGs are
     // intentionally left in place.
     private const float CivIconSize = 0f;
-    private const float DeityIconSize = 12f;
-    private const float DeityIconSpacing = 4f;
-    private const float DescriptionPaddingHorizontal = 12f;
-    private const float NamePadding = 12f;
+    private static float DeityIconSize => UiScale.Scaled(12f);
+    private static float DeityIconSpacing => UiScale.Scaled(4f);
+    private static float DescriptionPaddingHorizontal => UiScale.Scaled(12f);
+    private static float NamePadding => UiScale.Scaled(12f);
 
     public static CivilizationTableRenderResult Draw(
         CivilizationTableViewModel viewModel,
@@ -183,7 +183,7 @@ internal static class CivilizationTableRenderer
         var start = new Vector2(x, y);
         var end = new Vector2(x + width, y + height);
         var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.TableBackground);
-        drawList.AddRectFilled(start, end, bgColor, 4f);
+        drawList.AddRectFilled(start, end, bgColor, UiScale.Scaled(4f));
     }
 
     private static void DrawTableHeader(ImDrawListPtr drawList, float x, float y,
@@ -198,17 +198,17 @@ internal static class CivilizationTableRenderer
         var nameTextAreaWidth = nameColumnWidth - NamePadding * 2;
         DrawCenteredText(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_HEADER_NAME),
-            nameTextAreaX, y + 8f, nameTextAreaWidth, headerColor, fontSize);
+            nameTextAreaX, y + UiScale.Scaled(8f), nameTextAreaWidth, headerColor, fontSize);
 
         // Column 2: "Religions" — centered
         DrawCenteredText(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_HEADER_RELIGIONS),
-            x + nameColumnWidth, y + 8f, religionsColumnWidth, headerColor, fontSize);
+            x + nameColumnWidth, y + UiScale.Scaled(8f), religionsColumnWidth, headerColor, fontSize);
 
         // Column 3: "Description" — centered like other table headers
         DrawCenteredText(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_HEADER_DESCRIPTION),
-            x + nameColumnWidth + religionsColumnWidth, y + 8f, descriptionColumnWidth, headerColor, fontSize);
+            x + nameColumnWidth + religionsColumnWidth, y + UiScale.Scaled(8f), descriptionColumnWidth, headerColor, fontSize);
     }
 
     private static string? DrawTableRow(
@@ -247,10 +247,10 @@ internal static class CivilizationTableRenderer
         }
 
         var bgColorU32 = ImGui.ColorConvertFloat4ToU32(bgColor);
-        drawList.AddRectFilled(rowStart, rowEnd, bgColorU32, 4f);
+        drawList.AddRectFilled(rowStart, rowEnd, bgColorU32, UiScale.Scaled(4f));
 
         var borderColor = ImGui.ColorConvertFloat4ToU32(isSelected ? ColorPalette.Gold : ColorPalette.DarkBrown);
-        drawList.AddRect(rowStart, rowEnd, borderColor, 4f, ImDrawFlags.None, 2f);
+        drawList.AddRect(rowStart, rowEnd, borderColor, UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(2f));
 
         string? clickedCivId = null;
         if (isHovering && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
@@ -298,20 +298,20 @@ internal static class CivilizationTableRenderer
         if (civ.MemberDeities == null || civ.MemberDeities.Count == 0)
             return;
 
-        var iconX = colX + 8f;
+        var iconX = colX + UiScale.Scaled(8f);
         var iconY = rowY + RowPaddingVertical;
 
         var currentX = iconX;
         var currentY = iconY;
-        const float iconTotalWidth = DeityIconSize + DeityIconSpacing;
+        var iconTotalWidth = DeityIconSize + DeityIconSpacing;
 
         foreach (var deityName in civ.MemberDeities)
         {
             // Wrap to next row when we'd overflow the column.
-            if (currentX + DeityIconSize > colX + columnWidth - 8f)
+            if (currentX + DeityIconSize > colX + columnWidth - UiScale.Scaled(8f))
             {
                 currentX = iconX;
-                currentY += DeityIconSize + 4f;
+                currentY += DeityIconSize + UiScale.Scaled(4f);
             }
 
             if (Enum.TryParse<DeityDomain>(deityName, out var deityType))

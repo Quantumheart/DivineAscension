@@ -43,15 +43,15 @@ public static class BanListRenderer
         float scrollY,
         Action<string>? onUnbanPlayer = null)
     {
-        const float itemHeight = 40f; // Taller to fit two lines of text
-        const float itemSpacing = 4f;
-        const float scrollbarWidth = 16f;
+        var itemHeight = UiScale.Scaled(40f); // Taller to fit two lines of text
+        var itemSpacing = UiScale.Scaled(4f);
+        var scrollbarWidth = UiScale.Scaled(16f);
 
         // Draw background
         var listStart = new Vector2(x, y);
         var listEnd = new Vector2(x + width, y + height);
         var listBgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.5f);
-        drawList.AddRectFilled(listStart, listEnd, listBgColor, 4f);
+        drawList.AddRectFilled(listStart, listEnd, listBgColor, UiScale.Scaled(4f));
 
         if (bannedPlayers.Count == 0)
         {
@@ -74,7 +74,7 @@ public static class BanListRenderer
         if (isMouseOver)
         {
             var wheel = ImGui.GetIO().MouseWheel;
-            if (wheel != 0) scrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+            if (wheel != 0) scrollY = Math.Clamp(scrollY - wheel * UiScale.Scaled(30f), 0f, maxScroll);
         }
 
         // Clip to bounds
@@ -92,7 +92,8 @@ public static class BanListRenderer
                 continue;
             }
 
-            DrawBannedPlayerItem(drawList, api, bannedPlayer, x, itemY, width - scrollbarWidth - 4f, itemHeight,
+            DrawBannedPlayerItem(drawList, api, bannedPlayer, x, itemY, width - scrollbarWidth - UiScale.Scaled(4f),
+                itemHeight,
                 onUnbanPlayer);
             itemY += itemHeight + itemSpacing;
         }
@@ -119,14 +120,14 @@ public static class BanListRenderer
         float height,
         Action<string>? onUnbanPlayer)
     {
-        const float padding = 8f;
-        const float buttonWidth = 60f;
+        var padding = UiScale.Scaled(8f);
+        var buttonWidth = UiScale.Scaled(60f);
 
         // Draw background
         var itemStart = new Vector2(x, y);
         var itemEnd = new Vector2(x + width, y + height);
         var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.8f);
-        drawList.AddRectFilled(itemStart, itemEnd, bgColor, 3f);
+        drawList.AddRectFilled(itemStart, itemEnd, bgColor, UiScale.Scaled(3f));
 
         // Player name and reason (first line)
         var nameText = $"{bannedPlayer.PlayerName} - {bannedPlayer.Reason}";
@@ -141,7 +142,7 @@ public static class BanListRenderer
         var bannedLabel = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_BANNED_AT_LABEL);
         var expiresLabel = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_BANNED_EXPIRES_LABEL);
         var detailsText = $"{bannedLabel} {bannedPlayer.BannedAt} | {expiresLabel} {expiryText}";
-        var detailsPos = new Vector2(x + padding + 10f, y + padding + 16f);
+        var detailsPos = new Vector2(x + padding + UiScale.Scaled(10f), y + padding + UiScale.Scaled(16f));
         var detailsColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey * 0.9f);
 
         // Use smaller font for details if available
@@ -150,12 +151,13 @@ public static class BanListRenderer
         // Unban button (only if callback provided)
         if (onUnbanPlayer != null)
         {
-            var buttonY = y + (height - 22f) / 2;
+            var buttonHeight = UiScale.Scaled(22f);
+            var buttonY = y + (height - buttonHeight) / 2;
             var unbanButtonX = x + width - buttonWidth - padding;
 
             if (ButtonRenderer.DrawSmallButton(drawList,
                     LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_UNBAN_BUTTON),
-                    unbanButtonX, buttonY, buttonWidth, 22f))
+                    unbanButtonX, buttonY, buttonWidth, buttonHeight))
             {
                 onUnbanPlayer.Invoke(bannedPlayer.PlayerUID);
             }

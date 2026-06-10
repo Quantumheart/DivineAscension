@@ -36,18 +36,18 @@ internal static class Scrollbar
         var trackStart = new Vector2(x, y);
         var trackEnd = new Vector2(x + width, y + height);
         var trackColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.7f);
-        drawList.AddRectFilled(trackStart, trackEnd, trackColor, 4f);
+        drawList.AddRectFilled(trackStart, trackEnd, trackColor, UiScale.Scaled(4f));
 
         // Calculate thumb size and position
         if (maxScroll > 0)
         {
-            var thumbHeight = Math.Max(20f, height * (height / (height + maxScroll)));
+            var thumbHeight = Math.Max(UiScale.Scaled(20f), height * (height / (height + maxScroll)));
             var thumbY = y + scrollY / maxScroll * (height - thumbHeight);
 
-            var thumbStart = new Vector2(x + 2f, thumbY);
-            var thumbEnd = new Vector2(x + width - 2f, thumbY + thumbHeight);
+            var thumbStart = new Vector2(x + UiScale.Scaled(2f), thumbY);
+            var thumbEnd = new Vector2(x + width - UiScale.Scaled(2f), thumbY + thumbHeight);
             var thumbColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-            drawList.AddRectFilled(thumbStart, thumbEnd, thumbColor, 4f);
+            drawList.AddRectFilled(thumbStart, thumbEnd, thumbColor, UiScale.Scaled(4f));
         }
     }
 
@@ -109,7 +109,7 @@ internal static class Scrollbar
         if (maxScroll <= 0) return currentScrollY;
 
         var mousePos = ImGui.GetMousePos();
-        var thumbHeight = Math.Max(20f, scrollbarHeight * (scrollbarHeight / (scrollbarHeight + maxScroll)));
+        var thumbHeight = Math.Max(UiScale.Scaled(20f), scrollbarHeight * (scrollbarHeight / (scrollbarHeight + maxScroll)));
         var thumbY = scrollbarY + currentScrollY / maxScroll * (scrollbarHeight - thumbHeight);
 
         // Check if clicking on thumb

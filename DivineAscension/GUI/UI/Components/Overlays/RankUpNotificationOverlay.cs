@@ -19,10 +19,10 @@ namespace DivineAscension.GUI.UI.Components.Overlays;
 [ExcludeFromCodeCoverage]
 internal static class RankUpNotificationOverlay
 {
-    private const float PanelWidth = 320f;
-    private const float IconSize = 36f;
-    private const float Padding = 12f;
-    private const float EdgeMargin = 24f;
+    private static float PanelWidth => UiScale.Scaled(320f);
+    private static float IconSize => UiScale.Scaled(36f);
+    private static float Padding => UiScale.Scaled(12f);
+    private static float EdgeMargin => UiScale.Scaled(24f);
 
     internal static void Draw(NotificationState state, out bool dismissed, out bool viewBlessingsClicked,
         float windowWidth, float windowHeight)
@@ -39,8 +39,8 @@ internal static class RankUpNotificationOverlay
         var descriptionHeight = TextRenderer.MeasureWrappedHeight(state.RankDescription, bodyWidth, Body);
 
         var contentHeight =
-            SubsectionLabel + 4f +
-            SubsectionLabel + 6f +
+            SubsectionLabel + UiScale.Scaled(4f) +
+            SubsectionLabel + UiScale.Scaled(6f) +
             descriptionHeight;
         var iconBlockHeight = IconSize;
         var panelHeight = Padding + MathF.Max(contentHeight, iconBlockHeight) + Padding;
@@ -52,9 +52,9 @@ internal static class RankUpNotificationOverlay
 
         // Parchment surface + faded-ink edge (matches vestments modal).
         drawList.AddRectFilled(panelMin, panelMax,
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Background), 6f);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Background), UiScale.Scaled(6f));
         drawList.AddRect(panelMin, panelMax,
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), 6f, ImDrawFlags.None, 1.5f);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), UiScale.Scaled(6f), ImDrawFlags.None, UiScale.Scaled(1.5f));
 
         var iconX = panelX + Padding;
         var iconY = panelY + (panelHeight - IconSize) / 2f;
@@ -75,10 +75,10 @@ internal static class RankUpNotificationOverlay
             : LocalizationKeys.UI_RANKUP_TITLE;
         var titleText = LocalizationService.Instance.Get(titleKey);
         TextRenderer.DrawLabel(drawList, titleText, textX, textY, SubsectionLabel, ColorPalette.Gold);
-        textY += SubsectionLabel + 4f;
+        textY += SubsectionLabel + UiScale.Scaled(4f);
 
         TextRenderer.DrawLabel(drawList, state.RankName, textX, textY, SubsectionLabel, ColorPalette.White);
-        textY += SubsectionLabel + 6f;
+        textY += SubsectionLabel + UiScale.Scaled(6f);
 
         TextRenderer.DrawInfoText(drawList, state.RankDescription,
             textX, textY, bodyWidth, Body, ColorPalette.White);
