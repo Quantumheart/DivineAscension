@@ -28,12 +28,12 @@ namespace DivineAscension.GUI.UI.Renderers.Blessing;
 [ExcludeFromCodeCoverage]
 internal static class BlessingVowsTabRenderer
 {
-    private const float Padding = 16f;
-    private const float SectionLabelHeight = 22f;
-    private const float LeaderRowHeight = 22f;
-    private const float DividerSpacing = 18f;
-    private const float ScrollbarWidth = 16f;
-    private const float TreePaneHeight = 360f;
+    private static float Padding => UiScale.Scaled(16f);
+    private static float SectionLabelHeight => UiScale.Scaled(22f);
+    private static float LeaderRowHeight => UiScale.Scaled(22f);
+    private static float DividerSpacing => UiScale.Scaled(18f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
+    private static float TreePaneHeight => UiScale.Scaled(360f);
 
     internal static BlessingTabRenderResult Draw(BlessingTabViewModel vm)
     {
@@ -59,10 +59,10 @@ internal static class BlessingVowsTabRenderer
         // Approximate tree rect for wheel-exclusion. Real position depends on cumulative
         // section heights — pre-compute the same way the body does below.
         var slotsRowHeight = vm.ReligionBlessingSlotCap > 0 ? LeaderRowHeight : 0f;
-        var preTreeOffset = HeaderHeight() + IntroHeight(vm, contentWidth) + 8f + DividerSpacing
-                            + SectionLabelHeight + vm.DeitySummaries.Count * LeaderRowHeight + 4f
-                            + DividerSpacing + LeaderRowHeight + 4f + slotsRowHeight
-                            + DeitySelectorRenderer.Height + 6f + DividerSpacing;
+        var preTreeOffset = HeaderHeight() + IntroHeight(vm, contentWidth) + UiScale.Scaled(8f) + DividerSpacing
+                            + SectionLabelHeight + vm.DeitySummaries.Count * LeaderRowHeight + UiScale.Scaled(4f)
+                            + DividerSpacing + LeaderRowHeight + UiScale.Scaled(4f) + slotsRowHeight
+                            + DeitySelectorRenderer.Height + UiScale.Scaled(6f) + DividerSpacing;
         var treeScreenTop = vm.Y + preTreeOffset - scrollY;
         var overTree = mousePos.X >= vm.X && mousePos.X <= vm.X + contentWidth
                                           && mousePos.Y >= treeScreenTop
@@ -73,7 +73,7 @@ internal static class BlessingVowsTabRenderer
             var wheel = ImGui.GetIO().MouseWheel;
             if (wheel != 0f)
             {
-                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                var newScrollY = Math.Clamp(scrollY - wheel * UiScale.Scaled(30f), 0f, maxScroll);
                 if (MathF.Abs(newScrollY - scrollY) > 0.001f)
                 {
                     scrollY = newScrollY;
@@ -101,7 +101,7 @@ internal static class BlessingVowsTabRenderer
         var introHeight = TextRenderer.MeasureWrappedHeight(intro, introWidth, Secondary);
         TextRenderer.DrawInfoText(drawList, intro, vm.X + Padding, topY, introWidth, Secondary,
             ColorPalette.White);
-        topY += introHeight + 8f;
+        topY += introHeight + UiScale.Scaled(8f);
 
         ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
         topY += DividerSpacing;
@@ -124,7 +124,7 @@ internal static class BlessingVowsTabRenderer
             topY += LeaderRowHeight;
         }
 
-        topY += 4f;
+        topY += UiScale.Scaled(4f);
         ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
         topY += DividerSpacing;
 
@@ -138,7 +138,7 @@ internal static class BlessingVowsTabRenderer
         ChromeRenderer.DrawLeader(drawList, patronHeading, prestigeBalance,
             vm.X + Padding, topY, contentWidth - Padding * 2,
             labelColor: ColorPalette.Gold, valueColor: ColorPalette.White);
-        topY += LeaderRowHeight + 4f;
+        topY += LeaderRowHeight + UiScale.Scaled(4f);
 
         // --- "Inscribed: X/Y" religion slot counter (#479). Hidden until the cap is synced
         //     (cap 0 = unknown). Turns gold when the religion is at its inscribe cap.
@@ -156,7 +156,7 @@ internal static class BlessingVowsTabRenderer
         // --- Deity sub-index (selector strip, glyph primitives) — horizontally centered.
         var stripX = vm.X + (contentWidth - DeitySelectorRenderer.StripWidth) * 0.5f;
         var requestedDeity = DeitySelectorRenderer.Draw(stripX, topY, vm.ActiveDeity, vm.PatronDomain);
-        topY += DeitySelectorRenderer.Height + 6f;
+        topY += DeitySelectorRenderer.Height + UiScale.Scaled(6f);
 
         ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
         topY += DividerSpacing;
@@ -197,7 +197,7 @@ internal static class BlessingVowsTabRenderer
             }
         }
 
-        topY += TreePaneHeight + 6f;
+        topY += TreePaneHeight + UiScale.Scaled(6f);
 
         drawList.PopClipRect();
 
@@ -277,16 +277,16 @@ internal static class BlessingVowsTabRenderer
 
         var h = 0f;
         h += PaneHeaderRenderer.TotalHeight;
-        h += introH + 8f;
+        h += introH + UiScale.Scaled(8f);
         h += DividerSpacing;
         h += SectionLabelHeight;
         h += summaryRows * LeaderRowHeight;
-        h += 4f + DividerSpacing;
-        h += LeaderRowHeight + 4f;
+        h += UiScale.Scaled(4f) + DividerSpacing;
+        h += LeaderRowHeight + UiScale.Scaled(4f);
         if (hasSlotsRow) h += LeaderRowHeight;
-        h += DeitySelectorRenderer.Height + 6f;
+        h += DeitySelectorRenderer.Height + UiScale.Scaled(6f);
         h += DividerSpacing;
-        h += TreePaneHeight + 6f;
+        h += TreePaneHeight + UiScale.Scaled(6f);
         return h;
     }
 }

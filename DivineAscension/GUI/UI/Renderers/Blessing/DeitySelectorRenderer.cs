@@ -16,16 +16,16 @@ namespace DivineAscension.GUI.UI.Renderers.Blessing;
 [ExcludeFromCodeCoverage]
 internal static class DeitySelectorRenderer
 {
-    private const float TabSize = 56f;
-    private const float TabSpacing = 6f;
-    private const float PatronBorderThickness = 2.5f;
-    private const float ActiveBorderThickness = 2f;
-    public const float Height = TabSize + 4f;
+    private static float TabSize => UiScale.Scaled(56f);
+    private static float TabSpacing => UiScale.Scaled(6f);
+    private static float PatronBorderThickness => UiScale.Scaled(2.5f);
+    private static float ActiveBorderThickness => UiScale.Scaled(2f);
+    public static float Height => TabSize + UiScale.Scaled(4f);
     // The selectable domains drive both the tab order and the count; Caravan is
     // included only when its feature flag is on (see DeityDomains.Selectable).
     private static readonly IReadOnlyList<DeityDomain> Order = DeityDomains.Selectable;
     public static readonly int TabCount = Order.Count;
-    public static readonly float StripWidth = TabCount * TabSize + (TabCount - 1) * TabSpacing;
+    public static float StripWidth => TabCount * TabSize + (TabCount - 1) * TabSpacing;
 
     /// <summary>
     ///     Draw the deity selector. Returns the deity the user clicked this frame, or null.
@@ -52,9 +52,9 @@ internal static class DeitySelectorRenderer
 
             var bgColor = ImGui.ColorConvertFloat4ToU32(
                 hovered ? ColorPalette.LightBrown : ColorPalette.DarkBrown);
-            drawList.AddRectFilled(min, max, bgColor, 4f);
+            drawList.AddRectFilled(min, max, bgColor, UiScale.Scaled(4f));
 
-            const float pad = 10f;
+            var pad = UiScale.Scaled(10f);
             var glyphMin = new Vector2(min.X + pad, min.Y + pad);
             var glyphMax = new Vector2(max.X - pad, max.Y - pad);
             DomainGlyphRenderer.Draw(drawList, domain, glyphMin, glyphMax, ColorPalette.LightText);
@@ -62,25 +62,25 @@ internal static class DeitySelectorRenderer
             if (isPatron)
             {
                 var patronBorder = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-                drawList.AddRect(min, max, patronBorder, 4f, ImDrawFlags.None, PatronBorderThickness);
+                drawList.AddRect(min, max, patronBorder, UiScale.Scaled(4f), ImDrawFlags.None, PatronBorderThickness);
                 var star = "*";
                 drawList.AddText(ImGui.GetFont(), Secondary,
-                    new Vector2(max.X - 12f, min.Y + 2f),
+                    new Vector2(max.X - UiScale.Scaled(12f), min.Y + UiScale.Scaled(2f)),
                     patronBorder, star);
             }
             else if (isActive)
             {
                 var border = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.Gold, 0.6f));
-                drawList.AddRect(min, max, border, 4f, ImDrawFlags.None, ActiveBorderThickness);
+                drawList.AddRect(min, max, border, UiScale.Scaled(4f), ImDrawFlags.None, ActiveBorderThickness);
             }
 
             if (isActive)
             {
                 var underline = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
                 drawList.AddLine(
-                    new Vector2(min.X, max.Y + 1f),
-                    new Vector2(max.X, max.Y + 1f),
-                    underline, 2f);
+                    new Vector2(min.X, max.Y + UiScale.Scaled(1f)),
+                    new Vector2(max.X, max.Y + UiScale.Scaled(1f)),
+                    underline, UiScale.Scaled(2f));
             }
 
             if (hovered && clicked)

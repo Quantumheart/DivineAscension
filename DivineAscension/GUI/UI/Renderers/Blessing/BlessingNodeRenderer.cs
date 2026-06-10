@@ -19,10 +19,10 @@ namespace DivineAscension.GUI.UI.Renderers.Blessing;
 [ExcludeFromCodeCoverage]
 internal static class BlessingNodeRenderer
 {
-    private const float SealRadius = 22f;
-    private const float RimThickness = 2.0f;
-    private const float SelectedRimThickness = 3.0f;
-    private const float IconSize = 28f;
+    private static float SealRadius => UiScale.Scaled(22f);
+    private static float RimThickness => UiScale.Scaled(2.0f);
+    private static float SelectedRimThickness => UiScale.Scaled(3.0f);
+    private static float IconSize => UiScale.Scaled(28f);
 
     // Shared animation clock for the "available" gentle pulse.
     private static float _glowAnimationTime;
@@ -54,7 +54,7 @@ internal static class BlessingNodeRenderer
             var glowAlpha = 0.18f + 0.22f * pulse;
             var glowColor = ColorPalette.Gold;
             glowColor.W = glowAlpha;
-            drawList.AddCircleFilled(center, SealRadius + 5f,
+            drawList.AddCircleFilled(center, SealRadius + UiScale.Scaled(5f),
                 ImGui.ColorConvertFloat4ToU32(glowColor), 32);
         }
 
@@ -70,8 +70,8 @@ internal static class BlessingNodeRenderer
         // Hover halo — single thin gold ring, no blue tint.
         if (isHovering && !isSelected)
         {
-            drawList.AddCircle(center, SealRadius + 2f,
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.5f), 32, 1f);
+            drawList.AddCircle(center, SealRadius + UiScale.Scaled(2f),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.5f), 32, UiScale.Scaled(1f));
         }
 
         // Inner symbol — icon if registered, else initials in iron-gall ink.
@@ -108,7 +108,7 @@ internal static class BlessingNodeRenderer
             var captionSize = ImGui.CalcTextSize(caption);
             var captionPos = new Vector2(
                 center.X - captionSize.X / 2f,
-                center.Y + SealRadius + 6f);
+                center.Y + SealRadius + UiScale.Scaled(6f));
             var captionColor = state.VisualState switch
             {
                 BlessingNodeVisualState.Unlocked => ColorPalette.Gold,
@@ -151,15 +151,15 @@ internal static class BlessingNodeRenderer
         // sibling seals instead of slicing through them.
         if (Math.Abs(fromCenter.X - toCenter.X) < 0.5f)
         {
-            drawList.AddLine(fromCenter, toCenter, col32, 1.25f);
+            drawList.AddLine(fromCenter, toCenter, col32, UiScale.Scaled(1.25f));
             return;
         }
 
         var dy = toCenter.Y - fromCenter.Y;
-        var tangent = Math.Max(24f, Math.Abs(dy) * 0.55f);
+        var tangent = Math.Max(UiScale.Scaled(24f), Math.Abs(dy) * 0.55f);
         var cp1 = new Vector2(fromCenter.X, fromCenter.Y + tangent);
         var cp2 = new Vector2(toCenter.X, toCenter.Y - tangent);
-        drawList.AddBezierCubic(fromCenter, cp1, cp2, toCenter, col32, 1.25f, 24);
+        drawList.AddBezierCubic(fromCenter, cp1, cp2, toCenter, col32, UiScale.Scaled(1.25f), 24);
     }
 
     private static (Vector4 Fill, Vector4 Rim, Vector4 IconTint, Vector4 Text) StyleFor(
