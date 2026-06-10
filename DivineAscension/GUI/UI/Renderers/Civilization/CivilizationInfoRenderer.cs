@@ -28,21 +28,21 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 [ExcludeFromCodeCoverage]
 internal static class CivilizationInfoRenderer
 {
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float SectionLabelHeight = 22f;
-    private const float OrderRowHeight = 22f;
-    private const float BoonRowHeight = 22f;
-    private const float BoonProseHeight = 20f;
-    private const float InviteInputHeight = 30f;
-    private const float InviteButtonWidth = 130f;
-    private const float InviteButtonHeight = 32f;
-    private const float LetterRowHeight = 22f;
-    private const float FooterTopPadding = 12f;
-    private const float ScrollbarWidth = 16f;
-    private const float DiamondHalfSize = 3.5f;
-    private const float DiamondLeftPadding = 4f;
-    private const float DiamondLabelGap = 10f;
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float SectionLabelHeight => UiScale.Scaled(22f);
+    private static float OrderRowHeight => UiScale.Scaled(22f);
+    private static float BoonRowHeight => UiScale.Scaled(22f);
+    private static float BoonProseHeight => UiScale.Scaled(20f);
+    private static float InviteInputHeight => UiScale.Scaled(30f);
+    private static float InviteButtonWidth => UiScale.Scaled(130f);
+    private static float InviteButtonHeight => UiScale.Scaled(32f);
+    private static float LetterRowHeight => UiScale.Scaled(22f);
+    private static float FooterTopPadding => UiScale.Scaled(12f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
+    private static float DiamondHalfSize => UiScale.Scaled(3.5f);
+    private static float DiamondLeftPadding => UiScale.Scaled(4f);
+    private static float DiamondLabelGap => UiScale.Scaled(10f);
 
     public static CivilizationInfoRendererResult Draw(
         CivilizationInfoViewModel vm,
@@ -83,7 +83,7 @@ internal static class CivilizationInfoRenderer
             var wheel = ImGui.GetIO().MouseWheel;
             if (wheel != 0)
             {
-                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                var newScrollY = Math.Clamp(scrollY - wheel * UiScale.Scaled(30f), 0f, maxScroll);
                 if (Math.Abs(newScrollY - scrollY) > 0.001f)
                 {
                     scrollY = newScrollY;
@@ -162,7 +162,7 @@ internal static class CivilizationInfoRenderer
             TextRenderer.DrawInfoText(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_BOONS_EMPTY),
                 x, currentY, width, Secondary, ColorPalette.Grey);
-            return currentY + BoonRowHeight + 4f;
+            return currentY + BoonRowHeight + UiScale.Scaled(4f);
         }
 
         foreach (var boon in phrases)
@@ -179,7 +179,7 @@ internal static class CivilizationInfoRenderer
             currentY += BoonRowHeight;
         }
 
-        return currentY + 4f;
+        return currentY + UiScale.Scaled(4f);
     }
 
     private static float DrawBannerOrders(
@@ -208,7 +208,7 @@ internal static class CivilizationInfoRenderer
             currentY += OrderRowHeight;
         }
 
-        return currentY + 4f;
+        return currentY + UiScale.Scaled(4f);
     }
 
     private static void DrawOrderRow(
@@ -224,7 +224,7 @@ internal static class CivilizationInfoRenderer
 
         var labelX = x + DiamondLeftPadding + DiamondHalfSize * 2f + DiamondLabelGap;
         var rowY = centerY - Body * 0.5f;
-        var leaderWidth = MathF.Max(width - (labelX - x), 40f);
+        var leaderWidth = MathF.Max(width - (labelX - x), UiScale.Scaled(40f));
 
         var deity = !string.IsNullOrWhiteSpace(member.DeityName)
             ? member.DeityName
@@ -256,8 +256,8 @@ internal static class CivilizationInfoRenderer
             x, currentY, SubsectionLabel, ColorPalette.Grey);
         currentY += SectionLabelHeight;
 
-        var inputWidth = width - InviteButtonWidth - 10f;
-        if (inputWidth < 120f) inputWidth = MathF.Max(120f, width - 10f);
+        var inputWidth = width - InviteButtonWidth - UiScale.Scaled(10f);
+        if (inputWidth < UiScale.Scaled(120f)) inputWidth = MathF.Max(UiScale.Scaled(120f), width - UiScale.Scaled(10f));
 
         var newInvite = TextInput.Draw(
             drawList,
@@ -273,7 +273,7 @@ internal static class CivilizationInfoRenderer
             events.Add(new InfoEvent.InviteReligionNameChanged(newInvite));
 
         var canInvite = !overlayOpen && vm.CanInvite && !vm.IsLoading;
-        var inviteButtonX = x + inputWidth + 10f;
+        var inviteButtonX = x + inputWidth + UiScale.Scaled(10f);
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_INVITE_BUTTON),
                 inviteButtonX, currentY, InviteButtonWidth, InviteButtonHeight,
@@ -282,7 +282,7 @@ internal static class CivilizationInfoRenderer
             events.Add(new InfoEvent.InviteReligionClicked(vm.InviteReligionName));
         }
 
-        currentY += InviteInputHeight + 10f;
+        currentY += InviteInputHeight + UiScale.Scaled(10f);
 
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_LETTERS_HEADING),
@@ -305,7 +305,7 @@ internal static class CivilizationInfoRenderer
             currentY += LetterRowHeight;
         }
 
-        return currentY + 4f;
+        return currentY + UiScale.Scaled(4f);
     }
 
     private static void DrawLetterRow(
@@ -321,7 +321,7 @@ internal static class CivilizationInfoRenderer
             ColorPalette.Gold * 0.4f);
 
         var leaderX = x + DiamondLeftPadding + DiamondHalfSize * 2f + DiamondLabelGap;
-        var leaderWidth = MathF.Max(width - (leaderX - x) - 8f, 40f);
+        var leaderWidth = MathF.Max(width - (leaderX - x) - UiScale.Scaled(8f), UiScale.Scaled(40f));
         var rowY = centerY - Body * 0.5f;
         ChromeRenderer.DrawLeader(drawList,
             invite.ReligionName,
@@ -341,17 +341,17 @@ internal static class CivilizationInfoRenderer
         var h = 0f;
         h += PaneHeaderRenderer.TotalHeight;
         // Prose intro
-        h += Body + LinePadding + 12f;
+        h += Body + LinePadding + UiScale.Scaled(12f);
         // Stat block (5 rows: founded, founder+epithet, founding order, ethos, seat)
-        h += OrderRowHeight * 5 + 8f;
+        h += OrderRowHeight * 5 + UiScale.Scaled(8f);
 
         h += DividerHeight;
 
         // Description
         if (vm.IsFounder && vm.IsEditingDescription)
-            h += SectionLabelHeight + 80f + 6f + 26f + 8f;
+            h += SectionLabelHeight + UiScale.Scaled(80f) + UiScale.Scaled(6f) + UiScale.Scaled(26f) + UiScale.Scaled(8f);
         else
-            h += SectionLabelHeight + Secondary + LinePadding + 8f;
+            h += SectionLabelHeight + Secondary + LinePadding + UiScale.Scaled(8f);
 
         h += DividerHeight;
 
@@ -359,27 +359,27 @@ internal static class CivilizationInfoRenderer
         h += SectionLabelHeight + BoonProseHeight;
         var boonCount = 0;
         foreach (var _ in MilestonePhrases.ActiveBonusPhrases(vm.Bonuses)) boonCount++;
-        h += boonCount == 0 ? BoonRowHeight + 4f : BoonRowHeight * boonCount + 4f;
+        h += boonCount == 0 ? BoonRowHeight + UiScale.Scaled(4f) : BoonRowHeight * boonCount + UiScale.Scaled(4f);
 
         h += DividerHeight;
 
         // Banner orders
         h += SectionLabelHeight;
-        h += vm.MemberCount == 0 ? OrderRowHeight : OrderRowHeight * vm.MemberCount + 4f;
+        h += vm.MemberCount == 0 ? OrderRowHeight : OrderRowHeight * vm.MemberCount + UiScale.Scaled(4f);
 
         // Invite block (founder only)
         if (vm.IsFounder)
         {
             h += DividerHeight;
-            h += SectionLabelHeight + InviteInputHeight + 10f;
+            h += SectionLabelHeight + InviteInputHeight + UiScale.Scaled(10f);
             h += SectionLabelHeight;
             h += vm.HasPendingInvites
-                ? LetterRowHeight * vm.PendingInvites.Count + 4f
+                ? LetterRowHeight * vm.PendingInvites.Count + UiScale.Scaled(4f)
                 : LetterRowHeight;
         }
 
         // Footer
-        h += FooterTopPadding + 34f + 6f;
+        h += FooterTopPadding + UiScale.Scaled(34f) + UiScale.Scaled(6f);
         return h;
     }
 

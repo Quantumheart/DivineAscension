@@ -28,24 +28,24 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 [ExcludeFromCodeCoverage]
 internal static class CivilizationLeaderboardRenderer
 {
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float ProseBottomSpacing = 12f;
-    private const float RowHeight = 24f;
-    private const float RefreshGlyphSize = 22f;
-    private const float ScrollbarWidth = 16f;
-    private const float SummaryTopSpacing = 6f;
-    private const float SelectorRowHeight = 28f;
-    private const float SelectorRowBottomSpacing = 6f;
-    private const float SelectorChipGap = 18f;
-    private const float SelectorChipPaddingX = 8f;
-    private const float RowMarkerWidth = 16f; // ▸/◂ pin gutter on the viewer row
-    private const float RowRankWidth = 46f;    // "VIII." rank column
-    private const float RowGlyphSize = 16f;    // heraldic ethos mark
-    private const float RowGlyphGap = 8f;
-    private const float RowBarWidth = 72f;
-    private const float RowBarHeight = 8f;
-    private const float RowColumnGap = 12f;
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float ProseBottomSpacing => UiScale.Scaled(12f);
+    private static float RowHeight => UiScale.Scaled(24f);
+    private static float RefreshGlyphSize => UiScale.Scaled(22f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
+    private static float SummaryTopSpacing => UiScale.Scaled(6f);
+    private static float SelectorRowHeight => UiScale.Scaled(28f);
+    private static float SelectorRowBottomSpacing => UiScale.Scaled(6f);
+    private static float SelectorChipGap => UiScale.Scaled(18f);
+    private static float SelectorChipPaddingX => UiScale.Scaled(8f);
+    private static float RowMarkerWidth => UiScale.Scaled(16f); // ▸/◂ pin gutter on the viewer row
+    private static float RowRankWidth => UiScale.Scaled(46f);    // "VIII." rank column
+    private static float RowGlyphSize => UiScale.Scaled(16f);    // heraldic ethos mark
+    private static float RowGlyphGap => UiScale.Scaled(8f);
+    private static float RowBarWidth => UiScale.Scaled(72f);
+    private static float RowBarHeight => UiScale.Scaled(8f);
+    private static float RowColumnGap => UiScale.Scaled(12f);
 
     public static CivilizationLeaderboardRenderResult Draw(
         CivilizationLeaderboardViewModel viewModel,
@@ -85,7 +85,7 @@ internal static class CivilizationLeaderboardRenderer
             var wheel = ImGui.GetIO().MouseWheel;
             if (wheel != 0)
             {
-                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                var newScrollY = Math.Clamp(scrollY - wheel * UiScale.Scaled(30f), 0f, maxScroll);
                 if (Math.Abs(newScrollY - scrollY) > 0.001f)
                 {
                     scrollY = newScrollY;
@@ -150,7 +150,7 @@ internal static class CivilizationLeaderboardRenderer
         List<LeaderboardEvent> events)
     {
         var bx = paneX + contentWidth - RefreshGlyphSize;
-        var by = stripTopY + ChapterStripRenderer.TopPadding + 6f;
+        var by = stripTopY + ChapterStripRenderer.TopPadding + UiScale.Scaled(6f);
         if (ButtonRenderer.DrawButton(drawList, string.Empty,
                 bx, by, RefreshGlyphSize, RefreshGlyphSize,
                 isPrimary: false, enabled: !viewModel.IsLoading))
@@ -160,7 +160,7 @@ internal static class CivilizationLeaderboardRenderer
         ChromeRenderer.DrawRefreshArrow(drawList,
             bx + RefreshGlyphSize / 2f,
             by + RefreshGlyphSize / 2f,
-            RefreshGlyphSize - 6f,
+            RefreshGlyphSize - UiScale.Scaled(6f),
             ColorPalette.LightText);
     }
 
@@ -186,7 +186,7 @@ internal static class CivilizationLeaderboardRenderer
         // Drawn as chevrons rather than glyphs: ▸/◂ aren't in the ImGui font.
         if (isViewer)
         {
-            const float pinSize = 9f;
+            var pinSize = UiScale.Scaled(9f);
             ChromeRenderer.DrawChevron(drawList, x + pinSize * 0.6f, rowMidY, pinSize,
                 ChromeRenderer.ChevronDirection.Right, ColorPalette.Gold);
             ChromeRenderer.DrawChevron(drawList, x + width - pinSize * 0.6f, rowMidY, pinSize,
@@ -243,10 +243,10 @@ internal static class CivilizationLeaderboardRenderer
         var fillCol = ImGui.ColorConvertFloat4ToU32(isViewer ? ColorPalette.Gold : ColorPalette.Grey);
 
         drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width, y + height),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor * 0.4f), 2f);
-        drawList.AddRect(new Vector2(x, y), new Vector2(x + width, y + height), trackCol, 2f);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor * 0.4f), UiScale.Scaled(2f));
+        drawList.AddRect(new Vector2(x, y), new Vector2(x + width, y + height), trackCol, UiScale.Scaled(2f));
         if (fraction > 0f)
-            drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width * fraction, y + height), fillCol, 2f);
+            drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width * fraction, y + height), fillCol, UiScale.Scaled(2f));
     }
 
     private static float DrawProseIntro(
@@ -256,7 +256,7 @@ internal static class CivilizationLeaderboardRenderer
         var prose = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_LEADERBOARD_INTRO);
         TextRenderer.DrawInfoText(drawList, prose, x, y, width, Body, ColorPalette.White);
         var lines = TextRenderer.MeasureWrappedHeight(prose, width, Body);
-        return y + (lines > 0 ? lines : Body + 6f) + ProseBottomSpacing;
+        return y + (lines > 0 ? lines : Body + UiScale.Scaled(6f)) + ProseBottomSpacing;
     }
 
     /// <summary>
@@ -284,8 +284,8 @@ internal static class CivilizationLeaderboardRenderer
             var chipWidth = SelectorChipPaddingX + labelSize.X + SelectorChipPaddingX;
             if (cursor + chipWidth > x + width) break;
 
-            var chipMinY = rowCenterY - labelSize.Y / 2f - 4f;
-            var chipMaxY = rowCenterY + labelSize.Y / 2f + 4f;
+            var chipMinY = rowCenterY - labelSize.Y / 2f - UiScale.Scaled(4f);
+            var chipMaxY = rowCenterY + labelSize.Y / 2f + UiScale.Scaled(4f);
             var chipMin = new Vector2(cursor, chipMinY);
             var chipMax = new Vector2(cursor + chipWidth, chipMaxY);
 
@@ -294,7 +294,7 @@ internal static class CivilizationLeaderboardRenderer
 
             if (isActive)
                 drawList.AddRect(chipMin, chipMax,
-                    ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), 3f, ImDrawFlags.None, 1.5f);
+                    ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), UiScale.Scaled(3f), ImDrawFlags.None, UiScale.Scaled(1.5f));
 
             if (isHover && !isActive) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
@@ -354,7 +354,7 @@ internal static class CivilizationLeaderboardRenderer
     private static float ComputeContentHeight(CivilizationLeaderboardViewModel viewModel)
     {
         var h = PaneHeaderRenderer.TotalHeight;
-        h += 36f + ProseBottomSpacing; // prose intro (~2 lines)
+        h += UiScale.Scaled(36f) + ProseBottomSpacing; // prose intro (~2 lines)
         h += SelectorRowHeight + SelectorRowBottomSpacing; // board selector
         h += DividerHeight;
         h += viewModel.Entries.Count * RowHeight;
