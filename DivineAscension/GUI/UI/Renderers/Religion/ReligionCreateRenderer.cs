@@ -25,13 +25,13 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 [ExcludeFromCodeCoverage]
 internal static class ReligionCreateRenderer
 {
-    private const float FormWidth = 500f;
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float SectionLabelHeight = 22f;
-    private const float FieldRowHeight = 40f;
-    private const float InputHeight = 32f;
-    private const float FooterTopPadding = 12f;
+    private static float FormWidth => UiScale.Scaled(500f);
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float SectionLabelHeight => UiScale.Scaled(22f);
+    private static float FieldRowHeight => UiScale.Scaled(40f);
+    private static float InputHeight => UiScale.Scaled(32f);
+    private static float FooterTopPadding => UiScale.Scaled(12f);
 
     public static ReligionCreateRenderResult Draw(
         ReligionCreateViewModel viewModel,
@@ -54,7 +54,7 @@ internal static class ReligionCreateRenderer
         // === PROSE INTRO ===
         var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CREATE_INTRO);
         TextRenderer.DrawInfoText(drawList, intro, formX, currentY, FormWidth, Body, ColorPalette.White);
-        currentY += TextRenderer.MeasureWrappedHeight(intro, FormWidth, Body) + 8f;
+        currentY += TextRenderer.MeasureWrappedHeight(intro, FormWidth, Body) + UiScale.Scaled(8f);
 
         currentY = DrawDivider(drawList, formX, currentY, FormWidth);
 
@@ -77,21 +77,21 @@ internal static class ReligionCreateRenderer
         var newIsPublic = CheckboxRenderer.DrawCheckbox(drawList, vowLabel, formX, currentY, viewModel.IsPublic);
         if (newIsPublic != viewModel.IsPublic)
             events.Add(new CreateEvent.IsPublicChanged(newIsPublic));
-        currentY += 32f;
+        currentY += UiScale.Scaled(32f);
 
         // Error message (if any) before the vow button.
         if (!string.IsNullOrEmpty(viewModel.ErrorMessage))
         {
             TextRenderer.DrawErrorText(drawList, viewModel.ErrorMessage, formX, currentY);
-            currentY += 26f;
+            currentY += UiScale.Scaled(26f);
         }
 
         currentY = DrawDivider(drawList, formX, currentY, FormWidth);
 
         // === VOW BUTTON (right-aligned) ===
         currentY += FooterTopPadding;
-        const float buttonWidth = 220f;
-        const float buttonHeight = 36f;
+        var buttonWidth = UiScale.Scaled(220f);
+        var buttonHeight = UiScale.Scaled(36f);
         var buttonX = formX + FormWidth - buttonWidth;
 
         if (ButtonRenderer.DrawButton(
@@ -107,7 +107,7 @@ internal static class ReligionCreateRenderer
             events.Add(new CreateEvent.SubmitClicked());
         }
 
-        currentY += buttonHeight + 6f;
+        currentY += buttonHeight + UiScale.Scaled(6f);
 
         if (!string.IsNullOrEmpty(hoveredDomainName))
         {
@@ -159,21 +159,21 @@ internal static class ReligionCreateRenderer
                 TextRenderer.DrawErrorText(drawList,
                     LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_TOO_SHORT),
                     formX, currentY);
-                currentY += 25f;
+                currentY += UiScale.Scaled(25f);
             }
             else if (viewModel.ReligionName.Length > 32)
             {
                 TextRenderer.DrawErrorText(drawList,
                     LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_TOO_LONG),
                     formX, currentY);
-                currentY += 25f;
+                currentY += UiScale.Scaled(25f);
             }
             else if (viewModel.ReligionNameHasProfanity)
             {
                 TextRenderer.DrawErrorText(drawList,
                     LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_PROFANITY,
                         viewModel.ReligionNameProfanityWord ?? ""), formX, currentY);
-                currentY += 25f;
+                currentY += UiScale.Scaled(25f);
             }
         }
 
@@ -209,21 +209,21 @@ internal static class ReligionCreateRenderer
                 TextRenderer.DrawErrorText(drawList,
                     LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_NAME_ERROR_TOO_SHORT),
                     formX, currentY);
-                currentY += 25f;
+                currentY += UiScale.Scaled(25f);
             }
             else if (viewModel.DeityName.Length > 48)
             {
                 TextRenderer.DrawErrorText(drawList,
                     LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_NAME_ERROR_TOO_LONG),
                     formX, currentY);
-                currentY += 25f;
+                currentY += UiScale.Scaled(25f);
             }
             else if (viewModel.DeityNameHasProfanity)
             {
                 TextRenderer.DrawErrorText(drawList,
                     LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_PROFANITY,
                         viewModel.DeityNameProfanityWord ?? ""), formX, currentY);
-                currentY += 25f;
+                currentY += UiScale.Scaled(25f);
             }
         }
 
@@ -257,14 +257,14 @@ internal static class ReligionCreateRenderer
             TextRenderer.DrawErrorText(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_MOTTO_TOO_LONG),
                 formX, currentY);
-            currentY += 25f;
+            currentY += UiScale.Scaled(25f);
         }
         else if (viewModel.MottoHasProfanity)
         {
             TextRenderer.DrawErrorText(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_PROFANITY,
                     viewModel.MottoProfanityWord ?? ""), formX, currentY);
-            currentY += 25f;
+            currentY += UiScale.Scaled(25f);
         }
 
         return currentY;
@@ -277,15 +277,15 @@ internal static class ReligionCreateRenderer
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_PATRON_HEADING),
             formX, currentY, SubsectionLabel, ColorPalette.Gold);
-        currentY += SectionLabelHeight + 4f;
+        currentY += SectionLabelHeight + UiScale.Scaled(4f);
 
         var currentDomainIndex = viewModel.GetCurrentDomainIndex();
         var domains = viewModel.AvailableDomains;
         var count = domains.Length;
         if (count == 0) return null;
 
-        const float buttonHeight = 36f;
-        const float spacing = 6f;
+        var buttonHeight = UiScale.Scaled(36f);
+        var spacing = UiScale.Scaled(6f);
         var buttonWidth = (fieldWidth - spacing * (count - 1)) / count;
 
         string? hoveredDomainName = null;
@@ -301,7 +301,7 @@ internal static class ReligionCreateRenderer
                 hoveredDomainName = domainName;
         }
 
-        currentY += buttonHeight + 4f;
+        currentY += buttonHeight + UiScale.Scaled(4f);
         return hoveredDomainName;
     }
 
@@ -323,10 +323,10 @@ internal static class ReligionCreateRenderer
                 : ColorPalette.DarkBrown;
         if (hovering && !isSelected) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
-        drawList.AddRectFilled(topLeft, bottomRight, ImGui.ColorConvertFloat4ToU32(bgColor), 4f);
+        drawList.AddRectFilled(topLeft, bottomRight, ImGui.ColorConvertFloat4ToU32(bgColor), UiScale.Scaled(4f));
         drawList.AddRect(topLeft, bottomRight,
             ImGui.ColorConvertFloat4ToU32(isSelected ? ColorPalette.Gold : ColorPalette.BorderColor),
-            4f, ImDrawFlags.None, 2f);
+            UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(2f));
 
         // Glyph centered in the button — tooltip provides the domain name on hover.
         var glyphSize = height * 0.7f;

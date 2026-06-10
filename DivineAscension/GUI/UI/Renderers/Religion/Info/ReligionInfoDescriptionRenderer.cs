@@ -21,16 +21,16 @@ namespace DivineAscension.GUI.UI.Renderers.Religion.Info;
 /// </summary>
 internal static class ReligionInfoDescriptionRenderer
 {
-    private const float HeadingHeight = 22f;
-    private const float EditGlyphSize = 20f;
-    private const float ButtonHeight = 26f;
-    private const float ButtonWidth = 80f;
-    private const float ButtonGap = 8f;
-    private const float EditBoxHeight = 80f;
-    private const float SectionBottomSpacing = 8f;
+    private static float HeadingHeight => UiScale.Scaled(22f);
+    private static float EditGlyphSize => UiScale.Scaled(20f);
+    private static float ButtonHeight => UiScale.Scaled(26f);
+    private static float ButtonWidth => UiScale.Scaled(80f);
+    private static float ButtonGap => UiScale.Scaled(8f);
+    private static float EditBoxHeight => UiScale.Scaled(80f);
+    private static float SectionBottomSpacing => UiScale.Scaled(8f);
     // Fixed reservation sized for the 200-char description cap so the
     // section's vertical footprint doesn't shift with text length.
-    private const float ProseBodyHeight = 80f;
+    private static float ProseBodyHeight => UiScale.Scaled(80f);
 
     public static float Draw(
         ReligionInfoViewModel viewModel,
@@ -61,7 +61,7 @@ internal static class ReligionInfoDescriptionRenderer
             ChromeRenderer.DrawPencil(drawList,
                 glyphX + EditGlyphSize / 2f,
                 currentY + EditGlyphSize / 2f,
-                EditGlyphSize - 8f,
+                EditGlyphSize - UiScale.Scaled(8f),
                 ColorPalette.LightText);
         }
 
@@ -74,7 +74,7 @@ internal static class ReligionInfoDescriptionRenderer
             if (newDescription != viewModel.DescriptionText)
                 events.Add(new InfoEvent.DescriptionChanged(newDescription));
 
-            currentY += EditBoxHeight + 6f;
+            currentY += EditBoxHeight + UiScale.Scaled(6f);
 
             // Save (only when dirty) + Cancel, right-aligned.
             var hasChanges = viewModel.HasDescriptionChanges();

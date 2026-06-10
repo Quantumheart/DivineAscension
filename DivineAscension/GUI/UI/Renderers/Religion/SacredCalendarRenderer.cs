@@ -26,14 +26,14 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 [ExcludeFromCodeCoverage]
 internal static class SacredCalendarRenderer
 {
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float IntroBottomSpacing = 10f;
-    private const float IntroLineHeight = 18f;
-    private const float RowHeight = 22f;
-    private const float ScrollbarWidth = 16f;
-    private const float ClosingLineHeight = 24f;
-    private const float ClosingLineTopSpacing = 6f;
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float IntroBottomSpacing => UiScale.Scaled(10f);
+    private static float IntroLineHeight => UiScale.Scaled(18f);
+    private static float RowHeight => UiScale.Scaled(22f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
+    private static float ClosingLineHeight => UiScale.Scaled(24f);
+    private static float ClosingLineTopSpacing => UiScale.Scaled(6f);
 
     public static SacredCalendarRenderResult Draw(SacredCalendarViewModel vm, ImDrawListPtr drawList)
     {
@@ -70,7 +70,7 @@ internal static class SacredCalendarRenderer
             var wheel = ImGui.GetIO().MouseWheel;
             if (wheel != 0)
             {
-                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                var newScrollY = Math.Clamp(scrollY - wheel * UiScale.Scaled(30f), 0f, maxScroll);
                 if (Math.Abs(newScrollY - scrollY) > 0.001f)
                 {
                     scrollY = newScrollY;
@@ -101,8 +101,8 @@ internal static class SacredCalendarRenderer
         currentY = DrawIntro(drawList, x, currentY, contentWidth);
         currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
-        const float removeBtnSize = 18f;
-        const float removeBtnGap = 8f;
+        var removeBtnSize = UiScale.Scaled(18f);
+        var removeBtnGap = UiScale.Scaled(8f);
         foreach (var feast in vm.Feasts)
         {
             var isRemovable = vm.IsFounder &&
@@ -119,7 +119,7 @@ internal static class SacredCalendarRenderer
             if (isRemovable)
             {
                 var btnX = x + contentWidth - removeBtnSize;
-                if (ButtonRenderer.DrawButton(drawList, "x", btnX, currentY - 2f,
+                if (ButtonRenderer.DrawButton(drawList, "x", btnX, currentY - UiScale.Scaled(2f),
                         removeBtnSize, removeBtnSize, isPrimary: false, enabled: true))
                 {
                     events.Add(new SacredCalendarEvent.RemoveRequested(feast.FeastId, feast.Name));
@@ -132,7 +132,7 @@ internal static class SacredCalendarRenderer
         // Founder controls under the list: Add button / Add form / cap notice
         if (vm.IsFounder)
         {
-            currentY += 6f;
+            currentY += UiScale.Scaled(6f);
             currentY = DrawFounderControls(vm, drawList, events, x, currentY, contentWidth);
         }
 
@@ -187,12 +187,12 @@ internal static class SacredCalendarRenderer
         }
 
         var addLabel = loc.Get(LocalizationKeys.UI_FEASTDAY_ADD);
-        if (ButtonRenderer.DrawButton(drawList, addLabel, x, y, 160f, 22f,
+        if (ButtonRenderer.DrawButton(drawList, addLabel, x, y, UiScale.Scaled(160f), UiScale.Scaled(22f),
                 isPrimary: true, enabled: true))
         {
             events.Add(new SacredCalendarEvent.AddDialogOpened());
         }
-        return y + RowHeight + 4f;
+        return y + RowHeight + UiScale.Scaled(4f);
     }
 
     /// <summary>
@@ -213,17 +213,17 @@ internal static class SacredCalendarRenderer
         drawList.AddRectFilled(winPos, new Vector2(winPos.X + winSize.X, winPos.Y + winSize.Y),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.BlackOverlay));
 
-        const float dialogWidth = 460f;
-        const float dialogHeight = 260f;
+        var dialogWidth = UiScale.Scaled(460f);
+        var dialogHeight = UiScale.Scaled(260f);
         var dlgX = winPos.X + (winSize.X - dialogWidth) / 2f;
         var dlgY = winPos.Y + (winSize.Y - dialogHeight) / 2f;
 
         drawList.AddRectFilled(new Vector2(dlgX, dlgY), new Vector2(dlgX + dialogWidth, dlgY + dialogHeight),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Background), 6f);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Background), UiScale.Scaled(6f));
         drawList.AddRect(new Vector2(dlgX, dlgY), new Vector2(dlgX + dialogWidth, dlgY + dialogHeight),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), 6f, ImDrawFlags.None, 1.5f);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), UiScale.Scaled(6f), ImDrawFlags.None, UiScale.Scaled(1.5f));
 
-        const float padding = 18f;
+        var padding = UiScale.Scaled(18f);
         var bodyWidth = dialogWidth - padding * 2f;
         var curX = dlgX + padding;
         var curY = dlgY + padding;
@@ -231,21 +231,21 @@ internal static class SacredCalendarRenderer
         TextRenderer.DrawLabel(drawList,
             loc.Get(LocalizationKeys.UI_FEASTDAY_ADD_TITLE),
             curX, curY, PageTitle, ColorPalette.Gold);
-        curY += PageTitle + 6f;
+        curY += PageTitle + UiScale.Scaled(6f);
         ChromeRenderer.DrawDivider(drawList, curX, curY, bodyWidth);
-        curY += 16f;
+        curY += UiScale.Scaled(16f);
 
         // Name field
         TextRenderer.DrawInfoText(drawList,
             loc.Get(LocalizationKeys.UI_FEASTDAY_NAME_PLACEHOLDER),
             curX, curY, bodyWidth, Body, ColorPalette.White);
-        curY += 22f;
+        curY += UiScale.Scaled(22f);
         var newName = TextInput.Draw(drawList, "##feastname", vm.AddName ?? string.Empty,
-            curX, curY, bodyWidth, 32f,
+            curX, curY, bodyWidth, UiScale.Scaled(32f),
             loc.Get(LocalizationKeys.UI_FEASTDAY_NAME_PLACEHOLDER));
         if (newName != (vm.AddName ?? string.Empty))
             events.Add(new SacredCalendarEvent.AddNameChanged(newName));
-        curY += 40f;
+        curY += UiScale.Scaled(40f);
 
         // Month + Day steppers, side by side
         var monthMax = Math.Max(1, vm.MonthsPerYear);
@@ -253,7 +253,7 @@ internal static class SacredCalendarRenderer
         var month = Math.Clamp(vm.AddMonth, 1, monthMax);
         var day = Math.Clamp(vm.AddDay, 1, dayMax);
 
-        var halfWidth = (bodyWidth - 16f) / 2f;
+        var halfWidth = (bodyWidth - UiScale.Scaled(16f)) / 2f;
         var monthLabel = loc.Get(LocalizationKeys.UI_FEASTDAY_MONTH);
         var dayLabel = loc.Get(LocalizationKeys.UI_FEASTDAY_DAY);
         var monthDisplay = month is >= 1 and <= 12
@@ -263,14 +263,14 @@ internal static class SacredCalendarRenderer
             monthLabel, month, monthDisplay, 1, monthMax);
         if (nextMonth != month) events.Add(new SacredCalendarEvent.AddMonthChanged(nextMonth));
 
-        var nextDay = DrawStepper(drawList, events, curX + halfWidth + 16f, curY, halfWidth,
+        var nextDay = DrawStepper(drawList, events, curX + halfWidth + UiScale.Scaled(16f), curY, halfWidth,
             dayLabel, day, day.ToString(), 1, dayMax);
         if (nextDay != day) events.Add(new SacredCalendarEvent.AddDayChanged(nextDay));
 
         // Footer: Cancel + Add, right-aligned, same metrics as InviteDialog.
-        const float btnWidth = 120f;
-        const float btnHeight = 32f;
-        const float btnGap = 10f;
+        var btnWidth = UiScale.Scaled(120f);
+        var btnHeight = UiScale.Scaled(32f);
+        var btnGap = UiScale.Scaled(10f);
         var btnY = dlgY + dialogHeight - padding - btnHeight;
         var addX = dlgX + dialogWidth - padding - btnWidth;
         var cancelX = addX - btnWidth - btnGap;
@@ -299,28 +299,28 @@ internal static class SacredCalendarRenderer
     private static int DrawStepper(ImDrawListPtr drawList, List<SacredCalendarEvent> events,
         float x, float y, float width, string label, int value, string displayText, int min, int max)
     {
-        const float rowHeight = 30f;
-        const float btnW = 28f;
-        const float labelW = 60f;
+        var rowHeight = UiScale.Scaled(30f);
+        var btnW = UiScale.Scaled(28f);
+        var labelW = UiScale.Scaled(60f);
 
-        TextRenderer.DrawLabel(drawList, label, x, y + 6f, Body, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList, label, x, y + UiScale.Scaled(6f), Body, ColorPalette.Grey);
 
         var fieldX = x + labelW;
-        var fieldW = width - labelW - btnW * 2f - 8f;
+        var fieldW = width - labelW - btnW * 2f - UiScale.Scaled(8f);
         drawList.AddRectFilled(new Vector2(fieldX, y),
             new Vector2(fieldX + fieldW, y + rowHeight),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.7f), 4f);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.7f), UiScale.Scaled(4f));
         drawList.AddRect(new Vector2(fieldX, y),
             new Vector2(fieldX + fieldW, y + rowHeight),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), 4f, ImDrawFlags.None, 1f);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(1f));
         var textSize = ImGui.CalcTextSize(displayText);
         drawList.AddText(
             new Vector2(fieldX + (fieldW - textSize.X) / 2f, y + (rowHeight - textSize.Y) / 2f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText), displayText);
 
         var next = value;
-        var decX = fieldX + fieldW + 4f;
-        var incX = decX + btnW + 4f;
+        var decX = fieldX + fieldW + UiScale.Scaled(4f);
+        var incX = decX + btnW + UiScale.Scaled(4f);
         // ASCII hyphen — the bundled font lacks U+2212 (minus sign) and U+2013
         // (en-dash), which both rendered as a "?" tofu glyph. Plain '-' is in
         // every fallback so it draws correctly.
@@ -358,17 +358,17 @@ internal static class SacredCalendarRenderer
         drawList.AddRectFilled(winPos, new Vector2(winPos.X + winSize.X, winPos.Y + winSize.Y),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.BlackOverlay));
 
-        const float dialogWidth = 420f;
-        const float dialogHeight = 170f;
+        var dialogWidth = UiScale.Scaled(420f);
+        var dialogHeight = UiScale.Scaled(170f);
         var dlgX = winPos.X + (winSize.X - dialogWidth) / 2f;
         var dlgY = winPos.Y + (winSize.Y - dialogHeight) / 2f;
 
         drawList.AddRectFilled(new Vector2(dlgX, dlgY), new Vector2(dlgX + dialogWidth, dlgY + dialogHeight),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Background), 6f);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Background), UiScale.Scaled(6f));
         drawList.AddRect(new Vector2(dlgX, dlgY), new Vector2(dlgX + dialogWidth, dlgY + dialogHeight),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), 6f, ImDrawFlags.None, 1.5f);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), UiScale.Scaled(6f), ImDrawFlags.None, UiScale.Scaled(1.5f));
 
-        const float padding = 18f;
+        var padding = UiScale.Scaled(18f);
         var bodyWidth = dialogWidth - padding * 2f;
         var curX = dlgX + padding;
         var curY = dlgY + padding;
@@ -376,17 +376,17 @@ internal static class SacredCalendarRenderer
         TextRenderer.DrawLabel(drawList,
             loc.Get(LocalizationKeys.UI_FEASTDAY_REMOVE_CONFIRM, vm.RemoveConfirmFeastName ?? string.Empty),
             curX, curY, PageTitle, ColorPalette.Gold);
-        curY += PageTitle + 6f;
+        curY += PageTitle + UiScale.Scaled(6f);
         ChromeRenderer.DrawDivider(drawList, curX, curY, bodyWidth);
-        curY += 16f;
+        curY += UiScale.Scaled(16f);
 
         TextRenderer.DrawInfoText(drawList,
             loc.Get(LocalizationKeys.UI_FEASTDAY_REMOVE_BODY),
             curX, curY, bodyWidth, Body, ColorPalette.White);
 
-        const float btnWidth = 120f;
-        const float btnHeight = 32f;
-        const float btnGap = 10f;
+        var btnWidth = UiScale.Scaled(120f);
+        var btnHeight = UiScale.Scaled(32f);
+        var btnGap = UiScale.Scaled(10f);
         var btnY = dlgY + dialogHeight - padding - btnHeight;
         var removeX = dlgX + dialogWidth - padding - btnWidth;
         var cancelX = removeX - btnWidth - btnGap;

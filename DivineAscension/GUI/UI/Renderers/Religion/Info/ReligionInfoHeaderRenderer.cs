@@ -22,12 +22,12 @@ namespace DivineAscension.GUI.UI.Renderers.Religion.Info;
 /// </summary>
 internal static class ReligionInfoHeaderRenderer
 {
-    private const float StatRowHeight = 22f;
-    private const float StatBlockBottomSpacing = 6f;
-    private const float ProseLineHeight = 18f;
-    private const float ProseBottomSpacing = 12f;
-    private const float PrestigeBarHeight = 12f;
-    private const float PrestigeBarMaxWidth = 180f;
+    private static float StatRowHeight => UiScale.Scaled(22f);
+    private static float StatBlockBottomSpacing => UiScale.Scaled(6f);
+    private static float ProseLineHeight => UiScale.Scaled(18f);
+    private static float ProseBottomSpacing => UiScale.Scaled(12f);
+    private static float PrestigeBarHeight => UiScale.Scaled(12f);
+    private static float PrestigeBarMaxWidth => UiScale.Scaled(180f);
 
     public static float Draw(
         ReligionInfoViewModel viewModel,
@@ -134,16 +134,16 @@ internal static class ReligionInfoHeaderRenderer
         drawList.AddText(new Vector2(x, y), labelColor, label);
 
         var rankSize = ImGui.CalcTextSize(rankName);
-        var rankX = x + labelSize.X + 6f;
+        var rankX = x + labelSize.X + UiScale.Scaled(6f);
         var rankColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
         drawList.AddText(new Vector2(rankX, y), rankColor, rankName);
 
         // Progress bar fills the dot-leader gap between rank-name and numeral.
-        const float padding = 6f;
+        var padding = UiScale.Scaled(6f);
         var barLeft = rankX + rankSize.X + padding;
         var barRight = numeralX - padding;
         var availableBarWidth = barRight - barLeft;
-        if (availableBarWidth > 24f)
+        if (availableBarWidth > UiScale.Scaled(24f))
         {
             var barWidth = System.MathF.Min(availableBarWidth, PrestigeBarMaxWidth);
             var barX = barRight - barWidth;
@@ -158,7 +158,7 @@ internal static class ReligionInfoHeaderRenderer
                     : $"{viewModel.Prestige}/{viewModel.PrestigeRequired}");
         }
 
-        return y + StatRowHeight + 6f;
+        return y + StatRowHeight + UiScale.Scaled(6f);
     }
 
     private static string ToRoman(int n)
@@ -183,11 +183,11 @@ internal static class ReligionInfoHeaderRenderer
         List<InfoEvent> events)
     {
         var currentY = y;
-        const float inputHeight = 28f;
-        const float inputWidth = 300f;
-        const float buttonWidth = 60f;
-        const float buttonHeight = 24f;
-        const float buttonGap = 8f;
+        var inputHeight = UiScale.Scaled(28f);
+        var inputWidth = UiScale.Scaled(300f);
+        var buttonWidth = UiScale.Scaled(60f);
+        var buttonHeight = UiScale.Scaled(24f);
+        var buttonGap = UiScale.Scaled(8f);
 
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DEITY_LABEL),
@@ -197,7 +197,7 @@ internal static class ReligionInfoHeaderRenderer
             drawList,
             "##editDeityName",
             viewModel.EditDeityNameValue,
-            x + 80f,
+            x + UiScale.Scaled(80f),
             currentY,
             inputWidth,
             inputHeight,
@@ -207,15 +207,15 @@ internal static class ReligionInfoHeaderRenderer
         if (newValue != viewModel.EditDeityNameValue)
             events.Add(new InfoEvent.EditDeityNameChanged(newValue));
 
-        currentY += inputHeight + 4f;
+        currentY += inputHeight + UiScale.Scaled(4f);
 
         if (!string.IsNullOrEmpty(viewModel.DeityNameError))
         {
-            TextRenderer.DrawErrorText(drawList, viewModel.DeityNameError, x + 80f, currentY);
-            currentY += 20f;
+            TextRenderer.DrawErrorText(drawList, viewModel.DeityNameError, x + UiScale.Scaled(80f), currentY);
+            currentY += UiScale.Scaled(20f);
         }
 
-        var buttonX = x + 80f;
+        var buttonX = x + UiScale.Scaled(80f);
         var canSave = !viewModel.IsSavingDeityName &&
                       !string.IsNullOrWhiteSpace(viewModel.EditDeityNameValue) &&
                       viewModel.EditDeityNameValue.Length >= 2 &&
@@ -243,7 +243,7 @@ internal static class ReligionInfoHeaderRenderer
             events.Add(new InfoEvent.EditDeityNameCancel());
         }
 
-        currentY += buttonHeight + 8f;
+        currentY += buttonHeight + UiScale.Scaled(8f);
         return currentY;
     }
 }
