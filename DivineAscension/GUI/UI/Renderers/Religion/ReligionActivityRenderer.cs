@@ -26,13 +26,13 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 [ExcludeFromCodeCoverage]
 internal static class ReligionActivityRenderer
 {
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float ScrollbarWidth = 16f;
-    private const float ClosingLineHeight = 24f;
-    private const float ClosingLineTopSpacing = 6f;
-    private const float RefreshGlyphSize = 22f;
-    private const float RefreshGlyphGap = 6f;
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
+    private static float ClosingLineHeight => UiScale.Scaled(24f);
+    private static float ClosingLineTopSpacing => UiScale.Scaled(6f);
+    private static float RefreshGlyphSize => UiScale.Scaled(22f);
+    private static float RefreshGlyphGap => UiScale.Scaled(6f);
 
     public static ReligionActivityRenderResult Draw(ReligionActivityViewModel viewModel)
     {
@@ -70,7 +70,7 @@ internal static class ReligionActivityRenderer
             var wheel = ImGui.GetIO().MouseWheel;
             if (wheel != 0)
             {
-                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                var newScrollY = Math.Clamp(scrollY - wheel * UiScale.Scaled(30f), 0f, maxScroll);
                 if (Math.Abs(newScrollY - scrollY) > 0.001f)
                 {
                     scrollY = newScrollY;
@@ -124,7 +124,7 @@ internal static class ReligionActivityRenderer
     {
         var stripY = paneY + ChapterStripRenderer.TopPadding - scrollY;
         var glyphX = x + contentWidth - RefreshGlyphSize - RefreshGlyphGap;
-        var glyphY = stripY + 6f;
+        var glyphY = stripY + UiScale.Scaled(6f);
 
         var clicked = ButtonRenderer.DrawButton(drawList, string.Empty,
             glyphX, glyphY, RefreshGlyphSize, RefreshGlyphSize,
@@ -133,7 +133,7 @@ internal static class ReligionActivityRenderer
         ChromeRenderer.DrawRefreshArrow(drawList,
             glyphX + RefreshGlyphSize / 2f,
             glyphY + RefreshGlyphSize / 2f,
-            RefreshGlyphSize - 6f,
+            RefreshGlyphSize - UiScale.Scaled(6f),
             ColorPalette.LightText);
 
         return clicked;

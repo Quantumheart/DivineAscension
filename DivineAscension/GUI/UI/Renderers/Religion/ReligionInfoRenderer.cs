@@ -25,10 +25,10 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 [ExcludeFromCodeCoverage]
 internal static class ReligionInfoRenderer
 {
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float FooterTopPadding = 12f;
-    private const float ScrollbarWidth = 16f;
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float FooterTopPadding => UiScale.Scaled(12f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
 
     public static ReligionInfoRenderResult Draw(
         ReligionInfoViewModel viewModel,
@@ -67,7 +67,7 @@ internal static class ReligionInfoRenderer
             var wheel = ImGui.GetIO().MouseWheel;
             if (wheel != 0)
             {
-                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                var newScrollY = Math.Clamp(scrollY - wheel * UiScale.Scaled(30f), 0f, maxScroll);
                 if (Math.Abs(newScrollY - scrollY) > 0.001f)
                 {
                     scrollY = newScrollY;
@@ -104,11 +104,11 @@ internal static class ReligionInfoRenderer
         // prose past the footer. Myth absorbs the squeeze first since it
         // owns the bulk of the vertical budget.
         var paneBottomY = y + height;
-        var actionsFooterReserve = FooterTopPadding + 34f + 6f;
+        var actionsFooterReserve = FooterTopPadding + UiScale.Scaled(34f) + UiScale.Scaled(6f);
         var dividerBetween = DividerHeight;
-        const float headingAndSpacing = 22f + 8f;
-        const float purposeMax = 80f;
-        const float mythMax = 540f;
+        var headingAndSpacing = UiScale.Scaled(22f) + UiScale.Scaled(8f);
+        var purposeMax = UiScale.Scaled(80f);
+        var mythMax = UiScale.Scaled(540f);
         // Remaining height for both prose bodies after fixed reservations.
         var remainingForProse = paneBottomY - currentY
             - headingAndSpacing       // purpose heading + spacing
@@ -117,9 +117,9 @@ internal static class ReligionInfoRenderer
             - actionsFooterReserve;
         // Purpose keeps its small max unless the pane is so small it forces
         // a share; floor at a readable 40px.
-        var purposeBody = MathF.Max(40f, MathF.Min(purposeMax, remainingForProse * 0.15f));
-        if (remainingForProse < purposeMax + 80f) purposeBody = MathF.Max(40f, remainingForProse * 0.25f);
-        var mythBody = MathF.Max(60f, MathF.Min(mythMax, remainingForProse - purposeBody));
+        var purposeBody = MathF.Max(UiScale.Scaled(40f), MathF.Min(purposeMax, remainingForProse * 0.15f));
+        if (remainingForProse < purposeMax + UiScale.Scaled(80f)) purposeBody = MathF.Max(UiScale.Scaled(40f), remainingForProse * 0.25f);
+        var mythBody = MathF.Max(UiScale.Scaled(60f), MathF.Min(mythMax, remainingForProse - purposeBody));
 
         // === OF THE ORDER'S PURPOSE ===
         currentY = ReligionInfoDescriptionRenderer.Draw(viewModel, drawList, x, currentY, contentWidth, events, purposeBody);
@@ -161,16 +161,16 @@ internal static class ReligionInfoRenderer
         // Pane header (icon row + divider below)
         h += PaneHeaderRenderer.TotalHeight;
         // Prose intro (~2 lines)
-        h += 36f;
+        h += UiScale.Scaled(36f);
         // Stat block: deity / founder / members / prestige
-        h += 22f * 4 + 8f;
-        if (viewModel.IsEditingDeityName) h += 80f;
+        h += UiScale.Scaled(22f) * 4 + UiScale.Scaled(8f);
+        if (viewModel.IsEditingDeityName) h += UiScale.Scaled(80f);
 
         // Motto block
         if (viewModel.IsFounder && viewModel.IsEditingMotto)
-            h += 22f + 28f + 6f + 26f + 8f;
+            h += UiScale.Scaled(22f) + UiScale.Scaled(28f) + UiScale.Scaled(6f) + UiScale.Scaled(26f) + UiScale.Scaled(8f);
         else
-            h += 22f + 28f;
+            h += UiScale.Scaled(22f) + UiScale.Scaled(28f);
 
         // Divider
         h += DividerHeight;
@@ -178,9 +178,9 @@ internal static class ReligionInfoRenderer
         // Description block — prose path reserves a fixed 80f frame
         // (matches ReligionInfoDescriptionRenderer.ProseBodyHeight).
         if (viewModel.IsFounder && viewModel.IsEditingDescription)
-            h += 22f + 80f + 6f + 26f + 8f;
+            h += UiScale.Scaled(22f) + UiScale.Scaled(80f) + UiScale.Scaled(6f) + UiScale.Scaled(26f) + UiScale.Scaled(8f);
         else
-            h += 22f + 80f + 8f;
+            h += UiScale.Scaled(22f) + UiScale.Scaled(80f) + UiScale.Scaled(8f);
 
         // Divider
         h += DividerHeight;
@@ -188,12 +188,12 @@ internal static class ReligionInfoRenderer
         // Founding myth block — prose path reserves a fixed 540f frame
         // (matches ReligionInfoFoundingMythRenderer.ProseBodyHeight).
         if (viewModel.IsFounder && viewModel.IsEditingFoundingMyth)
-            h += 22f + 200f + 6f + 26f + 8f;
+            h += UiScale.Scaled(22f) + UiScale.Scaled(200f) + UiScale.Scaled(6f) + UiScale.Scaled(26f) + UiScale.Scaled(8f);
         else
-            h += 22f + 540f + 8f;
+            h += UiScale.Scaled(22f) + UiScale.Scaled(540f) + UiScale.Scaled(8f);
 
         // Footer
-        h += FooterTopPadding + 34f + 6f;
+        h += FooterTopPadding + UiScale.Scaled(34f) + UiScale.Scaled(6f);
         return h;
     }
 

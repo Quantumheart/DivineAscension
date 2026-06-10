@@ -22,13 +22,13 @@ namespace DivineAscension.GUI.UI.Renderers.Religion.Activity;
 /// </summary>
 internal static class ReligionActivityFeedRenderer
 {
-    public const float DayHeadingHeight = 24f;
-    public const float DayHeadingTopSpacing = 4f;
-    public const float EntryRowHeight = 22f;
-    public const float EntryLeftPadding = 16f;
-    public const float GlyphSize = 14f;
-    public const float GlyphToTextGap = 8f;
-    public const float DayBottomSpacing = 8f;
+    public static float DayHeadingHeight => UiScale.Scaled(24f);
+    public static float DayHeadingTopSpacing => UiScale.Scaled(4f);
+    public static float EntryRowHeight => UiScale.Scaled(22f);
+    public static float EntryLeftPadding => UiScale.Scaled(16f);
+    public static float GlyphSize => UiScale.Scaled(14f);
+    public static float GlyphToTextGap => UiScale.Scaled(8f);
+    public static float DayBottomSpacing => UiScale.Scaled(8f);
 
     public static float Draw(
         ReligionActivityViewModel viewModel,
@@ -105,7 +105,7 @@ internal static class ReligionActivityFeedRenderer
         DomainGlyphRenderer.Draw(drawList, domain, glyphMin, glyphMax, ColorPalette.White);
 
         var textX = x + GlyphSize + GlyphToTextGap;
-        var textY = y + 2f;
+        var textY = y + UiScale.Scaled(2f);
 
         var actionPhrase = FormatActionPhrase(entry.ActionType);
         var line = LocalizationService.Instance.Get(
@@ -120,8 +120,8 @@ internal static class ReligionActivityFeedRenderer
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Vermilion), favorText);
 
         // Body line — clip to the gap before the favor column.
-        drawList.PushClipRect(new Vector2(textX, textY - 2f),
-            new Vector2(favorX - 8f, textY + EntryRowHeight), true);
+        drawList.PushClipRect(new Vector2(textX, textY - UiScale.Scaled(2f)),
+            new Vector2(favorX - UiScale.Scaled(8f), textY + EntryRowHeight), true);
         drawList.AddText(ImGui.GetFont(), Body, new Vector2(textX, textY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White), line);
         drawList.PopClipRect();

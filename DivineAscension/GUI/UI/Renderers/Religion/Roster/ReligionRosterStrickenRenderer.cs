@@ -22,11 +22,11 @@ namespace DivineAscension.GUI.UI.Renderers.Religion.Roster;
 [ExcludeFromCodeCoverage]
 internal static class ReligionRosterStrickenRenderer
 {
-    public const float RowHeight = 22f;
-    public const float ActionStripHeight = 30f;
-    private const float MarkerInset = 4f;
-    private const float MarkerSize = 9f;
-    private const float NameOffset = 18f;
+    public static float RowHeight => UiScale.Scaled(22f);
+    public static float ActionStripHeight => UiScale.Scaled(30f);
+    private static float MarkerInset => UiScale.Scaled(4f);
+    private static float MarkerSize => UiScale.Scaled(9f);
+    private static float NameOffset => UiScale.Scaled(18f);
 
     public static float Draw(
         ReligionRosterViewModel vm,
@@ -54,7 +54,7 @@ internal static class ReligionRosterStrickenRenderer
 
             ChromeRenderer.DrawLeader(drawList,
                 ban.PlayerName, ban.Reason,
-                x + NameOffset, currentY + 3f, width - NameOffset,
+                x + NameOffset, currentY + UiScale.Scaled(3f), width - NameOffset,
                 labelColor: ColorPalette.White,
                 valueColor: ColorPalette.Grey);
 
@@ -80,9 +80,9 @@ internal static class ReligionRosterStrickenRenderer
         List<RosterEvent> events)
     {
         var loc = LocalizationService.Instance;
-        const float buttonW = 80f;
-        const float buttonH = 24f;
-        const float rightPad = 8f;
+        var buttonW = UiScale.Scaled(80f);
+        var buttonH = UiScale.Scaled(24f);
+        var rightPad = UiScale.Scaled(8f);
 
         // Ban dates as a leader line, indented under the name.
         var expiry = ban.IsPermanent
@@ -90,10 +90,10 @@ internal static class ReligionRosterStrickenRenderer
             : ban.ExpiresAt;
         var dates = $"{loc.Get(LocalizationKeys.UI_RELIGION_INFO_BANNED_AT_LABEL)} {ban.BannedAt}   " +
                     $"{loc.Get(LocalizationKeys.UI_RELIGION_INFO_BANNED_EXPIRES_LABEL)} {expiry}";
-        TextRenderer.DrawInfoText(drawList, dates, x + NameOffset, y + 5f, width - NameOffset - buttonW - rightPad,
+        TextRenderer.DrawInfoText(drawList, dates, x + NameOffset, y + UiScale.Scaled(5f), width - NameOffset - buttonW - rightPad,
             Secondary, ColorPalette.Grey);
 
-        var btnY = y + 3f;
+        var btnY = y + UiScale.Scaled(3f);
         var unbanX = x + width - buttonW - rightPad;
         if (ButtonRenderer.DrawButton(drawList,
                 loc.Get(LocalizationKeys.UI_RELIGION_INFO_UNBAN_BUTTON),

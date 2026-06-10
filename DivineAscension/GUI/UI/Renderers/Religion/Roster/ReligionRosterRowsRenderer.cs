@@ -16,12 +16,12 @@ namespace DivineAscension.GUI.UI.Renderers.Religion.Roster;
 [ExcludeFromCodeCoverage]
 internal static class ReligionRosterRowsRenderer
 {
-    public const float RowHeight = 22f;
-    public const float ActionStripHeight = 30f;
-    public const float CounterHeight = 22f;
-    private const float MarkerInset = 4f;
-    private const float MarkerSize = 4f;
-    private const float NameOffset = 18f;
+    public static float RowHeight => UiScale.Scaled(22f);
+    public static float ActionStripHeight => UiScale.Scaled(30f);
+    public static float CounterHeight => UiScale.Scaled(22f);
+    private static float MarkerInset => UiScale.Scaled(4f);
+    private static float MarkerSize => UiScale.Scaled(4f);
+    private static float NameOffset => UiScale.Scaled(18f);
 
     public static float Draw(
         ReligionRosterViewModel vm,
@@ -52,7 +52,7 @@ internal static class ReligionRosterRowsRenderer
 
             ChromeRenderer.DrawLeader(drawList,
                 member.PlayerName, roleLabel,
-                x + NameOffset, currentY + 3f, width - NameOffset,
+                x + NameOffset, currentY + UiScale.Scaled(3f), width - NameOffset,
                 labelColor: nameColor,
                 valueColor: ColorPalette.White);
 
@@ -78,7 +78,7 @@ internal static class ReligionRosterRowsRenderer
         var counterSize = ImGui.CalcTextSize(counter);
         var counterX = x + (width - counterSize.X) / 2f;
         var counterColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        drawList.AddText(new Vector2(counterX, currentY + 4f), counterColor, counter);
+        drawList.AddText(new Vector2(counterX, currentY + UiScale.Scaled(4f)), counterColor, counter);
         currentY += CounterHeight;
 
         return currentY;
@@ -92,12 +92,12 @@ internal static class ReligionRosterRowsRenderer
         List<RosterEvent> events)
     {
         var loc = LocalizationService.Instance;
-        const float buttonW = 80f;
-        const float buttonH = 24f;
-        const float gap = 8f;
-        const float rightPad = 8f;
+        var buttonW = UiScale.Scaled(80f);
+        var buttonH = UiScale.Scaled(24f);
+        var gap = UiScale.Scaled(8f);
+        var rightPad = UiScale.Scaled(8f);
 
-        var btnY = y + 3f;
+        var btnY = y + UiScale.Scaled(3f);
         var strikeX = x + width - buttonW - rightPad;
         var kickX = strikeX - buttonW - gap;
 
@@ -116,9 +116,9 @@ internal static class ReligionRosterRowsRenderer
             events.Add(new RosterEvent.StrikeClicked(member.PlayerUID, member.PlayerName));
         }
         var labelWidth = ImGui.CalcTextSize(loc.Get(LocalizationKeys.UI_RELIGION_ROSTER_STRIKE_BUTTON)).X;
-        var daggerCx = strikeX + buttonW / 2f + labelWidth / 2f + 8f;
+        var daggerCx = strikeX + buttonW / 2f + labelWidth / 2f + UiScale.Scaled(8f);
         var daggerCy = btnY + buttonH / 2f;
-        ChromeRenderer.DrawDagger(drawList, daggerCx, daggerCy, 10f, ColorPalette.LightText);
+        ChromeRenderer.DrawDagger(drawList, daggerCx, daggerCy, UiScale.Scaled(10f), ColorPalette.LightText);
 
         return y + ActionStripHeight;
     }

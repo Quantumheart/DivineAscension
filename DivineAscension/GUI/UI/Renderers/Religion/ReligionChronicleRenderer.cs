@@ -25,17 +25,17 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 [ExcludeFromCodeCoverage]
 internal static class ReligionChronicleRenderer
 {
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float IntroBottomSpacing = 10f;
-    private const float IntroLineHeight = 18f;
-    private const float DiamondHalfSize = 3.5f;
-    private const float DiamondLeftPadding = 4f;
-    private const float ProseIndent = 18f;
-    private const float EntryGap = 8f;
-    private const float ScrollbarWidth = 16f;
-    private const float ClosingLineHeight = 24f;
-    private const float ClosingLineTopSpacing = 6f;
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float IntroBottomSpacing => UiScale.Scaled(10f);
+    private static float IntroLineHeight => UiScale.Scaled(18f);
+    private static float DiamondHalfSize => UiScale.Scaled(3.5f);
+    private static float DiamondLeftPadding => UiScale.Scaled(4f);
+    private static float ProseIndent => UiScale.Scaled(18f);
+    private static float EntryGap => UiScale.Scaled(8f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
+    private static float ClosingLineHeight => UiScale.Scaled(24f);
+    private static float ClosingLineTopSpacing => UiScale.Scaled(6f);
 
     public static ReligionChronicleRenderResult Draw(ReligionChronicleViewModel vm, ImDrawListPtr drawList)
     {
@@ -72,7 +72,7 @@ internal static class ReligionChronicleRenderer
             var wheel = ImGui.GetIO().MouseWheel;
             if (wheel != 0)
             {
-                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                var newScrollY = Math.Clamp(scrollY - wheel * UiScale.Scaled(30f), 0f, maxScroll);
                 if (Math.Abs(newScrollY - scrollY) > 0.001f)
                 {
                     scrollY = newScrollY;
@@ -111,7 +111,7 @@ internal static class ReligionChronicleRenderer
         var proseWidth = contentWidth - ProseIndent;
         foreach (var entry in vm.Chronicle)
         {
-            var centerY = currentY + (Secondary + 6f) / 2f;
+            var centerY = currentY + (Secondary + UiScale.Scaled(6f)) / 2f;
             ChromeRenderer.DrawDiamond(drawList,
                 x + DiamondLeftPadding + DiamondHalfSize, centerY,
                 DiamondHalfSize,

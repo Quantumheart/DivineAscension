@@ -19,13 +19,13 @@ namespace DivineAscension.GUI.UI.Renderers.Religion.Info;
 /// </summary>
 internal static class ReligionInfoMottoRenderer
 {
-    private const float HeadingHeight = 22f;
-    private const float EditGlyphSize = 20f;
-    private const float ButtonHeight = 26f;
-    private const float ButtonWidth = 80f;
-    private const float ButtonGap = 8f;
-    private const float InputHeight = 28f;
-    private const float SectionBottomSpacing = 8f;
+    private static float HeadingHeight => UiScale.Scaled(22f);
+    private static float EditGlyphSize => UiScale.Scaled(20f);
+    private static float ButtonHeight => UiScale.Scaled(26f);
+    private static float ButtonWidth => UiScale.Scaled(80f);
+    private static float ButtonGap => UiScale.Scaled(8f);
+    private static float InputHeight => UiScale.Scaled(28f);
+    private static float SectionBottomSpacing => UiScale.Scaled(8f);
     private const int MaxLen = 80;
 
     public static float Draw(
@@ -54,7 +54,7 @@ internal static class ReligionInfoMottoRenderer
             ChromeRenderer.DrawPencil(drawList,
                 glyphX + EditGlyphSize / 2f,
                 currentY + EditGlyphSize / 2f,
-                EditGlyphSize - 8f,
+                EditGlyphSize - UiScale.Scaled(8f),
                 ColorPalette.LightText);
         }
 
@@ -69,7 +69,7 @@ internal static class ReligionInfoMottoRenderer
             if (newMotto != viewModel.MottoText)
                 events.Add(new InfoEvent.MottoChanged(newMotto));
 
-            currentY += InputHeight + 6f;
+            currentY += InputHeight + UiScale.Scaled(6f);
 
             var hasChanges = viewModel.HasMottoChanges();
             var rightX = x + width;
@@ -110,8 +110,8 @@ internal static class ReligionInfoMottoRenderer
                 // Paint primitive curly-quote glyphs flanking the motto since
                 // the font lacks U+201C/U+201D coverage. Motto is single-line
                 // (80-char cap), so the close quote hugs the text end.
-                const float glyphSize = 14f;
-                const float glyphGap = 6f;
+                var glyphSize = UiScale.Scaled(14f);
+                var glyphGap = UiScale.Scaled(6f);
                 var textIndent = glyphSize + glyphGap;
                 var openCx = x + glyphSize / 2f;
                 var glyphCy = currentY + glyphSize / 2f;
@@ -130,13 +130,13 @@ internal static class ReligionInfoMottoRenderer
                     colorOverride: ColorPalette.Grey);
 
                 var textHeight = TextRenderer.MeasureWrappedHeight(prose, width - textIndent * 2f);
-                currentY += (textHeight > 0 ? textHeight : 20f) + SectionBottomSpacing;
+                currentY += (textHeight > 0 ? textHeight : UiScale.Scaled(20f)) + SectionBottomSpacing;
             }
             else
             {
                 TextRenderer.DrawInfoText(drawList, prose, x, currentY, width, Secondary, proseColor);
                 var textHeight = TextRenderer.MeasureWrappedHeight(prose, width);
-                currentY += (textHeight > 0 ? textHeight : 20f) + SectionBottomSpacing;
+                currentY += (textHeight > 0 ? textHeight : UiScale.Scaled(20f)) + SectionBottomSpacing;
             }
         }
 
