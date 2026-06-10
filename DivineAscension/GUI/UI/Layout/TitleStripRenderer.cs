@@ -74,9 +74,7 @@ internal static class TitleStripRenderer
         {
             titleFont = cinzelTitle.Value;
             titleFontSize = titleFont.FontSize;
-            ImGui.PushFont(titleFont);
-            titleSize = ImGui.CalcTextSize(TitleText);
-            ImGui.PopFont();
+            titleSize = TextRenderer.MeasureBakedSerif(titleFont, TitleText);
         }
         else
         {

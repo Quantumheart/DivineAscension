@@ -140,9 +140,9 @@ internal static class ChromeRenderer
         if (serif.HasValue)
         {
             var font = serif.Value;
-            ImGui.PushFont(font);
-            var glyphSize = ImGui.CalcTextSize(letterText);
-            ImGui.PopFont();
+            // Measure at the baked size (corrected for FontGlobalScale) so the
+            // glyph centres in the box instead of drifting top-left (#588).
+            var glyphSize = TextRenderer.MeasureBakedSerif(font, letterText);
             var glyphX = x + (DropCapSize - glyphSize.X) / 2f;
             var glyphY = y + (DropCapSize - glyphSize.Y) / 2f;
             drawList.AddText(font, font.FontSize, new Vector2(glyphX, glyphY), letterColor, letterText);
