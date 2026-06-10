@@ -37,15 +37,15 @@ public static class ReligionListRenderer
         var scrollY = viewModel.ScrollY;
         var selectedReligionUID = viewModel.SelectedReligionUID;
 
-        const float itemHeight = 80f;
-        const float itemSpacing = 8f;
-        const float scrollbarWidth = 16f;
+        var itemHeight = UiScale.Scaled(80f);
+        var itemSpacing = UiScale.Scaled(8f);
+        var scrollbarWidth = UiScale.Scaled(16f);
 
         // Draw list background
         var listStart = new Vector2(x, y);
         var listEnd = new Vector2(x + width, y + height);
         var listBgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.5f);
-        drawList.AddRectFilled(listStart, listEnd, listBgColor, 4f);
+        drawList.AddRectFilled(listStart, listEnd, listBgColor, UiScale.Scaled(4f));
 
         // Loading state
         if (isLoading)
@@ -88,7 +88,7 @@ public static class ReligionListRenderer
             var wheel = ImGui.GetIO().MouseWheel;
             if (wheel != 0)
             {
-                var newScroll = Math.Clamp(scrollY - wheel * 40f, 0f, maxScroll);
+                var newScroll = Math.Clamp(scrollY - wheel * UiScale.Scaled(40f), 0f, maxScroll);
                 if (Math.Abs(newScroll - scrollY) > 0.01f)
                 {
                     scrollY = newScroll;
@@ -148,7 +148,7 @@ public static class ReligionListRenderer
         float height,
         string? currentSelectedUID)
     {
-        const float padding = 12f;
+        var padding = UiScale.Scaled(12f);
 
         var itemStart = new Vector2(x, y);
         var itemEnd = new Vector2(x + width, y + height);
@@ -176,11 +176,11 @@ public static class ReligionListRenderer
 
         // Draw background
         var bgColorU32 = ImGui.ColorConvertFloat4ToU32(bgColor);
-        drawList.AddRectFilled(itemStart, itemEnd, bgColorU32, 4f);
+        drawList.AddRectFilled(itemStart, itemEnd, bgColorU32, UiScale.Scaled(4f));
 
         // Draw border
         var borderColor = ImGui.ColorConvertFloat4ToU32(isSelected ? ColorPalette.Gold : ColorPalette.Grey * 0.5f);
-        drawList.AddRect(itemStart, itemEnd, borderColor, 4f, ImDrawFlags.None, isSelected ? 2f : 1f);
+        drawList.AddRect(itemStart, itemEnd, borderColor, UiScale.Scaled(4f), ImDrawFlags.None, isSelected ? UiScale.Scaled(2f) : UiScale.Scaled(1f));
 
         // Handle click
         string? clickedUID = null;
@@ -190,7 +190,7 @@ public static class ReligionListRenderer
         }
 
         // Draw deity icon (with fallback to colored circle)
-        const float iconSize = 48f;
+        var iconSize = UiScale.Scaled(48f);
         var deityType = DomainHelper.ParseDeityType(religion.Domain);
         var deityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
 
@@ -208,7 +208,7 @@ public static class ReligionListRenderer
             // Add subtle border around icon for visual cohesion
             var deityColor = DomainHelper.GetDeityColor(religion.Domain);
             var iconBorderColor = ImGui.ColorConvertFloat4ToU32(deityColor * 0.8f);
-            drawList.AddRect(iconMin, iconMax, iconBorderColor, 4f, ImDrawFlags.None, 2f);
+            drawList.AddRect(iconMin, iconMax, iconBorderColor, UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(2f));
         }
         else
         {
@@ -228,7 +228,7 @@ public static class ReligionListRenderer
         var deityText = !string.IsNullOrWhiteSpace(religion.DeityName)
             ? $"{religion.DeityName} ({religion.Domain})"
             : $"{religion.Domain} - {DomainHelper.GetDeityTitle(religion.Domain)}";
-        var deityPos = new Vector2(x + padding * 2 + iconSize, y + padding + 22f);
+        var deityPos = new Vector2(x + padding * 2 + iconSize, y + padding + UiScale.Scaled(22f));
         var deityColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
         drawList.AddText(ImGui.GetFont(), Body, deityPos, deityColorU32, deityText);
 
@@ -238,7 +238,7 @@ public static class ReligionListRenderer
             : LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_PRIVATE);
         var infoText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_LIST_INFO_SHORT,
             religion.MemberCount, religion.PrestigeRank, statusText);
-        var infoPos = new Vector2(x + padding * 2 + iconSize, y + padding + 42f);
+        var infoPos = new Vector2(x + padding * 2 + iconSize, y + padding + UiScale.Scaled(42f));
         var infoColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), Secondary, infoPos, infoColor, infoText);
 
@@ -255,9 +255,9 @@ public static class ReligionListRenderer
         float windowWidth,
         float windowHeight)
     {
-        const float tooltipMaxWidth = 300f;
-        const float tooltipPadding = 12f;
-        const float lineSpacing = 6f;
+        var tooltipMaxWidth = UiScale.Scaled(300f);
+        var tooltipPadding = UiScale.Scaled(12f);
+        var lineSpacing = UiScale.Scaled(6f);
 
         var drawList = ImGui.GetForegroundDrawList();
 
@@ -303,7 +303,7 @@ public static class ReligionListRenderer
         }
 
         // Calculate tooltip dimensions
-        var lineHeight = 16f;
+        var lineHeight = UiScale.Scaled(16f);
         var tooltipHeight = tooltipPadding * 2 + lines.Count * lineHeight;
         var tooltipWidth = tooltipMaxWidth;
 
@@ -311,8 +311,8 @@ public static class ReligionListRenderer
         var windowPos = ImGui.GetWindowPos();
 
         // Position tooltip (offset from mouse, check screen edges)
-        var offsetX = 16f;
-        var offsetY = 16f;
+        var offsetX = UiScale.Scaled(16f);
+        var offsetY = UiScale.Scaled(16f);
 
         var tooltipX = mouseX + offsetX;
         var tooltipY = mouseY + offsetY;
@@ -327,21 +327,21 @@ public static class ReligionListRenderer
 
         // Ensure doesn't go off left edge
         if (tooltipX < windowPos.X)
-            tooltipX = windowPos.X + 4f;
+            tooltipX = windowPos.X + UiScale.Scaled(4f);
 
         // Ensure doesn't go off top edge
         if (tooltipY < windowPos.Y)
-            tooltipY = windowPos.Y + 4f;
+            tooltipY = windowPos.Y + UiScale.Scaled(4f);
 
         // Draw tooltip background
         var bgStart = new Vector2(tooltipX, tooltipY);
         var bgEnd = new Vector2(tooltipX + tooltipWidth, tooltipY + tooltipHeight);
         var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
-        drawList.AddRectFilled(bgStart, bgEnd, bgColor, 4f);
+        drawList.AddRectFilled(bgStart, bgEnd, bgColor, UiScale.Scaled(4f));
 
         // Draw border
         var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
-        drawList.AddRect(bgStart, bgEnd, borderColor, 4f, ImDrawFlags.None, 2f);
+        drawList.AddRect(bgStart, bgEnd, borderColor, UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(2f));
 
         // Draw content
         var currentY = tooltipY + tooltipPadding;

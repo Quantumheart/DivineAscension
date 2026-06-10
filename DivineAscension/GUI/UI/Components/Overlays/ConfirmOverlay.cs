@@ -51,31 +51,31 @@ internal static class ConfirmOverlay
         drawList.AddRectFilled(backdropStart, backdropEnd, backdropColor);
 
         // 2) Dialog box
-        var padding = 16f;
+        var padding = UiScale.Scaled(16f);
         var titleSize = ImGui.CalcTextSize(title);
 
         // Compute an adaptive dialog width when caller passes a non-positive width or when the default looks too wide.
         // We consider: title width, message unwrapped width, and total buttons width, then clamp to sensible bounds and window size.
         // Button widths size to the longer of their labels so "Yes, Declare War"
         // and friends don't crowd the text against the border.
-        const float btnMinWidth = 120f;
-        const float btnHorizontalPadding = 28f;
+        var btnMinWidth = UiScale.Scaled(120f);
+        var btnHorizontalPadding = UiScale.Scaled(28f);
         var confirmTextWidth = ImGui.CalcTextSize(confirmLabel).X;
         var cancelTextWidth = ImGui.CalcTextSize(cancelLabel).X;
         var confirmBtnW = MathF.Max(btnMinWidth, confirmTextWidth + btnHorizontalPadding);
         var cancelBtnW = MathF.Max(btnMinWidth, cancelTextWidth + btnHorizontalPadding);
-        var btnH = 36f;
-        var btnSpacing = 10f;
+        var btnH = UiScale.Scaled(36f);
+        var btnSpacing = UiScale.Scaled(10f);
         var totalButtonsWidth = confirmBtnW + cancelBtnW + btnSpacing;
 
         var unwrappedMsgWidth = ImGui.CalcTextSize(message).X;
-        var minWidth = 420f;
-        var maxWidth = Math.Min(640f, winSize.X - 80f); // keep nice margins from window edges
+        var minWidth = UiScale.Scaled(420f);
+        var maxWidth = Math.Min(UiScale.Scaled(640f), winSize.X - UiScale.Scaled(80f)); // keep nice margins from window edges
 
         // Wrap long messages at a comfortable reading measure instead of letting the unwrapped
         // single-line width balloon the box to maxWidth (which left dead space on the right).
         // Short messages still hug their own width; title and buttons remain hard floors.
-        const float preferredMessageWidth = 380f;
+        var preferredMessageWidth = UiScale.Scaled(380f);
 
         var effectiveDialogWidth = dialogWidth;
         if (dialogWidth <= 0f || dialogWidth == 520f) // treat default as auto-size candidate
@@ -94,8 +94,8 @@ internal static class ConfirmOverlay
         var wrappedMsgHeight = TextRenderer.MeasureWrappedHeight(message, messageWidth, 13f);
 
         // Vertical rhythm: title + divider + message + gap + buttons.
-        const float dividerBandHeight = 6f + 16f;
-        var contentHeight = FontSizes.PageTitle + dividerBandHeight + wrappedMsgHeight + 16f + btnH;
+        var dividerBandHeight = UiScale.Scaled(6f) + UiScale.Scaled(16f);
+        var contentHeight = FontSizes.PageTitle + dividerBandHeight + wrappedMsgHeight + UiScale.Scaled(16f) + btnH;
         var dialogHeight = contentHeight + padding * 2f;
 
         var dlgX = winPos.X + (winSize.X - effectiveDialogWidth) / 2f;
@@ -107,17 +107,17 @@ internal static class ConfirmOverlay
         // overlays read as a smaller page laid atop the dimmed main page.
         var dlgBg = ImGui.ColorConvertFloat4ToU32(ColorPalette.Background);
         var dlgBorder = ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor);
-        drawList.AddRectFilled(dlgStart, dlgEnd, dlgBg, 6f);
-        drawList.AddRect(dlgStart, dlgEnd, dlgBorder, 6f, ImDrawFlags.None, 1.5f);
+        drawList.AddRectFilled(dlgStart, dlgEnd, dlgBg, UiScale.Scaled(6f));
+        drawList.AddRect(dlgStart, dlgEnd, dlgBorder, UiScale.Scaled(6f), ImDrawFlags.None, UiScale.Scaled(1.5f));
 
         var curX = dlgX + padding;
         var curY = dlgY + padding;
 
         // Title — gold rubric on parchment, matching the role-edit dialog.
         TextRenderer.DrawLabel(drawList, title, curX, curY, FontSizes.PageTitle, ColorPalette.Gold);
-        curY += FontSizes.PageTitle + 6f;
+        curY += FontSizes.PageTitle + UiScale.Scaled(6f);
         ChromeRenderer.DrawDivider(drawList, curX, curY, messageWidth);
-        curY += 16f;
+        curY += UiScale.Scaled(16f);
 
         // Message — ink on parchment (palette §5).
         TextRenderer.DrawInfoText(drawList, message, curX, curY, messageWidth, 13f, ColorPalette.White);

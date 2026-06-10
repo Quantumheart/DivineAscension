@@ -122,18 +122,18 @@ public static class IconPicker
 
         // Draw background
         var bgColorU32 = ImGui.ColorConvertFloat4ToU32(bgColor);
-        drawList.AddRectFilled(slotStart, slotEnd, bgColorU32, 4f);
+        drawList.AddRectFilled(slotStart, slotEnd, bgColorU32, UiScale.Scaled(4f));
 
         // Draw border
         var borderColor = ImGui.ColorConvertFloat4ToU32(isSelected ? ColorPalette.Gold : ColorPalette.Grey * 0.5f);
-        drawList.AddRect(slotStart, slotEnd, borderColor, 4f, ImDrawFlags.None, isSelected ? 2f : 1f);
+        drawList.AddRect(slotStart, slotEnd, borderColor, UiScale.Scaled(4f), ImDrawFlags.None, isSelected ? UiScale.Scaled(2f) : UiScale.Scaled(1f));
 
         // Draw icon texture
         var iconTextureId = CivilizationIconLoader.GetIconTextureId(iconName);
         if (iconTextureId != IntPtr.Zero)
         {
             // Center the 32x32 icon within the slot
-            const float iconTextureSize = 32f;
+            var iconTextureSize = UiScale.Scaled(32f);
             var padding = (size - iconTextureSize) / 2f;
             var iconMin = new Vector2(x + padding, y + padding);
             var iconMax = new Vector2(iconMin.X + iconTextureSize, iconMin.Y + iconTextureSize);
@@ -177,7 +177,7 @@ public static class IconPicker
         float y,
         float iconSize = 48f)
     {
-        const float spacing = 8f;
+        var spacing = UiScale.Scaled(8f);
 
         // Draw label
         var labelSize = ImGui.CalcTextSize(label);
@@ -191,18 +191,18 @@ public static class IconPicker
         var slotStart = new Vector2(x, iconY);
         var slotEnd = new Vector2(x + iconSize, iconY + iconSize);
         var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.8f);
-        drawList.AddRectFilled(slotStart, slotEnd, bgColor, 4f);
+        drawList.AddRectFilled(slotStart, slotEnd, bgColor, UiScale.Scaled(4f));
 
         // Draw icon border
         var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        drawList.AddRect(slotStart, slotEnd, borderColor, 4f, ImDrawFlags.None, 2f);
+        drawList.AddRect(slotStart, slotEnd, borderColor, UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(2f));
 
         // Draw icon texture
         var iconTextureId = CivilizationIconLoader.GetIconTextureId(iconName);
         if (iconTextureId != IntPtr.Zero)
         {
             // Center the 32x32 icon within the slot
-            const float iconTextureSize = 32f;
+            var iconTextureSize = UiScale.Scaled(32f);
             var iconPadding = (iconSize - iconTextureSize) / 2f;
             var iconMin = new Vector2(x + iconPadding, iconY + iconPadding);
             var iconMax = new Vector2(iconMin.X + iconTextureSize, iconMin.Y + iconTextureSize);

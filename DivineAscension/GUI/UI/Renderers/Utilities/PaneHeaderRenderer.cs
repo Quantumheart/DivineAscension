@@ -19,12 +19,12 @@ namespace DivineAscension.GUI.UI.Renderers.Utilities;
 [ExcludeFromCodeCoverage]
 internal static class PaneHeaderRenderer
 {
-    public const float IconSize = 32f;
-    public const float RowHeight = 36f; // Math.Max(IconSize + 4f, 32f)
-    public const float DropCapRowHeight = 44f; // Math.Max(ChromeRenderer.DropCapSize + 4f, RowHeight)
-    public const float DividerBelowSpacing = 20f;
-    public const float TotalHeight = RowHeight + DividerBelowSpacing;
-    private const float DropCapGap = 12f;
+    public static float IconSize => UiScale.Scaled(32f);
+    public static float RowHeight => UiScale.Scaled(36f); // Math.Max(IconSize + 4f, 32f)
+    public static float DropCapRowHeight => UiScale.Scaled(44f); // Math.Max(ChromeRenderer.DropCapSize + 4f, RowHeight)
+    public static float DividerBelowSpacing => UiScale.Scaled(20f);
+    public static float TotalHeight => RowHeight + DividerBelowSpacing;
+    private static float DropCapGap => UiScale.Scaled(12f);
 
     public static float Draw(
         ImDrawListPtr drawList,
@@ -39,7 +39,7 @@ internal static class PaneHeaderRenderer
         Vector4? dropCapColor = null)
     {
         var hasIcon = iconTextureId != IntPtr.Zero || iconPainter != null;
-        var titleX = hasIcon ? x + IconSize + 12f : x;
+        var titleX = hasIcon ? x + IconSize + UiScale.Scaled(12f) : x;
 
         // Drop cap takes the lead position on the left when requested. Caller
         // supplies the domain/deity color; we strip the first character from
@@ -70,7 +70,7 @@ internal static class PaneHeaderRenderer
                 drawList.AddImage(iconTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tint);
             }
             var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
-            drawList.AddRect(iconMin, iconMax, borderColor, 4f, ImDrawFlags.None, 1f);
+            drawList.AddRect(iconMin, iconMax, borderColor, UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(1f));
         }
 
         // Chapter title uses Cinzel Regular at the nearest baked size; rank
@@ -79,7 +79,7 @@ internal static class PaneHeaderRenderer
         // the title's right edge regardless of Cinzel vs default metrics.
         // When a drop cap leads the row, the title baseline shifts down so
         // small caps sit on the cap's optical midline.
-        var titleBaselineY = dropCapPresent ? y + 12f : y + 4f;
+        var titleBaselineY = dropCapPresent ? y + UiScale.Scaled(12f) : y + UiScale.Scaled(4f);
         var titleWidth = TextRenderer.DrawSerifLabel(drawList, displayTitle, titleX, titleBaselineY,
             FontSizes.PageTitle, titleColor ?? ColorPalette.White);
 
@@ -87,7 +87,7 @@ internal static class PaneHeaderRenderer
         {
             var rankText = $"[{rankTag}]";
             drawList.AddText(ImGui.GetFont(), FontSizes.SubsectionLabel,
-                new Vector2(titleX + titleWidth + 8f, y + 6f),
+                new Vector2(titleX + titleWidth + UiScale.Scaled(8f), y + UiScale.Scaled(6f)),
                 ImGui.ColorConvertFloat4ToU32(rankColor ?? ColorPalette.Gold), rankText);
         }
 
@@ -96,7 +96,7 @@ internal static class PaneHeaderRenderer
             // Right-aligned entity name at the same baseline as the title.
             var rightWidth = TextRenderer.MeasureSerifLabel(rightTitle, FontSizes.PageTitle);
             var rightX = x + width - rightWidth;
-            TextRenderer.DrawSerifLabel(drawList, rightTitle, rightX, y + 4f,
+            TextRenderer.DrawSerifLabel(drawList, rightTitle, rightX, y + UiScale.Scaled(4f),
                 FontSizes.PageTitle, ColorPalette.Gold);
         }
 
