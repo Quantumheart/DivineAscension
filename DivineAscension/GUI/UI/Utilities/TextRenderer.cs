@@ -51,7 +51,7 @@ public static class TextRenderer
         Vector4? color = null)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(color ?? ColorPalette.White);
-        var serif = CinzelFontSystem.GetRegular(NearestBakedSize((int)fontSize));
+        var serif = CinzelFontSystem.GetRegular(CinzelFontSystem.NearestBakedSize((int)fontSize));
         if (serif.HasValue)
         {
             var font = serif.Value;
@@ -73,7 +73,7 @@ public static class TextRenderer
     /// </summary>
     public static float MeasureSerifLabel(string text, float fontSize)
     {
-        var serif = CinzelFontSystem.GetRegular(NearestBakedSize((int)fontSize));
+        var serif = CinzelFontSystem.GetRegular(CinzelFontSystem.NearestBakedSize((int)fontSize));
         if (serif.HasValue)
         {
             ImGui.PushFont(serif.Value);
@@ -82,24 +82,6 @@ public static class TextRenderer
             return width;
         }
         return ImGui.CalcTextSize(text).X * (fontSize / ImGui.GetFontSize());
-    }
-
-    private static int NearestBakedSize(int requested)
-    {
-        // VSImGui's default font sizes (FontManager.Sizes).
-        ReadOnlySpan<int> baked = stackalloc int[] { 6, 8, 10, 14, 18, 24, 30, 36, 48, 60 };
-        var best = baked[0];
-        var bestDelta = int.MaxValue;
-        foreach (var s in baked)
-        {
-            var delta = System.Math.Abs(s - requested);
-            if (delta < bestDelta)
-            {
-                best = s;
-                bestDelta = delta;
-            }
-        }
-        return best;
     }
 
     /// <summary>

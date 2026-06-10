@@ -159,9 +159,10 @@ internal static class SidebarRenderer
         // the chevron + label line stays vertically centred). Item labels
         // below intentionally stay in the default font for legibility.
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        var cinzelChapter = CinzelFontSystem.GetRegular(ChapterFontSize);
+        var cinzelChapter = CinzelFontSystem.GetRegular(
+            CinzelFontSystem.NearestBakedSize((int)UiScale.Scaled(ChapterFontSize)));
         var labelFont = cinzelChapter ?? ImGui.GetFont();
-        var labelSize = cinzelChapter.HasValue ? ChapterFontSize : ImGui.GetFontSize();
+        var labelSize = cinzelChapter.HasValue ? cinzelChapter.Value.FontSize : ImGui.GetFontSize();
         var textX = chevronX + ChapterChevronSize / 2f + ChapterChevronPadding;
         var textY = cursor.Y + (GroupHeaderHeight - labelSize) / 2f;
         drawList.AddText(labelFont, labelSize, new Vector2(textX, textY), textColor, group.Label);
@@ -255,9 +256,10 @@ internal static class SidebarRenderer
         var verse = verseIndex >= 0 && verseIndex < LowerRomanVerse.Length
             ? LowerRomanVerse[verseIndex]
             : string.Empty;
-        var cinzelVerse = CinzelFontSystem.GetRegular(VerseFontSize);
+        var cinzelVerse = CinzelFontSystem.GetRegular(
+            CinzelFontSystem.NearestBakedSize((int)UiScale.Scaled(VerseFontSize)));
         var verseFont = cinzelVerse ?? ImGui.GetFont();
-        var verseFontSize = cinzelVerse.HasValue ? VerseFontSize : ImGui.GetFontSize();
+        var verseFontSize = cinzelVerse.HasValue ? cinzelVerse.Value.FontSize : ImGui.GetFontSize();
         var verseX = bulletCx + ItemBulletHalfSize + ItemBulletPadding;
         var verseY = cursor.Y + (ItemHeight - verseFontSize) / 2f;
         var verseWidth = 0f;
@@ -358,9 +360,10 @@ internal static class SidebarRenderer
                 var stampColor = ImGui.ColorConvertFloat4ToU32(item.IsDisabled
                     ? ColorPalette.Gold * 0.4f
                     : ColorPalette.Gold);
-                var cinzelStamp = CinzelFontSystem.GetRegular(VerseFontSize);
+                var cinzelStamp = CinzelFontSystem.GetRegular(
+                    CinzelFontSystem.NearestBakedSize((int)UiScale.Scaled(VerseFontSize)));
                 var stampFont = cinzelStamp ?? ImGui.GetFont();
-                var stampFontSize = cinzelStamp.HasValue ? VerseFontSize : ImGui.GetFontSize();
+                var stampFontSize = cinzelStamp.HasValue ? cinzelStamp.Value.FontSize : ImGui.GetFontSize();
                 var stampRawSize = ImGui.CalcTextSize(stamp);
                 var stampScale = stampFontSize / ImGui.GetFontSize();
                 var stampSize = new Vector2(stampRawSize.X * stampScale,

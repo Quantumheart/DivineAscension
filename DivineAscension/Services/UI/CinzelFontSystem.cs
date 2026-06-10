@@ -120,8 +120,32 @@ public class CinzelFontSystem : ModSystem
     }
 
     // VSImGui generates fonts at sizes registered in FontManager.Sizes
-    // (defaults: 6, 8, 10, 14, 18, 24, 30, 36, 48, 60). Lookup returns null
-    // until the atlas is built so callers can fall back to the default font.
+    // (defaults below). Lookup returns null until the atlas is built so callers
+    // can fall back to the default font.
+    public static readonly int[] BakedSizes = { 6, 8, 10, 14, 18, 24, 30, 36, 48, 60 };
+
+    /// <summary>
+    ///     Snap a requested pixel size (e.g. a UI-scaled base size) to the nearest
+    ///     size the atlas actually baked. Callers draw crisply at that size rather
+    ///     than upscaling one baked glyph. Single source of truth for the ladder —
+    ///     shared by the serif text helpers and the chrome's direct callers.
+    /// </summary>
+    public static int NearestBakedSize(int requested)
+    {
+        var best = BakedSizes[0];
+        var bestDelta = int.MaxValue;
+        foreach (var s in BakedSizes)
+        {
+            var delta = Math.Abs(s - requested);
+            if (delta < bestDelta)
+            {
+                best = s;
+                bestDelta = delta;
+            }
+        }
+        return best;
+    }
+
     public static ImFontPtr? GetRegular(int size) => Lookup(RegularName, size);
 
     public static ImFontPtr? GetBold(int size) => Lookup(BoldName, size);
