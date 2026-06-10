@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using ImGuiNET;
 using Vintagestory.API.Config;
 
 namespace DivineAscension.GUI.UI.Utilities;
@@ -72,5 +73,44 @@ internal static class UiScale
     {
         var scale = RuntimeEnv.GUIScale;
         if (scale > 0f) Factor = scale;
+    }
+
+    /// <summary>
+    ///     Apply <see cref="Factor" /> to ImGui's global font scale for the
+    ///     duration of the returned scope, then restore the previous value on
+    ///     dispose. Use with <c>using</c> around a dialog's draw so all
+    ///     <em>implicit-font</em> text (3-arg <c>AddText</c>, <c>ImGui.Button</c>/
+    ///     <c>Text</c>/<c>Selectable</c>) and <c>CalcTextSize</c> measurements in
+    ///     that window — and its child windows — scale with the UI.
+    ///
+    ///     <para>
+    ///     Explicit-size <c>AddText(font, size, …)</c> ignores the global scale, so
+    ///     text already sized via <see cref="FontSizes" /> (which is scaled by
+    ///     <see cref="Factor" />) is not double-scaled. Width ratios of the form
+    ///     <c>fontSize / ImGui.GetFontSize()</c> are unaffected: both terms move
+    ///     by the same factor and cancel.
+    ///     </para>
+    ///
+    ///     <para>
+    ///     The scale is context-global, so saving and restoring keeps it from
+    ///     leaking onto other VSImGui windows (debug tools, other mods) drawn in
+    ///     the same frame.
+    ///     </para>
+    /// </summary>
+    public static FontScaleScope BeginFontScale() => new(_factor);
+
+    /// <summary>RAII scope that sets and restores <c>io.FontGlobalScale</c>. See <see cref="BeginFontScale" />.</summary>
+    public readonly ref struct FontScaleScope
+    {
+        private readonly float _previous;
+
+        internal FontScaleScope(float scale)
+        {
+            var io = ImGui.GetIO();
+            _previous = io.FontGlobalScale;
+            io.FontGlobalScale = scale;
+        }
+
+        public void Dispose() => ImGui.GetIO().FontGlobalScale = _previous;
     }
 }
