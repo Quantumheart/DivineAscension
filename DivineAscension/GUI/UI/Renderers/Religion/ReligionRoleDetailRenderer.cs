@@ -41,9 +41,9 @@ internal static class ReligionRoleDetailRenderer
         // Back button (like civilization detail view)
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_BACK),
-                x, currentY, 160f, 32f))
+                x, currentY, UiScale.Scaled(160f), UiScale.Scaled(32f)))
             events.Add(new RoleDetailEvent.BackToRolesClicked());
-        currentY += 42f;
+        currentY += UiScale.Scaled(42f);
 
         // Title — shared chapter strip, positioned below the Back button.
         var strip = ChapterStripRenderer.Draw(drawList, x, currentY, width, 0f,
@@ -62,8 +62,8 @@ internal static class ReligionRoleDetailRenderer
         }
 
         // Draw members list with dropdowns
-        var dropdownWidth = 180f;
-        var dropdownHeight = 28f;
+        var dropdownWidth = UiScale.Scaled(180f);
+        var dropdownHeight = UiScale.Scaled(28f);
         var assignableRoles = viewModel.GetAssignableRoles();
         string? openDropdownMemberUID = null;
 
@@ -78,8 +78,8 @@ internal static class ReligionRoleDetailRenderer
                 : LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_NO_ROLE);
 
             // Member name on left
-            TextRenderer.DrawInfoText(drawList, $"- {memberName}", x, currentY + 4f,
-                width - dropdownWidth - 10f, TableHeader);
+            TextRenderer.DrawInfoText(drawList, $"- {memberName}", x, currentY + UiScale.Scaled(4f),
+                width - dropdownWidth - UiScale.Scaled(10f), TableHeader);
 
             // Role dropdown or static text on right
             if (viewModel.CanAssignRoleToMember(memberUID))
@@ -105,10 +105,11 @@ internal static class ReligionRoleDetailRenderer
                         ? LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_FOUNDER_ROLE)
                         : "";
                 TextRenderer.DrawInfoText(drawList, memberRoleName + reason,
-                    x + width - dropdownWidth - 10f, currentY + 4f, dropdownWidth + 10f);
+                    x + width - dropdownWidth - UiScale.Scaled(10f), currentY + UiScale.Scaled(4f),
+                    dropdownWidth + UiScale.Scaled(10f));
             }
 
-            currentY += 32f;
+            currentY += UiScale.Scaled(32f);
         }
 
         // Draw open dropdown menu (after all buttons for proper z-ordering)
@@ -117,7 +118,7 @@ internal static class ReligionRoleDetailRenderer
             var memberUID = openDropdownMemberUID;
             var dropdownX = x + width - dropdownWidth;
             var memberIndex = membersWithRole.IndexOf(memberUID);
-            var dropdownY = y + 42f + PaneHeaderRenderer.TotalHeight + memberIndex * 32f;
+            var dropdownY = y + UiScale.Scaled(42f) + PaneHeaderRenderer.TotalHeight + memberIndex * UiScale.Scaled(32f);
             var memberRoleUID = viewModel.MemberRoles.GetValueOrDefault(memberUID);
             var currentRoleIndex = memberRoleUID != null
                 ? assignableRoles.ToList().FindIndex(r => r.RoleUID == memberRoleUID)
@@ -127,12 +128,12 @@ internal static class ReligionRoleDetailRenderer
 
             // Draw menu visual with larger font (pass button position, not menu position - component handles offset)
             Dropdown.DrawMenuVisual(drawList, dropdownX, dropdownY, dropdownWidth,
-                dropdownHeight, roleNames, currentRoleIndex, 32f, SubsectionLabel);
+                dropdownHeight, roleNames, currentRoleIndex, UiScale.Scaled(32f), SubsectionLabel);
 
             // Handle menu interaction
             var (selectedIndex, shouldClose, clickConsumed) = Dropdown.DrawMenuAndHandleInteraction(
                 dropdownX, dropdownY, dropdownWidth, dropdownHeight,
-                roleNames, currentRoleIndex, 32f);
+                roleNames, currentRoleIndex, UiScale.Scaled(32f));
 
             if (selectedIndex != currentRoleIndex && selectedIndex >= 0)
             {

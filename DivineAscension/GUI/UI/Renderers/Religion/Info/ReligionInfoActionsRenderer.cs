@@ -18,12 +18,12 @@ namespace DivineAscension.GUI.UI.Renderers.Religion.Info;
 /// </summary>
 internal static class ReligionInfoActionsRenderer
 {
-    private const float ButtonHeight = 34f;
-    private const float LeaveWidth = 140f;
-    private const float DisbandWidth = 170f;
-    private const float ButtonGap = 10f;
-    private const float DaggerSize = 14f;
-    private const float DaggerLabelPadding = 8f;
+    private static float ButtonHeight => UiScale.Scaled(34f);
+    private static float LeaveWidth => UiScale.Scaled(140f);
+    private static float DisbandWidth => UiScale.Scaled(170f);
+    private static float ButtonGap => UiScale.Scaled(10f);
+    private static float DaggerSize => UiScale.Scaled(14f);
+    private static float DaggerLabelPadding => UiScale.Scaled(8f);
 
     public static float Draw(
         ReligionInfoViewModel viewModel,
@@ -55,7 +55,7 @@ internal static class ReligionInfoActionsRenderer
             var labelRightX = cursor + (DisbandWidth + labelSize.X) / 2f;
             var daggerCx = labelRightX + DaggerLabelPadding;
             // Keep the dagger inside the button bounds even if the label is wide.
-            var maxDaggerCx = cursor + DisbandWidth - DaggerSize / 2f - 4f;
+            var maxDaggerCx = cursor + DisbandWidth - DaggerSize / 2f - UiScale.Scaled(4f);
             if (daggerCx > maxDaggerCx) daggerCx = maxDaggerCx;
             ChromeRenderer.DrawDagger(drawList,
                 daggerCx,
@@ -74,6 +74,6 @@ internal static class ReligionInfoActionsRenderer
             events.Add(new InfoEvent.LeaveClicked());
         }
 
-        return y + ButtonHeight + 6f;
+        return y + ButtonHeight + UiScale.Scaled(6f);
     }
 }
