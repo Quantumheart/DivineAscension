@@ -23,14 +23,14 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization.Info;
 [ExcludeFromCodeCoverage]
 internal static class CivilizationInfoCapitalRenderer
 {
-    private const float EditGlyphSize = 20f;
-    private const float InputHeight = 26f;
-    private const float ButtonHeight = 26f;
-    private const float ButtonWidth = 80f;
-    private const float ButtonGap = 8f;
-    private const float SectionBottomSpacing = 8f;
-    private const float DropdownHeight = 32f;
-    private const float DropdownMenuItemHeight = 28f;
+    private static float EditGlyphSize => UiScale.Scaled(20f);
+    private static float InputHeight => UiScale.Scaled(26f);
+    private static float ButtonHeight => UiScale.Scaled(26f);
+    private static float ButtonWidth => UiScale.Scaled(80f);
+    private static float ButtonGap => UiScale.Scaled(8f);
+    private static float SectionBottomSpacing => UiScale.Scaled(8f);
+    private static float DropdownHeight => UiScale.Scaled(32f);
+    private static float DropdownMenuItemHeight => UiScale.Scaled(28f);
 
     public readonly record struct CapitalEditLayout(bool HasDropdown, float DropdownX, float DropdownY, float DropdownWidth);
 
@@ -60,7 +60,7 @@ internal static class CivilizationInfoCapitalRenderer
             ChromeRenderer.DrawPencil(drawList,
                 glyphX + EditGlyphSize / 2f,
                 currentY + EditGlyphSize / 2f,
-                EditGlyphSize - 8f,
+                EditGlyphSize - UiScale.Scaled(8f),
                 ColorPalette.LightText);
 
             return (currentY + EditGlyphSize + SectionBottomSpacing, default);
@@ -69,7 +69,7 @@ internal static class CivilizationInfoCapitalRenderer
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_SEAT),
             x, currentY, SubsectionLabel, ColorPalette.Gold);
-        currentY += SubsectionLabel + 6f;
+        currentY += SubsectionLabel + UiScale.Scaled(6f);
 
         var newName = TextInput.Draw(drawList, "##civCapitalName",
             vm.CapitalNameText, x, currentY, width, InputHeight,
@@ -77,7 +77,7 @@ internal static class CivilizationInfoCapitalRenderer
         if (newName != vm.CapitalNameText)
             events.Add(new InfoEvent.CapitalNameChanged(newName));
 
-        currentY += InputHeight + 8f;
+        currentY += InputHeight + UiScale.Scaled(8f);
 
         var dropdownX = x;
         var dropdownY = currentY;
@@ -90,7 +90,7 @@ internal static class CivilizationInfoCapitalRenderer
             events.Add(new InfoEvent.ToggleCapitalSiteDropdown(!vm.IsCapitalSiteDropdownOpen));
         }
 
-        currentY += DropdownHeight + 8f;
+        currentY += DropdownHeight + UiScale.Scaled(8f);
 
         var rightX = x + width;
         var cancelX = rightX - ButtonWidth;

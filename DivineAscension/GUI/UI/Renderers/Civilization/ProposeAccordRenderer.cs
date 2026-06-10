@@ -28,19 +28,19 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 [ExcludeFromCodeCoverage]
 internal static class ProposeAccordRenderer
 {
-    private const float DividerHeight = 22f;
-    private const float DividerYPadding = 6f;
-    private const float SectionHeadingHeight = 24f;
-    private const float ProseLineHeight = 18f;
-    private const float ProseBottomSpacing = 12f;
-    private const float LabelToInputGap = 6f;
-    private const float DropdownWidth = 360f;
-    private const float DropdownHeight = 30f;
-    private const float DropdownBottomSpacing = 18f;
-    private const float SendButtonWidth = 180f;
-    private const float SendButtonHeight = 32f;
-    private const float SendButtonTopSpacing = 12f;
-    private const float SendButtonBottomSpacing = 6f;
+    private static float DividerHeight => UiScale.Scaled(22f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float SectionHeadingHeight => UiScale.Scaled(24f);
+    private static float ProseLineHeight => UiScale.Scaled(18f);
+    private static float ProseBottomSpacing => UiScale.Scaled(12f);
+    private static float LabelToInputGap => UiScale.Scaled(6f);
+    private static float DropdownWidth => UiScale.Scaled(360f);
+    private static float DropdownHeight => UiScale.Scaled(30f);
+    private static float DropdownBottomSpacing => UiScale.Scaled(18f);
+    private static float SendButtonWidth => UiScale.Scaled(180f);
+    private static float SendButtonHeight => UiScale.Scaled(32f);
+    private static float SendButtonTopSpacing => UiScale.Scaled(12f);
+    private static float SendButtonBottomSpacing => UiScale.Scaled(6f);
 
     public static ProposeAccordRenderResult Draw(
         ProposeAccordViewModel vm,

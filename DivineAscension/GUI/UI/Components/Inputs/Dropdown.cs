@@ -20,8 +20,8 @@ internal static class Dropdown
     private static Vector2 _scrollAnchor;
     private static float _scrollY;
 
-    private const float ScrollbarGutterWidth = 6f;
-    private const float ScrollbarTrackPadding = 2f;
+    private static float ScrollbarGutterWidth => UiScale.Scaled(6f);
+    private static float ScrollbarTrackPadding => UiScale.Scaled(2f);
 
     /// <summary>
     ///     Draw a dropdown button (without the menu)
@@ -71,7 +71,7 @@ internal static class Dropdown
         var scaledTextSize = ImGui.CalcTextSize(selectedText);
         ImGui.SetWindowFontScale(1f);
 
-        var textPos = new Vector2(x + 12f, y + (height - scaledTextSize.Y) / 2);
+        var textPos = new Vector2(x + UiScale.Scaled(12f), y + (height - scaledTextSize.Y) / 2);
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText);
 
         ImGui.SetWindowFontScale(fontScale);
@@ -79,23 +79,25 @@ internal static class Dropdown
         ImGui.SetWindowFontScale(1f);
 
         // Draw dropdown arrow
-        var arrowX = x + width - 20f;
+        var arrowX = x + width - UiScale.Scaled(20f);
         var arrowY = y + height / 2;
+        var arrowH = UiScale.Scaled(4f);
+        var arrowHalf = UiScale.Scaled(2f);
         var arrowColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         if (isOpen)
             // Arrow pointing up when open
             drawList.AddTriangleFilled(
-                new Vector2(arrowX, arrowY - 4f),
-                new Vector2(arrowX - 4f, arrowY + 2f),
-                new Vector2(arrowX + 4f, arrowY + 2f),
+                new Vector2(arrowX, arrowY - arrowH),
+                new Vector2(arrowX - arrowH, arrowY + arrowHalf),
+                new Vector2(arrowX + arrowH, arrowY + arrowHalf),
                 arrowColor
             );
         else
             // Arrow pointing down when closed
             drawList.AddTriangleFilled(
-                new Vector2(arrowX - 4f, arrowY - 2f),
-                new Vector2(arrowX + 4f, arrowY - 2f),
-                new Vector2(arrowX, arrowY + 4f),
+                new Vector2(arrowX - arrowH, arrowY - arrowHalf),
+                new Vector2(arrowX + arrowH, arrowY - arrowHalf),
+                new Vector2(arrowX, arrowY + arrowH),
                 arrowColor
             );
 
@@ -214,13 +216,14 @@ internal static class Dropdown
         float height,
         string[] items,
         int selectedIndex,
-        float itemHeight = 40f,
+        float itemHeight = -1f,
         float fontSize = -1f,
         int maxVisibleItems = 8)
     {
         if (fontSize < 0f) fontSize = FontSizes.Body;
+        if (itemHeight < 0f) itemHeight = UiScale.Scaled(40f);
         var mousePos = ImGui.GetMousePos();
-        var menuTop = y + height + 2f;
+        var menuTop = y + height + UiScale.Scaled(2f);
         var menuStart = new Vector2(x, menuTop);
         var contentHeight = items.Length * itemHeight;
         var visibleHeight = MathF.Min(items.Length, MathF.Max(1, maxVisibleItems)) * itemHeight;
@@ -231,9 +234,9 @@ internal static class Dropdown
         // Menu background + border (sized to the visible window, not the full
         // content height — the rest scrolls inside).
         var menuBgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Background);
-        drawList.AddRectFilled(menuStart, menuEnd, menuBgColor, 4f);
+        drawList.AddRectFilled(menuStart, menuEnd, menuBgColor, UiScale.Scaled(4f));
         var menuBorderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.7f);
-        drawList.AddRect(menuStart, menuEnd, menuBorderColor, 4f, ImDrawFlags.None, 2f);
+        drawList.AddRect(menuStart, menuEnd, menuBorderColor, UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(2f));
 
         // Clip rendering to the visible menu rect so off-screen items don't
         // bleed outside the border when scrolled.
@@ -264,7 +267,7 @@ internal static class Dropdown
             var itemTextSize = ImGui.CalcTextSize(items[i]);
             ImGui.SetWindowFontScale(1f);
 
-            var itemTextPos = new Vector2(x + 12f, itemY + (itemHeight - itemTextSize.Y) / 2);
+            var itemTextPos = new Vector2(x + UiScale.Scaled(12f), itemY + (itemHeight - itemTextSize.Y) / 2);
             var itemOnDark = isItemHovering || i == selectedIndex;
             var itemTextColor = ImGui.ColorConvertFloat4ToU32(
                 itemOnDark ? ColorPalette.LightText : ColorPalette.White);
@@ -285,14 +288,14 @@ internal static class Dropdown
             var trackTop = menuTop + ScrollbarTrackPadding;
             var trackBottom = menuEnd.Y - ScrollbarTrackPadding;
             var trackHeight = trackBottom - trackTop;
-            var thumbHeight = MathF.Max(16f, trackHeight * (visibleHeight / contentHeight));
+            var thumbHeight = MathF.Max(UiScale.Scaled(16f), trackHeight * (visibleHeight / contentHeight));
             var thumbTop = trackTop + (trackHeight - thumbHeight) * (scrollY / maxScroll);
 
             drawList.AddRectFilled(new Vector2(trackLeft, trackTop), new Vector2(trackRight, trackBottom),
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.4f), 2f);
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.4f), UiScale.Scaled(2f));
             drawList.AddRectFilled(new Vector2(trackLeft, thumbTop),
                 new Vector2(trackRight, thumbTop + thumbHeight),
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.7f), 2f);
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.7f), UiScale.Scaled(2f));
         }
     }
 }
