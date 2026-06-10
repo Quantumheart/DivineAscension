@@ -31,22 +31,22 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 [ExcludeFromCodeCoverage]
 internal static class ReligionRolesBrowseRenderer
 {
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float RowLine1Height = 24f;
-    private const float RowLine2Height = 22f;
-    private const float RowBottomSpacing = 10f;
-    private const float RowHeight = RowLine1Height + RowLine2Height + RowBottomSpacing;
-    private const float PencilSize = 22f;
-    private const float BadgeGap = 10f;
-    private const float DiamondInset = 6f;
-    private const float NameInset = 16f;
-    private const float ScrollbarWidth = 16f;
-    private const float InscribeLabelHeight = 22f;
-    private const float InscribeInputHeight = 30f;
-    private const float InscribeButtonHeight = 30f;
-    private const float InscribeButtonWidth = 140f;
-    private const float InscribeGap = 8f;
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float RowLine1Height => UiScale.Scaled(24f);
+    private static float RowLine2Height => UiScale.Scaled(22f);
+    private static float RowBottomSpacing => UiScale.Scaled(10f);
+    private static float RowHeight => RowLine1Height + RowLine2Height + RowBottomSpacing;
+    private static float PencilSize => UiScale.Scaled(22f);
+    private static float BadgeGap => UiScale.Scaled(10f);
+    private static float DiamondInset => UiScale.Scaled(6f);
+    private static float NameInset => UiScale.Scaled(16f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
+    private static float InscribeLabelHeight => UiScale.Scaled(22f);
+    private static float InscribeInputHeight => UiScale.Scaled(30f);
+    private static float InscribeButtonHeight => UiScale.Scaled(30f);
+    private static float InscribeButtonWidth => UiScale.Scaled(140f);
+    private static float InscribeGap => UiScale.Scaled(8f);
     private const string LeaderDot = "·";
 
     public static ReligionRolesBrowseRenderResult Draw(
@@ -64,7 +64,7 @@ internal static class ReligionRolesBrowseRenderer
         {
             TextRenderer.DrawInfoText(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_LOADING),
-                x, currentY + 8f, width, Secondary, ColorPalette.Grey);
+                x, currentY + UiScale.Scaled(8f), width, Secondary, ColorPalette.Grey);
             return new ReligionRolesBrowseRenderResult(events, height);
         }
 
@@ -72,7 +72,7 @@ internal static class ReligionRolesBrowseRenderer
         {
             TextRenderer.DrawInfoText(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_NOT_IN_RELIGION),
-                x, currentY + 8f, width, Secondary, ColorPalette.Grey);
+                x, currentY + UiScale.Scaled(8f), width, Secondary, ColorPalette.Grey);
             return new ReligionRolesBrowseRenderResult(events, height);
         }
 
@@ -80,7 +80,7 @@ internal static class ReligionRolesBrowseRenderer
         {
             var errorMsg = viewModel.RolesData?.ErrorMessage ??
                            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_FAILED);
-            TextRenderer.DrawInfoText(drawList, errorMsg, x, currentY + 8f, width, Secondary, ColorPalette.Grey);
+            TextRenderer.DrawInfoText(drawList, errorMsg, x, currentY + UiScale.Scaled(8f), width, Secondary, ColorPalette.Grey);
             return new ReligionRolesBrowseRenderResult(events, height);
         }
 
@@ -114,7 +114,7 @@ internal static class ReligionRolesBrowseRenderer
         // Prose intro on parchment → iron-gall ink.
         var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_CHAPTER_INTRO);
         TextRenderer.DrawInfoText(drawList, intro, x, currentY, contentWidth, Body, ColorPalette.White);
-        currentY += MathF.Max(TextRenderer.MeasureWrappedHeight(intro, contentWidth, Body), 20f) + 8f;
+        currentY += MathF.Max(TextRenderer.MeasureWrappedHeight(intro, contentWidth, Body), UiScale.Scaled(20f)) + UiScale.Scaled(8f);
 
         currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
@@ -162,8 +162,8 @@ internal static class ReligionRolesBrowseRenderer
         var nameColor = role.RoleUID == RoleDefaults.FOUNDER_ROLE_ID
             ? ColorPalette.Vermilion
             : ColorPalette.White;
-        ChromeRenderer.DrawDiamond(drawList, x + DiamondInset, midY, 4f, ColorPalette.Gold);
-        TextRenderer.DrawLabel(drawList, role.RoleName, x + NameInset, line1Y + 2f, Body, nameColor);
+        ChromeRenderer.DrawDiamond(drawList, x + DiamondInset, midY, UiScale.Scaled(4f), ColorPalette.Gold);
+        TextRenderer.DrawLabel(drawList, role.RoleName, x + NameInset, line1Y + UiScale.Scaled(2f), Body, nameColor);
         var nameWidth = ImGui.CalcTextSize(role.RoleName).X;
 
         // Optional badge after the name — protected (rubric), default (gold leaf).
@@ -172,18 +172,18 @@ internal static class ReligionRolesBrowseRenderer
         if (role.IsProtected)
         {
             var badge = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_BADGE_PROTECTED);
-            ChromeRenderer.DrawDiamond(drawList, badgeStart + 4f, midY, 3f, ColorPalette.Vermilion);
-            drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(badgeStart + 12f, line1Y + 4f),
+            ChromeRenderer.DrawDiamond(drawList, badgeStart + UiScale.Scaled(4f), midY, UiScale.Scaled(3f), ColorPalette.Vermilion);
+            drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(badgeStart + UiScale.Scaled(12f), line1Y + UiScale.Scaled(4f)),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Vermilion), badge);
-            badgeEnd = badgeStart + 12f + ImGui.CalcTextSize(badge).X * (Secondary / SubsectionLabel);
+            badgeEnd = badgeStart + UiScale.Scaled(12f) + ImGui.CalcTextSize(badge).X * (Secondary / SubsectionLabel);
         }
         else if (role.IsDefault)
         {
             var badge = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_BADGE_DEFAULT);
-            ChromeRenderer.DrawDiamond(drawList, badgeStart + 4f, midY, 3f, ColorPalette.Gold);
-            drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(badgeStart + 12f, line1Y + 4f),
+            ChromeRenderer.DrawDiamond(drawList, badgeStart + UiScale.Scaled(4f), midY, UiScale.Scaled(3f), ColorPalette.Gold);
+            drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(badgeStart + UiScale.Scaled(12f), line1Y + UiScale.Scaled(4f)),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), badge);
-            badgeEnd = badgeStart + 12f + ImGui.CalcTextSize(badge).X * (Secondary / SubsectionLabel);
+            badgeEnd = badgeStart + UiScale.Scaled(12f) + ImGui.CalcTextSize(badge).X * (Secondary / SubsectionLabel);
         }
 
         // Right side: pencil (if editable) then wear count, dotted leader fills the gap.
@@ -199,19 +199,19 @@ internal static class ReligionRolesBrowseRenderer
                 events.Add(new RolesBrowseEvent.EditRoleOpen(role.RoleUID));
             }
             ChromeRenderer.DrawPencil(drawList,
-                px + PencilSize / 2f, py + PencilSize / 2f, PencilSize - 8f,
+                px + PencilSize / 2f, py + PencilSize / 2f, PencilSize - UiScale.Scaled(8f),
                 ColorPalette.LightText);
-            rightCursor = px - 8f;
+            rightCursor = px - UiScale.Scaled(8f);
         }
 
         var memberCount = viewModel.GetMemberCount(role.RoleUID);
         var wearText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_WEAR_COUNT, memberCount);
         var wearSize = ImGui.CalcTextSize(wearText);
         var wearX = rightCursor - wearSize.X;
-        drawList.AddText(new Vector2(wearX, line1Y + 4f),
+        drawList.AddText(new Vector2(wearX, line1Y + UiScale.Scaled(4f)),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), wearText);
 
-        DrawDots(drawList, badgeEnd + 6f, wearX - 6f, line1Y + 4f);
+        DrawDots(drawList, badgeEnd + UiScale.Scaled(6f), wearX - UiScale.Scaled(6f), line1Y + UiScale.Scaled(4f));
 
         // Line 2 — auto-phrased permission summary, indented under the name.
         var summary = RolePermissionPhrases.BuildSummary(role.RoleUID, role.Permissions);
@@ -272,7 +272,7 @@ internal static class ReligionRolesBrowseRenderer
             events.Add(new RolesBrowseEvent.CreateRoleConfirm(viewModel.NewRoleName));
         }
 
-        currentY += InscribeInputHeight + 8f;
+        currentY += InscribeInputHeight + UiScale.Scaled(8f);
         return currentY;
     }
 
@@ -292,18 +292,18 @@ internal static class ReligionRolesBrowseRenderer
         drawList.AddRectFilled(winPos, new Vector2(winPos.X + winSize.X, winPos.Y + winSize.Y),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.BlackOverlay));
 
-        const float dialogWidth = 500f;
-        const float dialogHeight = 600f;
+        var dialogWidth = UiScale.Scaled(500f);
+        var dialogHeight = UiScale.Scaled(600f);
         var dlgX = winPos.X + (winSize.X - dialogWidth) / 2f;
         var dlgY = winPos.Y + (winSize.Y - dialogHeight) / 2f;
 
         // Parchment mini-page surface with a faded-ink border.
         drawList.AddRectFilled(new Vector2(dlgX, dlgY), new Vector2(dlgX + dialogWidth, dlgY + dialogHeight),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Background), 6f);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Background), UiScale.Scaled(6f));
         drawList.AddRect(new Vector2(dlgX, dlgY), new Vector2(dlgX + dialogWidth, dlgY + dialogHeight),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), 6f, ImDrawFlags.None, 1.5f);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), UiScale.Scaled(6f), ImDrawFlags.None, UiScale.Scaled(1.5f));
 
-        const float padding = 18f;
+        var padding = UiScale.Scaled(18f);
         var bodyWidth = dialogWidth - padding * 2;
         var currentY = dlgY + padding;
 
@@ -312,9 +312,9 @@ internal static class ReligionRolesBrowseRenderer
         drawList.AddText(ImGui.GetFont(), PageTitle,
             new Vector2(dlgX + padding, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), title);
-        currentY += PageTitle + 6f;
+        currentY += PageTitle + UiScale.Scaled(6f);
         ChromeRenderer.DrawDivider(drawList, dlgX + padding, currentY, bodyWidth);
-        currentY += 16f;
+        currentY += UiScale.Scaled(16f);
 
         // Name field — ink labels on parchment.
         if (role.RoleUID == RoleDefaults.FOUNDER_ROLE_ID)
@@ -323,36 +323,36 @@ internal static class ReligionRolesBrowseRenderer
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_FOUNDER_NO_EDIT),
                 dlgX + padding, currentY, bodyWidth,
                 Secondary, ColorPalette.Grey);
-            currentY += 24f;
+            currentY += UiScale.Scaled(24f);
         }
         else
         {
             TextRenderer.DrawLabel(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_NAME_LABEL),
                 dlgX + padding, currentY, Body, ColorPalette.Grey);
-            currentY += 22f;
+            currentY += UiScale.Scaled(22f);
 
             var newName = TextInput.Draw(drawList, "##editRoleName",
                 viewModel.EditingRoleName ?? string.Empty,
-                dlgX + padding, currentY, bodyWidth, 28f, string.Empty, 100);
+                dlgX + padding, currentY, bodyWidth, UiScale.Scaled(28f), string.Empty, 100);
             if (newName != (viewModel.EditingRoleName ?? string.Empty))
                 events.Add(new RolesBrowseEvent.EditRoleNameChanged(newName));
-            currentY += 28f + 14f;
+            currentY += UiScale.Scaled(28f) + UiScale.Scaled(14f);
         }
 
         ChromeRenderer.DrawDivider(drawList, dlgX + padding, currentY, bodyWidth);
-        currentY += 16f;
+        currentY += UiScale.Scaled(16f);
 
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_PERMISSIONS_LABEL),
             dlgX + padding, currentY, SubsectionLabel, ColorPalette.Gold);
-        currentY += 24f;
+        currentY += UiScale.Scaled(24f);
 
         // Permission rows: diamond bullet (filled gold when granted, faded
         // outline when withheld) + display name in ink. Whole row is the
         // hit target so the click area matches the visual row.
-        const float rowHeight = 22f;
-        const float bulletRadius = 5f;
+        var rowHeight = UiScale.Scaled(22f);
+        var bulletRadius = UiScale.Scaled(5f);
         var mousePos = ImGui.GetMousePos();
         foreach (var perm in RolePermissions.AllPermissions)
         {
@@ -370,7 +370,7 @@ internal static class ReligionRolesBrowseRenderer
                 drawList.AddRectFilled(new Vector2(rowMinX, currentY),
                     new Vector2(rowMaxX, currentY + rowHeight),
                     ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.Gold, 0.12f)),
-                    3f);
+                    UiScale.Scaled(3f));
                 if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                     events.Add(new RolesBrowseEvent.EditRolePermissionToggled(perm, !isEnabled));
             }
@@ -389,15 +389,15 @@ internal static class ReligionRolesBrowseRenderer
                 var right = new Vector2(cx + bulletRadius, rowMidY);
                 var bottom = new Vector2(cx, rowMidY + bulletRadius);
                 var left = new Vector2(cx - bulletRadius, rowMidY);
-                drawList.AddLine(top, right, col, 1f);
-                drawList.AddLine(right, bottom, col, 1f);
-                drawList.AddLine(bottom, left, col, 1f);
-                drawList.AddLine(left, top, col, 1f);
+                drawList.AddLine(top, right, col, UiScale.Scaled(1f));
+                drawList.AddLine(right, bottom, col, UiScale.Scaled(1f));
+                drawList.AddLine(bottom, left, col, UiScale.Scaled(1f));
+                drawList.AddLine(left, top, col, UiScale.Scaled(1f));
             }
 
             var labelColor = isEnabled ? ColorPalette.White : ColorPalette.Grey;
             drawList.AddText(ImGui.GetFont(), Body,
-                new Vector2(rowMinX + bulletRadius * 2f + 10f, currentY + 2f),
+                new Vector2(rowMinX + bulletRadius * 2f + UiScale.Scaled(10f), currentY + UiScale.Scaled(2f)),
                 ImGui.ColorConvertFloat4ToU32(labelColor), displayName);
 
             currentY += rowHeight;
@@ -405,13 +405,13 @@ internal static class ReligionRolesBrowseRenderer
 
         // Footer: Strike † (left, destructive) + Cancel / Save (right). Strike
         // is dagger-marked, no red tint — moved into the overlay per #318.
-        const float btnWidth = 120f;
-        const float btnHeight = 32f;
+        var btnWidth = UiScale.Scaled(120f);
+        var btnHeight = UiScale.Scaled(32f);
         var btnY = dlgY + dialogHeight - padding - btnHeight;
 
         if (viewModel.CanDeleteRole(role))
         {
-            const float strikeWidth = 170f;
+            var strikeWidth = UiScale.Scaled(170f);
             var strikeLabel = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_STRIKE_BUTTON);
             if (ButtonRenderer.DrawButton(drawList, strikeLabel,
                     dlgX + padding, btnY, strikeWidth, btnHeight,
@@ -422,14 +422,14 @@ internal static class ReligionRolesBrowseRenderer
 
             var labelSize = ImGui.CalcTextSize(strikeLabel);
             var labelRightX = dlgX + padding + (strikeWidth + labelSize.X) / 2f;
-            var daggerCx = labelRightX + 8f;
-            var maxDaggerCx = dlgX + padding + strikeWidth - 14f / 2f - 4f;
+            var daggerCx = labelRightX + UiScale.Scaled(8f);
+            var maxDaggerCx = dlgX + padding + strikeWidth - UiScale.Scaled(14f) / 2f - UiScale.Scaled(4f);
             if (daggerCx > maxDaggerCx) daggerCx = maxDaggerCx;
-            ChromeRenderer.DrawDagger(drawList, daggerCx, btnY + btnHeight / 2f, 14f, ColorPalette.LightText);
+            ChromeRenderer.DrawDagger(drawList, daggerCx, btnY + btnHeight / 2f, UiScale.Scaled(14f), ColorPalette.LightText);
         }
 
         var btn2X = dlgX + dialogWidth - padding - btnWidth;
-        var btn1X = btn2X - btnWidth - 10f;
+        var btn1X = btn2X - btnWidth - UiScale.Scaled(10f);
 
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_CANCEL),
@@ -466,13 +466,13 @@ internal static class ReligionRolesBrowseRenderer
         var h = ChapterStripRenderer.TopPadding + PaneHeaderRenderer.TotalHeight;
         var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_CHAPTER_INTRO);
         var contentWidth = viewModel.Width - ChapterStripRenderer.ScrollbarGutter;
-        h += MathF.Max(TextRenderer.MeasureWrappedHeight(intro, contentWidth, Body), 20f) + 8f;
+        h += MathF.Max(TextRenderer.MeasureWrappedHeight(intro, contentWidth, Body), UiScale.Scaled(20f)) + UiScale.Scaled(8f);
         h += DividerHeight;
         h += viewModel.Roles.Count * RowHeight;
         if (viewModel.CanManageRoles())
         {
             h += DividerHeight;
-            h += InscribeLabelHeight + InscribeInputHeight + 8f;
+            h += InscribeLabelHeight + InscribeInputHeight + UiScale.Scaled(8f);
         }
         return h;
     }
