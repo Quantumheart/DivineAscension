@@ -24,16 +24,16 @@ namespace DivineAscension.GUI.UI.Renderers.HolySites;
 internal static class HolySiteDetailRenderer
 {
     // Layout constants
-    private const float BackButtonWidth = 160f;
-    private const float BackButtonHeight = 32f;
-    private const float MarkButtonWidth = 130f;
-    private const float MarkButtonHeight = 36f;
-    private const float IconSize = 85f;
-    private const float SectionSpacing = 20f;
-    private const float FieldHeight = 32f;
-    private const float LabelWidth = 150f;
-    private const float EditButtonWidth = 40f;
-    private const float EditButtonHeight = 18f;
+    private static float BackButtonWidth => UiScale.Scaled(160f);
+    private static float BackButtonHeight => UiScale.Scaled(32f);
+    private static float MarkButtonWidth => UiScale.Scaled(130f);
+    private static float MarkButtonHeight => UiScale.Scaled(36f);
+    private static float IconSize => UiScale.Scaled(85f);
+    private static float SectionSpacing => UiScale.Scaled(20f);
+    private static float FieldHeight => UiScale.Scaled(32f);
+    private static float LabelWidth => UiScale.Scaled(150f);
+    private static float EditButtonWidth => UiScale.Scaled(40f);
+    private static float EditButtonHeight => UiScale.Scaled(18f);
     private const float DescriptionMaxChars = 200f;
 
     /// <summary>
@@ -51,7 +51,7 @@ internal static class HolySiteDetailRenderer
         {
             TextRenderer.DrawInfoText(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_DETAIL_LOADING),
-                vm.X, currentY + 8f, vm.Width);
+                vm.X, currentY + UiScale.Scaled(8f), vm.Width);
             return new HolySiteDetailRendererResult(events, vm.Height);
         }
 
@@ -72,7 +72,7 @@ internal static class HolySiteDetailRenderer
         }
 
         // Mark button (top right)
-        var markButtonX = vm.X + vm.Width - MarkButtonWidth - 16f;
+        var markButtonX = vm.X + vm.Width - MarkButtonWidth - UiScale.Scaled(16f);
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_DETAIL_MARK),
                 markButtonX, currentY, MarkButtonWidth, MarkButtonHeight,
@@ -85,45 +85,45 @@ internal static class HolySiteDetailRenderer
 
         // Draw background panel
         var backgroundY = currentY;
-        var backgroundHeight = vm.Height - (currentY - vm.Y) - 8f;
+        var backgroundHeight = vm.Height - (currentY - vm.Y) - UiScale.Scaled(8f);
         drawList.AddRectFilled(
             new Vector2(vm.X, backgroundY),
             new Vector2(vm.X + vm.Width, backgroundY + backgroundHeight),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.TableBackground),
-            4f);
+            UiScale.Scaled(4f));
 
         // Clip content to container boundaries
         drawList.PushClipRect(new Vector2(vm.X, backgroundY),
             new Vector2(vm.X + vm.Width, backgroundY + backgroundHeight), true);
 
-        currentY += 16f;
+        currentY += UiScale.Scaled(16f);
 
         // Two-column layout
-        var leftColumnX = vm.X + 97f;
-        var leftColumnWidth = (vm.Width / 2) - 110f; // Half width minus icon space
-        var rightColumnX = vm.X + (vm.Width / 2) + 20f; // Start right column with padding
-        var dividerX = vm.X + (vm.Width / 2) + 5f; // Vertical divider line
+        var leftColumnX = vm.X + UiScale.Scaled(97f);
+        var leftColumnWidth = (vm.Width / 2) - UiScale.Scaled(110f); // Half width minus icon space
+        var rightColumnX = vm.X + (vm.Width / 2) + UiScale.Scaled(20f); // Start right column with padding
+        var dividerX = vm.X + (vm.Width / 2) + UiScale.Scaled(5f); // Vertical divider line
 
         var leftColumnY = currentY;
         var rightColumnY = currentY;
 
         // Draw vertical divider line between columns
         drawList.AddLine(
-            new Vector2(dividerX, currentY - 10f),
-            new Vector2(dividerX, backgroundY + backgroundHeight - 10f),
+            new Vector2(dividerX, currentY - UiScale.Scaled(10f)),
+            new Vector2(dividerX, backgroundY + backgroundHeight - UiScale.Scaled(10f)),
             ImGui.ColorConvertFloat4ToU32(new Vector4(0.3f, 0.3f, 0.3f, 0.5f)),
-            1f);
+            UiScale.Scaled(1f));
 
         // LEFT COLUMN: Deity icon + Site Info + Coordinates + Description
         DrawDeityIcon(vm, drawList, leftColumnX, leftColumnY);
 
-        var infoStartX = leftColumnX + 123f; // After icon
+        var infoStartX = leftColumnX + UiScale.Scaled(123f); // After icon
 
         // Calculate max width for name field
         // Total available: dividerX - infoStartX - 20f (padding)
         // Need to fit: Label (150f) + Input + Spacing (8f) + Save (60f) + Spacing (8f) + Cancel (60f)
         var nameFieldMaxWidth =
-            dividerX - infoStartX - 150f - 8f - 60f - 8f - 60f - 20f; // LabelWidth + buttons + padding
+            dividerX - infoStartX - UiScale.Scaled(150f) - UiScale.Scaled(8f) - UiScale.Scaled(60f) - UiScale.Scaled(8f) - UiScale.Scaled(60f) - UiScale.Scaled(20f); // LabelWidth + buttons + padding
         DrawHolySiteInfo(vm, drawList, infoStartX, ref leftColumnY, nameFieldMaxWidth, events);
 
         leftColumnY += SectionSpacing;
@@ -132,7 +132,7 @@ internal static class HolySiteDetailRenderer
         leftColumnY += SectionSpacing;
 
         // Calculate max width for description (respect divider boundary)
-        var descriptionMaxWidth = dividerX - infoStartX - 20f; // 20f padding from divider
+        var descriptionMaxWidth = dividerX - infoStartX - UiScale.Scaled(20f); // 20f padding from divider
         DrawDescriptionSection(vm, drawList, infoStartX, ref leftColumnY, descriptionMaxWidth, events);
 
         // RIGHT COLUMN: Ritual section
@@ -161,9 +161,9 @@ internal static class HolySiteDetailRenderer
 
                 // Draw border
                 drawList.AddRect(
-                    new Vector2(x - 1f, y - 1f),
-                    new Vector2(x + IconSize + 1f, y + IconSize + 1f),
-                    borderColor, 4f, ImDrawFlags.None, 2f);
+                    new Vector2(x - UiScale.Scaled(1f), y - UiScale.Scaled(1f)),
+                    new Vector2(x + IconSize + UiScale.Scaled(1f), y + IconSize + UiScale.Scaled(1f)),
+                    borderColor, UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(2f));
 
                 // Draw icon
                 drawList.AddImage(deityTextureId,
@@ -199,7 +199,7 @@ internal static class HolySiteDetailRenderer
             DrawNameDisplay(vm, drawList, x, y, labelColor, valueColor, events);
         }
 
-        y += FieldHeight + 8f;
+        y += FieldHeight + UiScale.Scaled(8f);
 
         // Tier
         DrawLabelValuePair(drawList, "Tier:", vm.SiteDetails.Tier.ToString(), x, y, labelColor, valueColor);
@@ -257,40 +257,40 @@ internal static class HolySiteDetailRenderer
         // Section header
         drawList.AddText(ImGui.GetFont(), TableHeader, new Vector2(x, y),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), "Active Ritual");
-        y += 24f;
+        y += UiScale.Scaled(24f);
 
         // Ritual name
         drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x, y), labelColor, ritual.RitualName);
-        y += 20f;
+        y += UiScale.Scaled(20f);
 
         // Description
         if (!string.IsNullOrEmpty(ritual.Description))
         {
             drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(x, y),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), ritual.Description);
-            y += 18f;
+            y += UiScale.Scaled(18f);
         }
 
-        y += 12f;
+        y += UiScale.Scaled(12f);
 
         // Draw all step checkboxes (3-5 steps depending on ritual)
         foreach (var step in ritual.Steps)
         {
             DrawStepCheckbox(drawList, x, ref y, step, labelColor);
-            y += 8f;
+            y += UiScale.Scaled(8f);
         }
 
         // Cancel button (for consecrator only)
         if (vm.IsConsecrator)
         {
-            y += 8f;
+            y += UiScale.Scaled(8f);
             if (ButtonRenderer.DrawButton(drawList, "Cancel Ritual",
-                    x, y, 120f, 28f, isPrimary: false))
+                    x, y, UiScale.Scaled(120f), UiScale.Scaled(28f), isPrimary: false))
             {
                 events.Add(new DetailEvent.CancelRitualClicked());
             }
 
-            y += 36f;
+            y += UiScale.Scaled(36f);
         }
     }
 
@@ -312,7 +312,7 @@ internal static class HolySiteDetailRenderer
         }
 
         // Discovered step rendering with checkbox
-        var checkboxSize = 18f;
+        var checkboxSize = UiScale.Scaled(18f);
 
         // Checkbox background (green if complete, dark gray if not)
         var bgColor = step.IsComplete
@@ -322,36 +322,36 @@ internal static class HolySiteDetailRenderer
         drawList.AddRectFilled(
             new Vector2(x, y),
             new Vector2(x + checkboxSize, y + checkboxSize),
-            bgColor, 3f);
+            bgColor, UiScale.Scaled(3f));
 
         // Checkbox border
         drawList.AddRect(
             new Vector2(x, y),
             new Vector2(x + checkboxSize, y + checkboxSize),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.MutedText),
-            3f, ImDrawFlags.None, 1.5f);
+            UiScale.Scaled(3f), ImDrawFlags.None, UiScale.Scaled(1.5f));
 
         // Checkmark (if complete)
         if (step.IsComplete)
         {
             var checkColor = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
             drawList.AddLine(
-                new Vector2(x + 3f, y + checkboxSize / 2),
-                new Vector2(x + checkboxSize / 2, y + checkboxSize - 3f),
-                checkColor, 2f);
+                new Vector2(x + UiScale.Scaled(3f), y + checkboxSize / 2),
+                new Vector2(x + checkboxSize / 2, y + checkboxSize - UiScale.Scaled(3f)),
+                checkColor, UiScale.Scaled(2f));
             drawList.AddLine(
-                new Vector2(x + checkboxSize / 2, y + checkboxSize - 3f),
-                new Vector2(x + checkboxSize - 3f, y + 3f),
-                checkColor, 2f);
+                new Vector2(x + checkboxSize / 2, y + checkboxSize - UiScale.Scaled(3f)),
+                new Vector2(x + checkboxSize - UiScale.Scaled(3f), y + UiScale.Scaled(3f)),
+                checkColor, UiScale.Scaled(2f));
         }
 
         // Step name
-        var textX = x + checkboxSize + 10f;
+        var textX = x + checkboxSize + UiScale.Scaled(10f);
         var textColor = step.IsComplete
             ? ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold)
             : labelColor;
         drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(textX, y), textColor, step.StepName);
-        y += 20f;
+        y += UiScale.Scaled(20f);
 
         // Contributors (only for discovered steps)
         if (step.TopContributors != null && step.TopContributors.Count > 0)
@@ -361,7 +361,7 @@ internal static class HolySiteDetailRenderer
             drawList.AddText(ImGui.GetFont(), Small, new Vector2(textX, y),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.DisabledGray),
                 contributorsText);
-            y += 16f;
+            y += UiScale.Scaled(16f);
         }
     }
 
@@ -370,37 +370,37 @@ internal static class HolySiteDetailRenderer
     /// </summary>
     private static void DrawUndiscoveredStep(ImDrawListPtr drawList, float x, ref float y)
     {
-        var iconSize = 18f;
+        var iconSize = UiScale.Scaled(18f);
         var mysteryColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.5f, 0.4f, 0.6f, 0.9f)); // Purple tint
 
         // Question mark icon background
         drawList.AddRectFilled(
             new Vector2(x, y),
             new Vector2(x + iconSize, y + iconSize),
-            mysteryColor, 3f);
+            mysteryColor, UiScale.Scaled(3f));
 
         // Question mark icon border
         drawList.AddRect(
             new Vector2(x, y),
             new Vector2(x + iconSize, y + iconSize),
             ImGui.ColorConvertFloat4ToU32(new Vector4(0.6f, 0.5f, 0.7f, 1f)),
-            3f, ImDrawFlags.None, 1.5f);
+            UiScale.Scaled(3f), ImDrawFlags.None, UiScale.Scaled(1.5f));
 
         // Question mark symbol
         var questionMarkColor = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x + 4f, y + 1f), questionMarkColor, "?");
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x + UiScale.Scaled(4f), y + UiScale.Scaled(1f)), questionMarkColor, "?");
 
         // "Undiscovered Step" text
-        var textX = x + iconSize + 10f;
+        var textX = x + iconSize + UiScale.Scaled(10f);
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DisabledGray);
         drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(textX, y), textColor, "??? Undiscovered Step");
-        y += 20f;
+        y += UiScale.Scaled(20f);
 
         // Hint text
         var hintText = "  Offer sacred items to discover this step";
         var hintColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.MutedText);
         drawList.AddText(ImGui.GetFont(), Small, new Vector2(textX, y), hintColor, hintText);
-        y += 16f;
+        y += UiScale.Scaled(16f);
     }
 
     /// <summary>
@@ -418,7 +418,7 @@ internal static class HolySiteDetailRenderer
         // Section header
         drawList.AddText(ImGui.GetFont(), TableHeader, new Vector2(x, y),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), "Ritual Progress");
-        y += 24f;
+        y += UiScale.Scaled(24f);
 
         // Calculate completed rituals (tier - 1, since tier 1 is base)
         var completedRituals = currentTier - 1;
@@ -431,7 +431,7 @@ internal static class HolySiteDetailRenderer
         var completionText = $"{completedRituals} Rituals Completed / {undiscoveredRituals} Undiscovered";
         drawList.AddText(ImGui.GetFont(), Body, new Vector2(x, y),
             labelColor, completionText);
-        y += 20f;
+        y += UiScale.Scaled(20f);
 
         // Show discovery hint if not max tier
         if (currentTier < 3)
@@ -439,7 +439,7 @@ internal static class HolySiteDetailRenderer
             drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(x, y),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
                 "Offer sacred items at the altar to discover new rituals.");
-            y += 18f;
+            y += UiScale.Scaled(18f);
         }
         else
         {
@@ -447,7 +447,7 @@ internal static class HolySiteDetailRenderer
             drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(x, y),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold),
                 "All rituals completed! This is a Cathedral.");
-            y += 18f;
+            y += UiScale.Scaled(18f);
         }
     }
 
@@ -464,20 +464,20 @@ internal static class HolySiteDetailRenderer
         List<DetailEvent> events)
     {
         // Label
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x, y + 8f), labelColor,
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x, y + UiScale.Scaled(8f)), labelColor,
             LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_DETAIL_NAME));
 
         // Value
         var valueX = x + LabelWidth;
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(valueX, y + 8f),
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(valueX, y + UiScale.Scaled(8f)),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), vm.SiteDetails.SiteName);
 
         // Edit button (for consecrator)
         if (vm.IsConsecrator)
         {
-            var editButtonX = valueX + ImGui.CalcTextSize(vm.SiteDetails.SiteName).X + 12f;
+            var editButtonX = valueX + ImGui.CalcTextSize(vm.SiteDetails.SiteName).X + UiScale.Scaled(12f);
             if (ButtonRenderer.DrawButton(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_EDIT),
-                    editButtonX, y + 7f, EditButtonWidth, EditButtonHeight,
+                    editButtonX, y + UiScale.Scaled(7f), EditButtonWidth, EditButtonHeight,
                     isPrimary: false))
             {
                 events.Add(new DetailEvent.RenameClicked());
@@ -497,7 +497,7 @@ internal static class HolySiteDetailRenderer
         List<DetailEvent> events)
     {
         // Label
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x, y + 8f),
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x, y + UiScale.Scaled(8f)),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown),
             LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_DETAIL_NAME));
 
@@ -515,19 +515,19 @@ internal static class HolySiteDetailRenderer
         }
 
         // Save button
-        var saveButtonX = inputX + maxWidth + 8f;
+        var saveButtonX = inputX + maxWidth + UiScale.Scaled(8f);
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_SAVE),
-                saveButtonX, y, 60f, FieldHeight, isPrimary: true))
+                saveButtonX, y, UiScale.Scaled(60f), FieldHeight, isPrimary: true))
         {
             events.Add(new DetailEvent.RenameSave(newValue));
         }
 
         // Cancel button
-        var cancelButtonX = saveButtonX + 68f;
+        var cancelButtonX = saveButtonX + UiScale.Scaled(68f);
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_CANCEL),
-                cancelButtonX, y, 60f, FieldHeight))
+                cancelButtonX, y, UiScale.Scaled(60f), FieldHeight))
         {
             events.Add(new DetailEvent.RenameCancel());
         }
@@ -572,16 +572,16 @@ internal static class HolySiteDetailRenderer
         if (vm.IsConsecrator && !vm.IsEditingDescription)
         {
             var editButtonX = x + ImGui.CalcTextSize(
-                LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_DETAIL_DESCRIPTION)).X + 12f;
+                LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_DETAIL_DESCRIPTION)).X + UiScale.Scaled(12f);
             if (ButtonRenderer.DrawButton(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_EDIT),
-                    editButtonX, y - 1f, EditButtonWidth, EditButtonHeight,
+                    editButtonX, y - UiScale.Scaled(1f), EditButtonWidth, EditButtonHeight,
                     isPrimary: false))
             {
                 events.Add(new DetailEvent.EditDescriptionClicked());
             }
         }
 
-        y += 32f;
+        y += UiScale.Scaled(32f);
 
         if (vm.IsEditingDescription)
         {
@@ -613,7 +613,7 @@ internal static class HolySiteDetailRenderer
         ImGui.PopTextWrapPos();
 
         var textSize = ImGui.CalcTextSize(descriptionText, maxWidth);
-        y += textSize.Y + 8f;
+        y += textSize.Y + UiScale.Scaled(8f);
     }
 
     /// <summary>
@@ -627,7 +627,7 @@ internal static class HolySiteDetailRenderer
         float maxWidth,
         List<DetailEvent> events)
     {
-        var inputHeight = 100f;
+        var inputHeight = UiScale.Scaled(100f);
 
         var editValue = vm.EditingDescriptionValue ?? vm.SiteDetails.Description;
         var newValue = TextInput.DrawMultiline(drawList, "##holysite_description_edit", editValue, x, y, maxWidth,
@@ -639,7 +639,7 @@ internal static class HolySiteDetailRenderer
             events.Add(new DetailEvent.DescriptionValueChanged(newValue));
         }
 
-        y += inputHeight + 8f;
+        y += inputHeight + UiScale.Scaled(8f);
 
         // Character count
         var charCount = newValue?.Length ?? 0;
@@ -647,29 +647,29 @@ internal static class HolySiteDetailRenderer
         var charCountColor = charCount > DescriptionMaxChars
             ? ImGui.ColorConvertFloat4ToU32(ColorPalette.Red)
             : ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(x + maxWidth - 60f, y), charCountColor, charCountText);
+        drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(x + maxWidth - UiScale.Scaled(60f), y), charCountColor, charCountText);
 
-        y += 24f;
+        y += UiScale.Scaled(24f);
 
         // Save button
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_SAVE),
-                x, y, 80f, FieldHeight, isPrimary: true,
+                x, y, UiScale.Scaled(80f), FieldHeight, isPrimary: true,
                 enabled: charCount <= DescriptionMaxChars))
         {
             events.Add(new DetailEvent.DescriptionSave(newValue ?? ""));
         }
 
         // Cancel button
-        var cancelButtonX = x + 88f;
+        var cancelButtonX = x + UiScale.Scaled(88f);
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_CANCEL),
-                cancelButtonX, y, 80f, FieldHeight))
+                cancelButtonX, y, UiScale.Scaled(80f), FieldHeight))
         {
             events.Add(new DetailEvent.DescriptionCancel());
         }
 
-        y += FieldHeight + 8f;
+        y += FieldHeight + UiScale.Scaled(8f);
     }
 
     /// <summary>
@@ -685,11 +685,11 @@ internal static class HolySiteDetailRenderer
         uint valueColor)
     {
         // Label
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x, y + 8f), labelColor, label);
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x, y + UiScale.Scaled(8f)), labelColor, label);
 
         // Value
         var valueX = x + LabelWidth;
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(valueX, y + 8f), valueColor, value);
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(valueX, y + UiScale.Scaled(8f)), valueColor, value);
     }
 
     /// <summary>

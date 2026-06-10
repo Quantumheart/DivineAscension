@@ -14,10 +14,10 @@ namespace DivineAscension.GUI.UI.Renderers.Utilities;
 [ExcludeFromCodeCoverage]
 internal static class DeityTooltipRenderer
 {
-    private const float TOOLTIP_MAX_WIDTH = 280f;
-    private const float TOOLTIP_PADDING = 12f;
-    private const float LINE_SPACING = 4f;
-    private const float SECTION_SPACING = 8f;
+    private static float TOOLTIP_MAX_WIDTH => UiScale.Scaled(280f);
+    private static float TOOLTIP_PADDING => UiScale.Scaled(12f);
+    private static float LINE_SPACING => UiScale.Scaled(4f);
+    private static float SECTION_SPACING => UiScale.Scaled(8f);
 
     /// <summary>
     /// Draw a tooltip for a deity when hovering over deity tabs
@@ -105,8 +105,8 @@ internal static class DeityTooltipRenderer
         float tooltipWidth, float tooltipHeight)
     {
         var windowPos = ImGui.GetWindowPos();
-        var offsetX = 16f;
-        var offsetY = 16f;
+        var offsetX = UiScale.Scaled(16f);
+        var offsetY = UiScale.Scaled(16f);
 
         var tooltipX = mouseX + offsetX;
         var tooltipY = mouseY + offsetY;
@@ -121,11 +121,11 @@ internal static class DeityTooltipRenderer
 
         // Ensure doesn't go off left edge
         if (tooltipX < windowPos.X)
-            tooltipX = windowPos.X + 4f;
+            tooltipX = windowPos.X + UiScale.Scaled(4f);
 
         // Ensure doesn't go off top edge
         if (tooltipY < windowPos.Y)
-            tooltipY = windowPos.Y + 4f;
+            tooltipY = windowPos.Y + UiScale.Scaled(4f);
 
         return (tooltipX, tooltipY);
     }
@@ -140,11 +140,11 @@ internal static class DeityTooltipRenderer
 
         // Dark brown background
         var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
-        drawList.AddRectFilled(bgStart, bgEnd, bgColor, 4f);
+        drawList.AddRectFilled(bgStart, bgEnd, bgColor, UiScale.Scaled(4f));
 
         // Gold border
         var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
-        drawList.AddRect(bgStart, bgEnd, borderColor, 4f, ImDrawFlags.None, 2f);
+        drawList.AddRect(bgStart, bgEnd, borderColor, UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(2f));
     }
 
     /// <summary>
@@ -209,6 +209,6 @@ internal static class DeityTooltipRenderer
     /// </summary>
     private record TooltipLine(string Text, Vector4 Color, float FontSize, bool IsBold, float SpacingAfter)
     {
-        public float Height => FontSize + 4f; // Font size + small buffer
+        public float Height => FontSize + UiScale.Scaled(4f); // Font size + small buffer
     }
 }

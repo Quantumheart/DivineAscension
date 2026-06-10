@@ -31,9 +31,9 @@ internal static class ChromeRenderer
         ImGui.PushStyleColor(ImGuiCol.PopupBg, ColorPalette.DarkBrown);
         ImGui.PushStyleColor(ImGuiCol.Border, ColorPalette.Gold * 0.6f);
         ImGui.PushStyleColor(ImGuiCol.Text, ColorPalette.LightText);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 2f);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 4f);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(10f, 6f));
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, UiScale.Scaled(2f));
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, UiScale.Scaled(4f));
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(UiScale.Scaled(10f), UiScale.Scaled(6f)));
         ImGui.BeginTooltip();
         return new StyledTooltipScope();
     }
@@ -181,12 +181,12 @@ internal static class ChromeRenderer
 
         if (leftLineEnd > x)
         {
-            drawList.AddLine(new Vector2(x, lineY), new Vector2(leftLineEnd, lineY), colorU32, 1f);
+            drawList.AddLine(new Vector2(x, lineY), new Vector2(leftLineEnd, lineY), colorU32, UiScale.Scaled(1f));
         }
         if (rightLineStart < x + width)
         {
             drawList.AddLine(new Vector2(rightLineStart, lineY),
-                new Vector2(x + width, lineY), colorU32, 1f);
+                new Vector2(x + width, lineY), colorU32, UiScale.Scaled(1f));
         }
 
         DrawDiamond(drawList, centerX, lineY, diamondHalfSize, color);
@@ -219,7 +219,7 @@ internal static class ChromeRenderer
         void Segment(float startX, float endX)
         {
             if (endX > startX)
-                drawList.AddLine(new Vector2(startX, lineY), new Vector2(endX, lineY), colorU32, 1f);
+                drawList.AddLine(new Vector2(startX, lineY), new Vector2(endX, lineY), colorU32, UiScale.Scaled(1f));
         }
 
         Segment(x, d0X - diamondHalfSize - sideGap);
@@ -601,7 +601,7 @@ internal static class ChromeRenderer
         drawList.AddText(new Vector2(x, y), labelCol, label);
         drawList.AddText(new Vector2(x + width - valueSize.X, y), valueCol, value);
 
-        const float padding = 6f;
+        var padding = UiScale.Scaled(6f);
         var leadersStart = x + labelSize.X + padding;
         var leadersEnd = x + width - valueSize.X - padding;
         var leadersWidth = leadersEnd - leadersStart;

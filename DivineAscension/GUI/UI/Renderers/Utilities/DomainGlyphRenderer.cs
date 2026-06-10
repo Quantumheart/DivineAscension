@@ -53,7 +53,7 @@ internal static class DomainGlyphRenderer
                 DrawCompassRose(drawList, cx, cy, s, color);
                 return;
             default:
-                drawList.AddCircle(new Vector2(cx, cy), s * 0.3f, color, 16, 1.5f);
+                drawList.AddCircle(new Vector2(cx, cy), s * 0.3f, color, 16, UiScale.Scaled(1.5f));
                 return;
         }
     }
@@ -70,11 +70,11 @@ internal static class DomainGlyphRenderer
 
         var headMin = new Vector2(cx - headW * 0.5f, topY);
         var headMax = new Vector2(cx + headW * 0.5f, topY + headH);
-        drawList.AddRectFilled(headMin, headMax, color, 2f);
+        drawList.AddRectFilled(headMin, headMax, color, UiScale.Scaled(2f));
 
         var handleMin = new Vector2(cx - handleW * 0.5f, headMax.Y);
         var handleMax = new Vector2(cx + handleW * 0.5f, headMax.Y + handleH);
-        drawList.AddRectFilled(handleMin, handleMax, color, 1f);
+        drawList.AddRectFilled(handleMin, handleMax, color, UiScale.Scaled(1f));
     }
 
     private static void DrawLeaf(ImDrawListPtr drawList, float cx, float cy, float s, uint color)
@@ -83,8 +83,8 @@ internal static class DomainGlyphRenderer
         // skull plate at the base, each antler a curved beam with two
         // outward-up tines. More legible at 32px than the old leaf, which
         // read as just a diamond when domain-tinted.
-        var beam = MathF.Max(2f, s * 0.07f);
-        var tine = MathF.Max(1.5f, s * 0.055f);
+        var beam = MathF.Max(UiScale.Scaled(2f), s * 0.07f);
+        var tine = MathF.Max(UiScale.Scaled(1.5f), s * 0.055f);
         var baseY = cy + s * 0.30f;
 
         // Skull plate.
@@ -124,10 +124,10 @@ internal static class DomainGlyphRenderer
         const float invSqrt2 = 0.70710677f;
         // Tip = arm out along sword axis; HiltEnd = arm out the opposite way.
         var arm = s * 0.42f;
-        var bladeHalf = MathF.Max(1.5f, s * 0.045f);
+        var bladeHalf = MathF.Max(UiScale.Scaled(1.5f), s * 0.045f);
         var guardArm = s * 0.10f;
-        var guardThick = MathF.Max(1.5f, s * 0.035f);
-        var pommelR = MathF.Max(2f, s * 0.06f);
+        var guardThick = MathF.Max(UiScale.Scaled(1.5f), s * 0.035f);
+        var pommelR = MathF.Max(UiScale.Scaled(2f), s * 0.06f);
         // Where the blade ends and the grip begins along the sword axis.
         var bladeBaseFromCenter = -arm * 0.35f;
 
@@ -171,7 +171,7 @@ internal static class DomainGlyphRenderer
     {
         var stemTop = new Vector2(cx, cy - s * 0.40f);
         var stemBot = new Vector2(cx, cy + s * 0.40f);
-        drawList.AddLine(stemTop, stemBot, color, MathF.Max(1.5f, s * 0.04f));
+        drawList.AddLine(stemTop, stemBot, color, MathF.Max(UiScale.Scaled(1.5f), s * 0.04f));
         // Three pairs of angled grain marks centered on cy.
         var spread = s * 0.18f;
         var step = s * 0.18f;
@@ -180,9 +180,9 @@ internal static class DomainGlyphRenderer
         {
             var y = startY + i * step;
             drawList.AddLine(new Vector2(cx, y),
-                new Vector2(cx - spread, y - step * 0.5f), color, MathF.Max(1.2f, s * 0.03f));
+                new Vector2(cx - spread, y - step * 0.5f), color, MathF.Max(UiScale.Scaled(1.2f), s * 0.03f));
             drawList.AddLine(new Vector2(cx, y),
-                new Vector2(cx + spread, y - step * 0.5f), color, MathF.Max(1.2f, s * 0.03f));
+                new Vector2(cx + spread, y - step * 0.5f), color, MathF.Max(UiScale.Scaled(1.2f), s * 0.03f));
         }
     }
 
@@ -192,9 +192,9 @@ internal static class DomainGlyphRenderer
         // compass rose at glyph scale. Each cardinal arm is a tall narrow
         // diamond; diagonals are short kite-pairs. Pommel-style center dot.
         var arm = s * 0.42f;
-        var half = MathF.Max(1.5f, s * 0.075f);
+        var half = MathF.Max(UiScale.Scaled(1.5f), s * 0.075f);
         var diag = s * 0.22f;
-        var diagHalf = MathF.Max(1.5f, s * 0.05f);
+        var diagHalf = MathF.Max(UiScale.Scaled(1.5f), s * 0.05f);
 
         // Cardinal arms: N, E, S, W as diamonds meeting at center.
         drawList.AddTriangleFilled(
@@ -225,7 +225,7 @@ internal static class DomainGlyphRenderer
             drawList.AddTriangleFilled(tip, pLeft, pRight, color);
         }
 
-        drawList.AddCircleFilled(new Vector2(cx, cy), MathF.Max(1.5f, s * 0.06f), color);
+        drawList.AddCircleFilled(new Vector2(cx, cy), MathF.Max(UiScale.Scaled(1.5f), s * 0.06f), color);
     }
 
     private static void DrawMountain(ImDrawListPtr drawList, float cx, float cy, float s, uint color)
