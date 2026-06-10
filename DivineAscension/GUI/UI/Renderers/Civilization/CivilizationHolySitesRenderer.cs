@@ -29,33 +29,33 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 [ExcludeFromCodeCoverage]
 internal static class CivilizationHolySitesRenderer
 {
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float ScrollbarWidth = 16f;
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
 
-    private const float IntroLineHeight = 18f;
-    private const float IntroBottomSpacing = 10f;
+    private static float IntroLineHeight => UiScale.Scaled(18f);
+    private static float IntroBottomSpacing => UiScale.Scaled(10f);
 
-    private const float OrderHeaderHeight = 26f;
-    private const float OrderHeaderTopSpacing = 4f;
-    private const float OrderHeaderBottomSpacing = 6f;
-    private const float CaretSize = 12f;
-    private const float CaretToTextGap = 6f;
-    private const float OrderLeftPadding = 8f;
+    private static float OrderHeaderHeight => UiScale.Scaled(26f);
+    private static float OrderHeaderTopSpacing => UiScale.Scaled(4f);
+    private static float OrderHeaderBottomSpacing => UiScale.Scaled(6f);
+    private static float CaretSize => UiScale.Scaled(12f);
+    private static float CaretToTextGap => UiScale.Scaled(6f);
+    private static float OrderLeftPadding => UiScale.Scaled(8f);
 
-    private const float SiteRowLeftPadding = 32f;
-    private const float SiteNameLineHeight = 20f;
-    private const float SiteClaimLineHeight = 18f;
-    private const float SiteRowBottomSpacing = 6f;
-    private const float SiteGlyphSize = 16f;
-    private const float SiteGlyphToTextGap = 8f;
-    private const float SiteClaimIndent = SiteGlyphSize + SiteGlyphToTextGap;
+    private static float SiteRowLeftPadding => UiScale.Scaled(32f);
+    private static float SiteNameLineHeight => UiScale.Scaled(20f);
+    private static float SiteClaimLineHeight => UiScale.Scaled(18f);
+    private static float SiteRowBottomSpacing => UiScale.Scaled(6f);
+    private static float SiteGlyphSize => UiScale.Scaled(16f);
+    private static float SiteGlyphToTextGap => UiScale.Scaled(8f);
+    private static float SiteClaimIndent => SiteGlyphSize + SiteGlyphToTextGap;
 
-    private const float PerOrderDividerHeight = 16f;
-    private const float ClosingLineHeight = 24f;
-    private const float ClosingLineTopSpacing = 6f;
+    private static float PerOrderDividerHeight => UiScale.Scaled(16f);
+    private static float ClosingLineHeight => UiScale.Scaled(24f);
+    private static float ClosingLineTopSpacing => UiScale.Scaled(6f);
 
-    private const float RefreshButtonSize = 22f;
+    private static float RefreshButtonSize => UiScale.Scaled(22f);
 
     public static CivilizationHolySitesRenderResult Draw(
         CivilizationHolySitesViewModel viewModel,
@@ -95,7 +95,7 @@ internal static class CivilizationHolySitesRenderer
             var wheel = ImGui.GetIO().MouseWheel;
             if (wheel != 0)
             {
-                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                var newScrollY = Math.Clamp(scrollY - wheel * UiScale.Scaled(30f), 0f, maxScroll);
                 if (Math.Abs(newScrollY - scrollY) > 0.001f)
                 {
                     scrollY = newScrollY;
@@ -152,7 +152,7 @@ internal static class CivilizationHolySitesRenderer
     {
         var stripY = paneY + ChapterStripRenderer.TopPadding - scrollY;
         var px = x + width - ChapterStripRenderer.ScrollbarGutter - RefreshButtonSize;
-        var py = stripY + 6f;
+        var py = stripY + UiScale.Scaled(6f);
 
         if (ButtonRenderer.DrawButton(drawList, string.Empty,
                 px, py, RefreshButtonSize, RefreshButtonSize,
@@ -164,7 +164,7 @@ internal static class CivilizationHolySitesRenderer
         ChromeRenderer.DrawRefreshArrow(drawList,
             px + RefreshButtonSize / 2f,
             py + RefreshButtonSize / 2f,
-            RefreshButtonSize - 6f,
+            RefreshButtonSize - UiScale.Scaled(6f),
             ColorPalette.LightText);
     }
 
@@ -241,7 +241,7 @@ internal static class CivilizationHolySitesRenderer
         if (isHovered)
         {
             var hoverColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.10f);
-            drawList.AddRectFilled(rowMin, rowMax, hoverColor, 2f);
+            drawList.AddRectFilled(rowMin, rowMax, hoverColor, UiScale.Scaled(2f));
             ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
             if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 events.Add(new HolySitesEvent.ReligionToggled(religionUID));
@@ -288,7 +288,7 @@ internal static class CivilizationHolySitesRenderer
         if (isHovered)
         {
             var hoverColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.08f);
-            drawList.AddRectFilled(rowMin, rowMax, hoverColor, 2f);
+            drawList.AddRectFilled(rowMin, rowMax, hoverColor, UiScale.Scaled(2f));
             ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
             if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 events.Add(new HolySitesEvent.SiteSelected(site.SiteUID));
@@ -327,7 +327,7 @@ internal static class CivilizationHolySitesRenderer
     private static float DrawPerOrderDivider(ImDrawListPtr drawList, float x, float y, float width)
     {
         var inset = width * 0.30f;
-        var dividerY = y + 4f;
+        var dividerY = y + UiScale.Scaled(4f);
         ChromeRenderer.DrawDivider(drawList,
             x + inset, dividerY, width - inset * 2f,
             ColorPalette.Gold * 0.40f);

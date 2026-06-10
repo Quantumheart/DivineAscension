@@ -27,21 +27,21 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 [ExcludeFromCodeCoverage]
 internal static class CivilizationMilestoneRenderer
 {
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float SectionLabelHeight = 22f;
-    private const float StatRowHeight = 22f;
-    private const float ProseBottomSpacing = 12f;
-    private const float BoonLineHeight = 22f;
-    private const float BoonProseHeight = 20f;
-    private const float DeedNameHeight = 22f;
-    private const float DeedProgressRowHeight = 22f;
-    private const float DeedItemSpacing = 10f;
-    private const float ProgressBarHeight = 12f;
-    private const float ProgressBarIndent = 22f;
-    private const float ProgressBarWidth = 160f;
-    private const float RefreshGlyphSize = 22f;
-    private const float ScrollbarWidth = 16f;
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float SectionLabelHeight => UiScale.Scaled(22f);
+    private static float StatRowHeight => UiScale.Scaled(22f);
+    private static float ProseBottomSpacing => UiScale.Scaled(12f);
+    private static float BoonLineHeight => UiScale.Scaled(22f);
+    private static float BoonProseHeight => UiScale.Scaled(20f);
+    private static float DeedNameHeight => UiScale.Scaled(22f);
+    private static float DeedProgressRowHeight => UiScale.Scaled(22f);
+    private static float DeedItemSpacing => UiScale.Scaled(10f);
+    private static float ProgressBarHeight => UiScale.Scaled(12f);
+    private static float ProgressBarIndent => UiScale.Scaled(22f);
+    private static float ProgressBarWidth => UiScale.Scaled(160f);
+    private static float RefreshGlyphSize => UiScale.Scaled(22f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
 
     public static CivilizationMilestoneRenderResult Draw(
         CivilizationMilestoneViewModel viewModel,
@@ -137,7 +137,7 @@ internal static class CivilizationMilestoneRenderer
         List<MilestoneEvent> events)
     {
         var bx = paneX + contentWidth - RefreshGlyphSize;
-        var by = stripTopY + ChapterStripRenderer.TopPadding + 6f;
+        var by = stripTopY + ChapterStripRenderer.TopPadding + UiScale.Scaled(6f);
         if (ButtonRenderer.DrawButton(drawList, string.Empty,
                 bx, by, RefreshGlyphSize, RefreshGlyphSize,
                 isPrimary: false, enabled: !viewModel.IsLoading))
@@ -147,7 +147,7 @@ internal static class CivilizationMilestoneRenderer
         ChromeRenderer.DrawRefreshArrow(drawList,
             bx + RefreshGlyphSize / 2f,
             by + RefreshGlyphSize / 2f,
-            RefreshGlyphSize - 6f,
+            RefreshGlyphSize - UiScale.Scaled(6f),
             ColorPalette.LightText);
     }
 
@@ -164,7 +164,7 @@ internal static class CivilizationMilestoneRenderer
 
         TextRenderer.DrawInfoText(drawList, prose, x, y, width, Body, ColorPalette.White);
         var lines = TextRenderer.MeasureWrappedHeight(prose, width, Body);
-        return y + (lines > 0 ? lines : Body + 6f) + ProseBottomSpacing;
+        return y + (lines > 0 ? lines : Body + UiScale.Scaled(6f)) + ProseBottomSpacing;
     }
 
     private static float DrawStandingSection(
@@ -194,7 +194,7 @@ internal static class CivilizationMilestoneRenderer
             x, currentY, width);
         currentY += StatRowHeight;
 
-        return currentY + 6f;
+        return currentY + UiScale.Scaled(6f);
     }
 
     private static float DrawBoonsSection(
@@ -213,12 +213,12 @@ internal static class CivilizationMilestoneRenderer
             TextRenderer.DrawInfoText(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_BOONS_EMPTY),
                 x, currentY, width, Secondary, ColorPalette.Grey);
-            return currentY + BoonLineHeight + 6f;
+            return currentY + BoonLineHeight + UiScale.Scaled(6f);
         }
 
         foreach (var boon in phrases)
         {
-            DrawDiamondBullet(drawList, x + 4f, currentY + Body / 2f - 1f);
+            DrawDiamondBullet(drawList, x + UiScale.Scaled(4f), currentY + Body / 2f - UiScale.Scaled(1f));
             drawList.AddText(ImGui.GetFont(), Body,
                 new Vector2(x + ProgressBarIndent, currentY),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold),
@@ -232,14 +232,14 @@ internal static class CivilizationMilestoneRenderer
             currentY += BoonProseHeight;
         }
 
-        return currentY + 6f;
+        return currentY + UiScale.Scaled(6f);
     }
 
     private static void DrawDiamondBullet(ImDrawListPtr drawList, float cx, float cy)
     {
-        ChromeRenderer.DrawDiamond(drawList, cx + 4f, cy, 4f, ColorPalette.Gold);
+        ChromeRenderer.DrawDiamond(drawList, cx + UiScale.Scaled(4f), cy, UiScale.Scaled(4f), ColorPalette.Gold);
         // Inner spark for the fleuron — small centre highlight.
-        drawList.AddCircleFilled(new Vector2(cx + 4f, cy), 1.2f,
+        drawList.AddCircleFilled(new Vector2(cx + UiScale.Scaled(4f), cy), UiScale.Scaled(1.2f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText));
     }
 
@@ -269,7 +269,7 @@ internal static class CivilizationMilestoneRenderer
         MilestoneProgressDto deed,
         float x, float y, float width)
     {
-        var markCx = x + 8f;
+        var markCx = x + UiScale.Scaled(8f);
         var markCy = y + DeedNameHeight / 2f;
         if (deed.IsCompleted)
             DrawCheckmark(drawList, markCx, markCy);
@@ -280,7 +280,7 @@ internal static class CivilizationMilestoneRenderer
             ? ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText)
             : ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
         drawList.AddText(ImGui.GetFont(), SubsectionLabel,
-            new Vector2(x + ProgressBarIndent, y + 2f),
+            new Vector2(x + ProgressBarIndent, y + UiScale.Scaled(2f)),
             nameColor, deed.MilestoneName);
 
         var currentY = y + DeedNameHeight;
@@ -298,7 +298,7 @@ internal static class CivilizationMilestoneRenderer
         else
         {
             var barX = x + ProgressBarIndent;
-            var barY = currentY + 4f;
+            var barY = currentY + UiScale.Scaled(4f);
             var pct = deed.TargetValue > 0
                 ? Math.Clamp((float)deed.CurrentValue / deed.TargetValue, 0f, 1f)
                 : 0f;
@@ -311,7 +311,7 @@ internal static class CivilizationMilestoneRenderer
                 LocalizationKeys.UI_CIVILIZATION_MILESTONES_DEEDS_COUNT,
                 deed.CurrentValue, deed.TargetValue, verb);
             drawList.AddText(ImGui.GetFont(), Secondary,
-                new Vector2(barX + ProgressBarWidth + 10f, currentY + 2f),
+                new Vector2(barX + ProgressBarWidth + UiScale.Scaled(10f), currentY + UiScale.Scaled(2f)),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
                 countText);
             currentY += DeedProgressRowHeight;
@@ -323,18 +323,18 @@ internal static class CivilizationMilestoneRenderer
     private static void DrawCheckmark(ImDrawListPtr drawList, float cx, float cy)
     {
         var color = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        var s = 5f;
+        var s = UiScale.Scaled(5f);
         var a = new Vector2(cx - s, cy);
-        var b = new Vector2(cx - 1f, cy + s - 1f);
-        var c = new Vector2(cx + s, cy - s + 1f);
-        drawList.AddLine(a, b, color, 1.8f);
-        drawList.AddLine(b, c, color, 1.8f);
+        var b = new Vector2(cx - UiScale.Scaled(1f), cy + s - UiScale.Scaled(1f));
+        var c = new Vector2(cx + s, cy - s + UiScale.Scaled(1f));
+        drawList.AddLine(a, b, color, UiScale.Scaled(1.8f));
+        drawList.AddLine(b, c, color, UiScale.Scaled(1.8f));
     }
 
     private static void DrawOpenCircle(ImDrawListPtr drawList, float cx, float cy)
     {
         var color = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.7f);
-        drawList.AddCircle(new Vector2(cx, cy), 5f, color, 0, 1.4f);
+        drawList.AddCircle(new Vector2(cx, cy), UiScale.Scaled(5f), color, 0, UiScale.Scaled(1.4f));
     }
 
     private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
@@ -349,18 +349,18 @@ internal static class CivilizationMilestoneRenderer
         var h = PaneHeaderRenderer.TotalHeight;
 
         // Prose intro (~2 lines)
-        h += 36f + ProseBottomSpacing;
+        h += UiScale.Scaled(36f) + ProseBottomSpacing;
 
         // Standing: heading + 2 leader rows + bottom pad
         h += DividerHeight;
-        h += SectionLabelHeight + StatRowHeight * 2 + 6f;
+        h += SectionLabelHeight + StatRowHeight * 2 + UiScale.Scaled(6f);
 
         // Boons: heading + N lines (or empty single line)
         h += DividerHeight;
         var boonCount = MilestonePhrases.ActiveBonusPhrases(viewModel.Bonuses).Count();
         h += SectionLabelHeight + (boonCount > 0
             ? boonCount * (BoonLineHeight + BoonProseHeight)
-            : BoonLineHeight) + 6f;
+            : BoonLineHeight) + UiScale.Scaled(6f);
 
         // Deeds: heading + per-item (name + progress/set-down row + spacing)
         h += DividerHeight;

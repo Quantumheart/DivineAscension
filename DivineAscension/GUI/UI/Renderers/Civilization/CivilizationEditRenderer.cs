@@ -34,11 +34,11 @@ internal static class CivilizationEditRenderer
         // plus the surrounding labels + preview + buttons. The previous fixed
         // 450f wasn't tall enough for the current icon count, so the button
         // row drew on top of the bottom grid rows.
-        const float dialogWidth = 500f;
+        var dialogWidth = UiScale.Scaled(500f);
         const int pickerColumns = 4;
-        const float pickerIconSize = 40f;
-        const float pickerSpacing = 8f;
-        const float previewHeightEstimate = 14f + 8f + 48f + 8f + 14f; // label+gap+icon+gap+name
+        var pickerIconSize = UiScale.Scaled(40f);
+        var pickerSpacing = UiScale.Scaled(8f);
+        var previewHeightEstimate = UiScale.Scaled(14f + 8f + 48f + 8f + 14f); // label+gap+icon+gap+name
         var availableIconsForMeasure = CivilizationIconLoader.GetAvailableIcons();
         var pickerRows = (int)System.Math.Ceiling(availableIconsForMeasure.Count / (double)pickerColumns);
         var pickerHeightEstimate = pickerRows * pickerIconSize + System.Math.Max(0, pickerRows - 1) * pickerSpacing;
@@ -53,10 +53,10 @@ internal static class CivilizationEditRenderer
         // + pickerHeight + 20 gap
         // + 60 button strip
         // + 20 bottom pad
-        var dialogHeight = 20f + PaneHeaderRenderer.TotalHeight + 30f + 25f + previewHeightEstimate + 20f
-                           + 25f + pickerHeightEstimate + 20f + 60f + 20f;
+        var dialogHeight = UiScale.Scaled(20f) + PaneHeaderRenderer.TotalHeight + UiScale.Scaled(30f) + UiScale.Scaled(25f) + previewHeightEstimate + UiScale.Scaled(20f)
+                           + UiScale.Scaled(25f) + pickerHeightEstimate + UiScale.Scaled(20f) + UiScale.Scaled(60f) + UiScale.Scaled(20f);
         // Clamp to the available overlay so dialogs never escape the dialog.
-        dialogHeight = System.MathF.Min(dialogHeight, System.MathF.Max(300f, vm.Height - 40f));
+        dialogHeight = System.MathF.Min(dialogHeight, System.MathF.Max(UiScale.Scaled(300f), vm.Height - UiScale.Scaled(40f)));
 
         var dialogX = vm.X + (vm.Width - dialogWidth) / 2;
         var dialogY = vm.Y + (vm.Height - dialogHeight) / 2;
@@ -65,15 +65,15 @@ internal static class CivilizationEditRenderer
         var dialogStart = new Vector2(dialogX, dialogY);
         var dialogEnd = new Vector2(dialogX + dialogWidth, dialogY + dialogHeight);
         var dialogBgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
-        drawList.AddRectFilled(dialogStart, dialogEnd, dialogBgColor, 8f);
+        drawList.AddRectFilled(dialogStart, dialogEnd, dialogBgColor, UiScale.Scaled(8f));
 
         // Dialog border
         var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        drawList.AddRect(dialogStart, dialogEnd, borderColor, 8f, ImDrawFlags.None, 2f);
+        drawList.AddRect(dialogStart, dialogEnd, borderColor, UiScale.Scaled(8f), ImDrawFlags.None, UiScale.Scaled(2f));
 
-        var currentY = dialogY + 20f;
-        var contentX = dialogX + 20f;
-        var contentWidth = dialogWidth - 40f;
+        var currentY = dialogY + UiScale.Scaled(20f);
+        var contentX = dialogX + UiScale.Scaled(20f);
+        var contentWidth = dialogWidth - UiScale.Scaled(40f);
 
         // Title
         currentY = PaneHeaderRenderer.Draw(drawList,
@@ -85,13 +85,13 @@ internal static class CivilizationEditRenderer
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_EDIT_CIV_LABEL, vm.CivilizationName),
             contentX, currentY, 14f,
             ColorPalette.Grey);
-        currentY += 30f;
+        currentY += UiScale.Scaled(30f);
 
         // Current icon preview
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_EDIT_CURRENT_ICON), contentX, currentY,
             14f, ColorPalette.Grey);
-        currentY += 25f;
+        currentY += UiScale.Scaled(25f);
 
         var previewHeight = IconPicker.DrawPreview(
             drawList,
@@ -100,13 +100,13 @@ internal static class CivilizationEditRenderer
             contentX,
             currentY
         );
-        currentY += previewHeight + 20f;
+        currentY += previewHeight + UiScale.Scaled(20f);
 
         // Icon selection
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_EDIT_SELECT_ICON), contentX, currentY,
             14f, ColorPalette.White);
-        currentY += 25f;
+        currentY += UiScale.Scaled(25f);
 
         var availableIcons = CivilizationIconLoader.GetAvailableIcons();
         var (clickedIcon, pickerHeight) = IconPicker.Draw(
@@ -121,17 +121,17 @@ internal static class CivilizationEditRenderer
         if (clickedIcon != null)
             events.Add(new EditEvent.IconSelected(clickedIcon));
 
-        currentY += pickerHeight + 20f;
+        currentY += pickerHeight + UiScale.Scaled(20f);
 
         // Buttons
-        var buttonY = dialogY + dialogHeight - 60f;
+        var buttonY = dialogY + dialogHeight - UiScale.Scaled(60f);
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_EDIT_UPDATE_BUTTON), contentX,
-                buttonY, 150f, 36f, true))
+                buttonY, UiScale.Scaled(150f), UiScale.Scaled(36f), true))
             events.Add(new EditEvent.SubmitClicked());
 
         if (ButtonRenderer.DrawButton(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_CANCEL),
-                contentX + 160f, buttonY, 100f, 36f))
+                contentX + UiScale.Scaled(160f), buttonY, UiScale.Scaled(100f), UiScale.Scaled(36f)))
             events.Add(new EditEvent.CancelClicked());
 
         return new CivilizationEditRenderResult(events);

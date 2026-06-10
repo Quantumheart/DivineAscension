@@ -29,20 +29,20 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 [ExcludeFromCodeCoverage]
 internal static class CivilizationDetailRenderer
 {
-    private const float TopPadding = 8f;
-    private const float NavRowHeight = 32f;
-    private const float NavRowBottomPadding = 12f;
-    private const float NavBackWidth = 36f;
-    private const float NavJoinWidth = 130f;
-    private const float BackGlyphSize = 14f;
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float StatRowHeight = 22f;
-    private const float StatBlockBottomSpacing = 8f;
-    private const float ProseBottomSpacing = 12f;
-    private const float MemberRowHeight = 26f;
-    private const float MemberRowGap = 2f;
-    private const float SectionBottomSpacing = 8f;
+    private static float TopPadding => UiScale.Scaled(8f);
+    private static float NavRowHeight => UiScale.Scaled(32f);
+    private static float NavRowBottomPadding => UiScale.Scaled(12f);
+    private static float NavBackWidth => UiScale.Scaled(36f);
+    private static float NavJoinWidth => UiScale.Scaled(130f);
+    private static float BackGlyphSize => UiScale.Scaled(14f);
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float StatRowHeight => UiScale.Scaled(22f);
+    private static float StatBlockBottomSpacing => UiScale.Scaled(8f);
+    private static float ProseBottomSpacing => UiScale.Scaled(12f);
+    private static float MemberRowHeight => UiScale.Scaled(26f);
+    private static float MemberRowGap => UiScale.Scaled(2f);
+    private static float SectionBottomSpacing => UiScale.Scaled(8f);
 
     public static CivilizationDetailRendererResult Draw(
         CivilizationDetailViewModel vm,
@@ -58,7 +58,7 @@ internal static class CivilizationDetailRenderer
         {
             TextRenderer.DrawInfoText(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_LOADING),
-                vm.X, currentY + 8f, contentWidth, Body, ColorPalette.Grey);
+                vm.X, currentY + UiScale.Scaled(8f), contentWidth, Body, ColorPalette.Grey);
             return new CivilizationDetailRendererResult(events, vm.Height);
         }
 
@@ -103,7 +103,7 @@ internal static class CivilizationDetailRenderer
             var joinX = vm.X + contentWidth - NavJoinWidth;
             if (ButtonRenderer.DrawButton(drawList,
                     LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_ACTION_JOIN),
-                    joinX, y, NavJoinWidth, NavRowHeight + 4f,
+                    joinX, y, NavJoinWidth, NavRowHeight + UiScale.Scaled(4f),
                     isPrimary: true))
             {
                 events.Add(new DetailEvent.RequestToJoinClicked(vm.CivId));
@@ -247,11 +247,11 @@ internal static class CivilizationDetailRenderer
             return currentY + StatRowHeight + SectionBottomSpacing;
         }
 
-        const float glyphLeftPadding = 4f;
-        const float glyphBox = 14f;
-        const float glyphToLabelGap = 8f;
+        var glyphLeftPadding = UiScale.Scaled(4f);
+        var glyphBox = UiScale.Scaled(14f);
+        var glyphToLabelGap = UiScale.Scaled(8f);
         var leaderX = vm.X + glyphLeftPadding + glyphBox + glyphToLabelGap;
-        var leaderWidth = MathF.Max(width - (leaderX - vm.X) - 8f, 40f);
+        var leaderWidth = MathF.Max(width - (leaderX - vm.X) - UiScale.Scaled(8f), UiScale.Scaled(40f));
         var glyphCx = vm.X + glyphLeftPadding + glyphBox / 2f;
 
         foreach (var boon in leaders)
@@ -287,7 +287,7 @@ internal static class CivilizationDetailRenderer
                 // Fleuron — a gold diamond with a small centre spark, matching
                 // the Boons of Standing bullet on the Chronicles chapter.
                 ChromeRenderer.DrawDiamond(drawList, cx, cy, box * 0.32f, ColorPalette.Gold);
-                drawList.AddCircleFilled(new Vector2(cx, cy), 1.2f,
+                drawList.AddCircleFilled(new Vector2(cx, cy), UiScale.Scaled(1.2f),
                     ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText));
                 break;
         }
@@ -378,9 +378,9 @@ internal static class CivilizationDetailRenderer
         ImDrawListPtr drawList)
     {
         // ✦ <OrderName> · · · · · <Deity>
-        const float diamondLeftPadding = 4f;
-        const float diamondHalfSize = 3.5f;
-        const float diamondToLabelGap = 10f;
+        var diamondLeftPadding = UiScale.Scaled(4f);
+        var diamondHalfSize = UiScale.Scaled(3.5f);
+        var diamondToLabelGap = UiScale.Scaled(10f);
 
         var centerY = y + height / 2f;
         ChromeRenderer.DrawDiamond(drawList,
@@ -389,7 +389,7 @@ internal static class CivilizationDetailRenderer
             ColorPalette.Gold * 0.6f);
 
         var leaderX = x + diamondLeftPadding + diamondHalfSize * 2f + diamondToLabelGap;
-        var leaderWidth = MathF.Max(width - (leaderX - x) - 8f, 40f);
+        var leaderWidth = MathF.Max(width - (leaderX - x) - UiScale.Scaled(8f), UiScale.Scaled(40f));
         var rowY = centerY - Body * 0.5f;
         ChromeRenderer.DrawLeader(drawList,
             member.ReligionName,

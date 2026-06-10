@@ -25,15 +25,15 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 [ExcludeFromCodeCoverage]
 internal static class CivilizationCreateRenderer
 {
-    private const float DividerSpacingTop = 8f;
-    private const float DividerSpacingBottom = 14f;
-    private const float SectionGap = 8f;
-    private const float LabelHeight = 22f;
-    private const float NameInputHeight = 30f;
-    private const float DescriptionInputHeight = 80f;
-    private const float ErrorRowHeight = 22f;
-    private const float ButtonWidth = 200f;
-    private const float ButtonHeight = 36f;
+    private static float DividerSpacingTop => UiScale.Scaled(8f);
+    private static float DividerSpacingBottom => UiScale.Scaled(14f);
+    private static float SectionGap => UiScale.Scaled(8f);
+    private static float LabelHeight => UiScale.Scaled(22f);
+    private static float NameInputHeight => UiScale.Scaled(30f);
+    private static float DescriptionInputHeight => UiScale.Scaled(80f);
+    private static float ErrorRowHeight => UiScale.Scaled(22f);
+    private static float ButtonWidth => UiScale.Scaled(200f);
+    private static float ButtonHeight => UiScale.Scaled(36f);
 
     public static CivilizationCreateRenderResult Draw(
         CivilizationCreateViewModel vm,
@@ -49,7 +49,7 @@ internal static class CivilizationCreateRenderer
         // Prose intro on parchment → iron-gall ink.
         var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_CHAPTER_INTRO);
         TextRenderer.DrawInfoText(drawList, intro, vm.X, currentY, contentWidth, Body, ColorPalette.White);
-        currentY += MathF.Max(TextRenderer.MeasureWrappedHeight(intro, contentWidth, Body), 20f) + 8f;
+        currentY += MathF.Max(TextRenderer.MeasureWrappedHeight(intro, contentWidth, Body), UiScale.Scaled(20f)) + UiScale.Scaled(8f);
 
         currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
         currentY = DrawNameSection(drawList, vm, currentY, contentWidth, events);
@@ -90,7 +90,7 @@ internal static class CivilizationCreateRenderer
         if (newName != vm.CivilizationName)
             events.Add(new CreateEvent.NameChanged(newName));
 
-        currentY += NameInputHeight + 4f;
+        currentY += NameInputHeight + UiScale.Scaled(4f);
         currentY = DrawNameValidation(drawList, vm, currentY);
 
         return currentY + SectionGap;
@@ -141,7 +141,7 @@ internal static class CivilizationCreateRenderer
         if (newDescription != vm.Description)
             events.Add(new CreateEvent.DescriptionChanged(newDescription));
 
-        currentY += DescriptionInputHeight + 4f;
+        currentY += DescriptionInputHeight + UiScale.Scaled(4f);
         currentY = DrawDescriptionValidation(drawList, vm, currentY);
 
         return currentY + SectionGap;
@@ -179,9 +179,9 @@ internal static class CivilizationCreateRenderer
         CivilizationEthos.Ascetic
     };
 
-    private const float EthosButtonHeight = 30f;
-    private const float EthosButtonGap = 6f;
-    private const float EthosHintTopPadding = 4f;
+    private static float EthosButtonHeight => UiScale.Scaled(30f);
+    private static float EthosButtonGap => UiScale.Scaled(6f);
+    private static float EthosHintTopPadding => UiScale.Scaled(4f);
 
     private static float DrawEthosSection(
         ImDrawListPtr drawList,
@@ -249,7 +249,7 @@ internal static class CivilizationCreateRenderer
             events.Add(new CreateEvent.SubmitClicked());
         }
 
-        return y + ButtonHeight + 12f;
+        return y + ButtonHeight + UiScale.Scaled(12f);
     }
 
     private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
