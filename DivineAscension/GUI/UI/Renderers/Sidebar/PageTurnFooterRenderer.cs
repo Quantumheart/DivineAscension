@@ -20,15 +20,16 @@ namespace DivineAscension.GUI.UI.Renderers.Sidebar;
 [ExcludeFromCodeCoverage]
 internal static class PageTurnFooterRenderer
 {
-    public const float FooterHeight = 56f;
+    // Geometry authored at base (1.0) scale, returned scaled by UiScale.Factor (#589).
+    public static float FooterHeight => UiScale.Scaled(56f);
 
-    private const float ButtonWidth = 140f;
-    private const float ButtonHeight = 26f;
-    private const float ButtonChevronSize = 9f;
-    private const float ButtonChevronPadding = 10f;
-    private const float IndicatorBaseline = 38f;
-    private const float IndicatorSidePadding = 12f;
-    private const float IndicatorLineGap = 8f;
+    private static float ButtonWidth => UiScale.Scaled(140f);
+    private static float ButtonHeight => UiScale.Scaled(26f);
+    private static float ButtonChevronSize => UiScale.Scaled(9f);
+    private static float ButtonChevronPadding => UiScale.Scaled(10f);
+    private static float IndicatorBaseline => UiScale.Scaled(38f);
+    private static float IndicatorSidePadding => UiScale.Scaled(12f);
+    private static float IndicatorLineGap => UiScale.Scaled(8f);
 
     /// <summary>
     ///     Draw the page-turn footer.
@@ -56,7 +57,7 @@ internal static class PageTurnFooterRenderer
     {
         var label = LocalizationService.Instance.Get(LocalizationKeys.SIDEBAR_PAGE_TURN_PREVIOUS);
         var nextLabel = LocalizationService.Instance.Get(LocalizationKeys.SIDEBAR_PAGE_TURN_NEXT);
-        var rowY = footer.Y + 4f;
+        var rowY = footer.Y + UiScale.Scaled(4f);
 
         if (DrawTurnButton("##da-pageturn-prev", new Vector2(footer.X, rowY),
                 label, pos.Previous.HasValue, ChromeRenderer.ChevronDirection.Left))
@@ -163,11 +164,11 @@ internal static class PageTurnFooterRenderer
 
         if (leftEnd > leftStart)
         {
-            drawList.AddLine(new Vector2(leftStart, y), new Vector2(leftEnd, y), lineColor, 1f);
+            drawList.AddLine(new Vector2(leftStart, y), new Vector2(leftEnd, y), lineColor, UiScale.Scaled(1f));
         }
         if (rightStart < rightEnd)
         {
-            drawList.AddLine(new Vector2(rightStart, y), new Vector2(rightEnd, y), lineColor, 1f);
+            drawList.AddLine(new Vector2(rightStart, y), new Vector2(rightEnd, y), lineColor, UiScale.Scaled(1f));
         }
     }
 

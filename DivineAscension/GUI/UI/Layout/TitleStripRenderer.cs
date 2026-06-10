@@ -19,11 +19,12 @@ namespace DivineAscension.GUI.UI.Layout;
 internal static class TitleStripRenderer
 {
     private const string TitleText = "Divine Ascension";
-    private const float Padding = 12f;
-    private const float CloseButtonSize = 24f;
-    private const float IdentityGap = 12f;
-    private const float OrnamentHalfSize = 5f;
-    private const float OrnamentGap = 8f;
+    // Geometry authored at base (1.0) scale, returned scaled by UiScale.Factor (#589).
+    private static float Padding => UiScale.Scaled(12f);
+    private static float CloseButtonSize => UiScale.Scaled(24f);
+    private static float IdentityGap => UiScale.Scaled(12f);
+    private static float OrnamentHalfSize => UiScale.Scaled(5f);
+    private static float OrnamentGap => UiScale.Scaled(8f);
     private const string Ellipsis = "…";
     private const string IdentitySeparator = " · ";
 
@@ -50,7 +51,7 @@ internal static class TitleStripRenderer
             new Vector2(rect.X, rect.Bottom),
             new Vector2(rect.Right, rect.Bottom),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.5f),
-            1f);
+            UiScale.Scaled(1f));
 
         // Close button anchored at the right edge of the strip.
         var closeY = rect.Y + (rect.H - CloseButtonSize) / 2f;
