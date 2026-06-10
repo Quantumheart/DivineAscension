@@ -23,12 +23,14 @@ namespace DivineAscension.GUI.UI.Layout;
 [ExcludeFromCodeCoverage]
 internal static class MainLayoutCoordinator
 {
-    private const float OuterPadding = 16f;
-    private const float SidebarWidth = 240f;
-    private const float SidebarCollapsedWidth = 40f;
-    private const float Gap = 8f;
-    private const float TopChromeHeight = 32f;
-    private const float PageFooterGap = 6f;
+    // Layout metrics are authored at base (1.0) scale and returned scaled by
+    // UiScale.Factor so the chrome grows proportionally with the fonts (#589).
+    private static float OuterPadding => UiScale.Scaled(16f);
+    private static float SidebarWidth => UiScale.Scaled(240f);
+    private static float SidebarCollapsedWidth => UiScale.Scaled(40f);
+    private static float Gap => UiScale.Scaled(8f);
+    private static float TopChromeHeight => UiScale.Scaled(32f);
+    private static float PageFooterGap => UiScale.Scaled(6f);
 
     public static void Draw(
         GuiDialogManager manager,

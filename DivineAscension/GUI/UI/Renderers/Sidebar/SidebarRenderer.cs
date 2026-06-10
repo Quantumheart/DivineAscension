@@ -19,20 +19,23 @@ namespace DivineAscension.GUI.UI.Renderers.Sidebar;
 [ExcludeFromCodeCoverage]
 internal static class SidebarRenderer
 {
-    private const float ToggleStripHeight = 28f;
-    private const float GroupHeaderHeight = 22f;
-    private const float ItemHeight = 24f;
+    // Layout geometry authored at base (1.0) scale, returned scaled by
+    // UiScale.Factor (#589). Font sizes below stay unscaled here — chapter labels
+    // use baked Cinzel sizes (#588) and verse/item labels the implicit font (#601).
+    private static float ToggleStripHeight => UiScale.Scaled(28f);
+    private static float GroupHeaderHeight => UiScale.Scaled(22f);
+    private static float ItemHeight => UiScale.Scaled(24f);
     private const int ChapterFontSize = 18;
     private const int VerseFontSize = 13;
-    private const float ItemIndent = 12f;
-    private const float ChapterChevronSize = 9f;
-    private const float ChapterChevronPadding = 6f;
-    private const float ItemBulletHalfSize = 3f;
-    private const float ItemBulletActiveHalfSize = 4f;
-    private const float ItemBulletPadding = 6f;
-    private const float ItemVerseGap = 8f;
-    private const float ActiveRibbonWidth = 2.5f;
-    private const float CollapsedStripIconSize = 32f;
+    private static float ItemIndent => UiScale.Scaled(12f);
+    private static float ChapterChevronSize => UiScale.Scaled(9f);
+    private static float ChapterChevronPadding => UiScale.Scaled(6f);
+    private static float ItemBulletHalfSize => UiScale.Scaled(3f);
+    private static float ItemBulletActiveHalfSize => UiScale.Scaled(4f);
+    private static float ItemBulletPadding => UiScale.Scaled(6f);
+    private static float ItemVerseGap => UiScale.Scaled(8f);
+    private static float ActiveRibbonWidth => UiScale.Scaled(2.5f);
+    private static float CollapsedStripIconSize => UiScale.Scaled(32f);
 
     private static readonly string[] LowerRomanVerse =
     {
@@ -75,10 +78,11 @@ internal static class SidebarRenderer
         // sidebar from the content pane, like the gutter of a bound book.
         var spineDrawList = ImGui.GetWindowDrawList();
         var spineColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.35f);
+        var spineX = rect.X + rect.W - UiScale.Scaled(0.5f);
         spineDrawList.AddLine(
-            new Vector2(rect.X + rect.W - 0.5f, rect.Y),
-            new Vector2(rect.X + rect.W - 0.5f, rect.Y + rect.H),
-            spineColor, 1f);
+            new Vector2(spineX, rect.Y),
+            new Vector2(spineX, rect.Y + rect.H),
+            spineColor, UiScale.Scaled(1f));
 
         ImGui.EndChild();
         ImGui.PopStyleColor(2);
@@ -103,17 +107,17 @@ internal static class SidebarRenderer
         var direction = vm.IsCollapsed
             ? ChromeRenderer.ChevronDirection.Right
             : ChromeRenderer.ChevronDirection.Left;
-        const float chevronSize = 9f;
+        var chevronSize = UiScale.Scaled(9f);
         var cy = cursor.Y + ToggleStripHeight / 2f;
         var cx = cursor.X + availWidth / 2f;
         ChromeRenderer.DrawChevron(drawList, cx, cy, chevronSize, direction);
 
         // Hairline rule under the toggle strip separates the chrome from the
         // first chapter heading.
-        var ruleY = cursor.Y + ToggleStripHeight - 1f;
+        var ruleY = cursor.Y + ToggleStripHeight - UiScale.Scaled(1f);
         var ruleColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.35f);
         drawList.AddLine(new Vector2(cursor.X, ruleY),
-            new Vector2(cursor.X + availWidth, ruleY), ruleColor, 1f);
+            new Vector2(cursor.X + availWidth, ruleY), ruleColor, UiScale.Scaled(1f));
     }
 
     private static void DrawGroups(SidebarViewModel vm, List<SidebarEvent> events)
@@ -165,7 +169,7 @@ internal static class SidebarRenderer
         // Chapter rule: ornament divider beneath the heading anchors the
         // chapter visually and breaks the three groups apart on the rail.
         var ruleWidth = ImGui.GetContentRegionAvail().X;
-        var ruleY = cursor.Y + GroupHeaderHeight - 3f;
+        var ruleY = cursor.Y + GroupHeaderHeight - UiScale.Scaled(3f);
         if (ruleWidth > 0f)
         {
             ChromeRenderer.DrawDivider(drawList, cursor.X, ruleY, ruleWidth);
@@ -277,9 +281,9 @@ internal static class SidebarRenderer
         {
             var badgeText = item.Badge.ToString();
             var badgeTextSize = ImGui.CalcTextSize(badgeText);
-            const float badgePadX = 5f;
-            const float badgePadY = 1f;
-            const float badgeRightMargin = 8f;
+            var badgePadX = UiScale.Scaled(5f);
+            var badgePadY = UiScale.Scaled(1f);
+            var badgeRightMargin = UiScale.Scaled(8f);
             var badgeW = badgeTextSize.X + badgePadX * 2f;
             var badgeH = badgeTextSize.Y + badgePadY * 2f;
             var badgeX = cursor.X + rowWidth - badgeRightMargin - badgeW;
@@ -291,8 +295,8 @@ internal static class SidebarRenderer
                 item.IsDisabled ? ColorPalette.Grey : ColorPalette.Gold);
             var bMin = new Vector2(badgeX, badgeY);
             var bMax = new Vector2(badgeX + badgeW, badgeY + badgeH);
-            drawList.AddRectFilled(bMin, bMax, badgeBgColor, 2f);
-            drawList.AddRect(bMin, bMax, badgeBorderColor, 2f, ImDrawFlags.None, 1f);
+            drawList.AddRectFilled(bMin, bMax, badgeBgColor, UiScale.Scaled(2f));
+            drawList.AddRect(bMin, bMax, badgeBorderColor, UiScale.Scaled(2f), ImDrawFlags.None, UiScale.Scaled(1f));
             drawList.AddText(new Vector2(badgeX + badgePadX, badgeY + badgePadY),
                 badgeTextColor, badgeText);
         }
@@ -321,9 +325,9 @@ internal static class SidebarRenderer
                 if (dividerWidth > 0f)
                 {
                     ChromeRenderer.DrawDivider(drawList, dividerOrigin.X,
-                        dividerOrigin.Y + 4f, dividerWidth);
+                        dividerOrigin.Y + UiScale.Scaled(4f), dividerWidth);
                 }
-                ImGui.Dummy(new Vector2(0f, 12f));
+                ImGui.Dummy(new Vector2(0f, UiScale.Scaled(12f)));
             }
 
             for (var i = 0; i < group.Items.Count; i++)
@@ -373,7 +377,7 @@ internal static class SidebarRenderer
                         new Vector2(rowOrigin.X, rowOrigin.Y),
                         new Vector2(rowOrigin.X + CollapsedStripIconSize,
                             rowOrigin.Y + CollapsedStripIconSize),
-                        borderColor, 2f, ImDrawFlags.None, 1.5f);
+                        borderColor, UiScale.Scaled(2f), ImDrawFlags.None, UiScale.Scaled(1.5f));
                 }
 
                 if (item.Badge > 0)
@@ -381,9 +385,9 @@ internal static class SidebarRenderer
                     // Small diamond in the top-right corner signals unread
                     // letters / pending work — matches the chapter bullet style.
                     ChromeRenderer.DrawDiamond(drawList,
-                        rowOrigin.X + CollapsedStripIconSize - 5f,
-                        rowOrigin.Y + 5f,
-                        3f, ColorPalette.Gold);
+                        rowOrigin.X + CollapsedStripIconSize - UiScale.Scaled(5f),
+                        rowOrigin.Y + UiScale.Scaled(5f),
+                        UiScale.Scaled(3f), ColorPalette.Gold);
                 }
 
                 if (isHovered)

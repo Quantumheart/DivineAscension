@@ -388,10 +388,15 @@ public partial class GuiDialog : ModSystem
         // Applied only on first use; user-driven resizes within a session and
         // restored sizes across sessions stick from then on.
         var uiPrefs = _divineAscensionModSystem?.Config.UiPrefs;
-        var prefsW = uiPrefs?.WindowWidth ?? WindowBaseWidth;
-        var prefsH = uiPrefs?.WindowHeight ?? WindowBaseHeight;
-        if (prefsW <= 0) prefsW = WindowBaseWidth;
-        if (prefsH <= 0) prefsH = WindowBaseHeight;
+        // Defaults represent the base (1.0-scale) size, so scale them by the
+        // current UI scale. A persisted size is already in real pixels (whatever
+        // the user resized to at their scale) — never re-scale it.
+        var defaultW = (int)UiScale.Scaled(WindowBaseWidth);
+        var defaultH = (int)UiScale.Scaled(WindowBaseHeight);
+        var prefsW = uiPrefs?.WindowWidth ?? defaultW;
+        var prefsH = uiPrefs?.WindowHeight ?? defaultH;
+        if (prefsW <= 0) prefsW = defaultW;
+        if (prefsH <= 0) prefsH = defaultH;
         var initialW = Math.Min(prefsW, (int)window.OuterWidth - 128);
         var initialH = Math.Min(prefsH, (int)window.OuterHeight - 128);
 
@@ -403,8 +408,8 @@ public partial class GuiDialog : ModSystem
 
         // Clamp interactive resize to the game window. Min keeps the dialog
         // usable; max prevents drag-resizing off-screen and out of bounds.
-        const float minW = 800f;
-        const float minH = 500f;
+        var minW = UiScale.Scaled(800f);
+        var minH = UiScale.Scaled(500f);
         var maxW = MathF.Max(minW, (float)window.OuterWidth - 32f);
         var maxH = MathF.Max(minH, (float)window.OuterHeight - 32f);
         ImGui.SetNextWindowSizeConstraints(new Vector2(minW, minH), new Vector2(maxW, maxH));
