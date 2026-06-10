@@ -17,8 +17,8 @@ namespace DivineAscension.GUI.UI.Renderers.Blessing;
 [ExcludeFromCodeCoverage]
 internal static class CrossDeitySummaryRenderer
 {
-    public const float Height = 38f;
-    private const float Padding = 4f;
+    public static float Height => UiScale.Scaled(38f);
+    private static float Padding => UiScale.Scaled(4f);
 
     public static void Draw(float x, float y, float width, IReadOnlyList<DeityBlessingSummary> summaries)
     {
@@ -29,9 +29,9 @@ internal static class CrossDeitySummaryRenderer
         var bgMin = new Vector2(x, y);
         var bgMax = new Vector2(x + width, y + Height);
         var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.DarkBrown, 0.7f));
-        drawList.AddRectFilled(bgMin, bgMax, bgColor, 4f);
+        drawList.AddRectFilled(bgMin, bgMax, bgColor, UiScale.Scaled(4f));
         var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.Gold, 0.4f));
-        drawList.AddRect(bgMin, bgMax, borderColor, 4f, ImDrawFlags.None, 1f);
+        drawList.AddRect(bgMin, bgMax, borderColor, UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(1f));
 
         var colWidth = (width - Padding * 2) / summaries.Count;
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
@@ -41,7 +41,7 @@ internal static class CrossDeitySummaryRenderer
         {
             var s = summaries[i];
             var colX = x + Padding + i * colWidth;
-            var colTop = y + 4f;
+            var colTop = y + UiScale.Scaled(4f);
 
             var label = $"{DomainShort(s.Domain)} {RankRequirements.GetFavorRankName(s.FavorRank)}";
             var labelSize = ImGui.CalcTextSize(label);
@@ -53,14 +53,14 @@ internal static class CrossDeitySummaryRenderer
             var counts = $"P {s.UnlockedPlayer}/{s.TotalPlayer}  R {s.UnlockedReligion}/{s.TotalReligion}";
             var countsSize = ImGui.CalcTextSize(counts);
             drawList.AddText(ImGui.GetFont(), Micro,
-                new Vector2(colX + (colWidth - countsSize.X) / 2f, colTop + 16f),
+                new Vector2(colX + (colWidth - countsSize.X) / 2f, colTop + UiScale.Scaled(16f)),
                 textColor,
                 counts);
 
             if (s.IsPatron)
             {
                 drawList.AddText(ImGui.GetFont(), Micro,
-                    new Vector2(colX + 2f, colTop), gold, "*");
+                    new Vector2(colX + UiScale.Scaled(2f), colTop), gold, "*");
             }
         }
     }

@@ -6,6 +6,7 @@ using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Blessing;
 using DivineAscension.GUI.Models.Blessing.Tree;
+using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
 using DivineAscension.Services;
 using ImGuiNET;
@@ -31,7 +32,7 @@ internal static class BlessingTreeRenderer
 
     public static BlessingTreeRendererResult Draw(BlessingTreeViewModel vm)
     {
-        const float labelHeight = 30f;
+        var labelHeight = UiScale.Scaled(30f);
         var treeAreaHeight = vm.ShowBalanceHeader ? vm.Height - labelHeight : vm.Height;
 
         var drawList = ImGui.GetWindowDrawList();
@@ -74,8 +75,8 @@ internal static class BlessingTreeRenderer
     private static void DrawPanelLabel(ImDrawListPtr drawList, string label, float x, float y, float width,
         string? currencyText = null)
     {
-        const float labelHeight = 30f;
-        const float padding = 8f;
+        var labelHeight = UiScale.Scaled(30f);
+        var padding = UiScale.Scaled(8f);
 
         var bgStart = new Vector2(x, y);
         var bgEnd = new Vector2(x + width, y + labelHeight);
@@ -121,7 +122,7 @@ internal static class BlessingTreeRenderer
         string? selectedBlessingId,
         string panelId)
     {
-        const float padding = 16f;
+        var padding = UiScale.Scaled(16f);
 
         if (blessingStates.Count == 0)
         {

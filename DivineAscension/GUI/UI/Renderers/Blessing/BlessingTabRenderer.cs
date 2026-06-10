@@ -27,13 +27,13 @@ namespace DivineAscension.GUI.UI.Renderers.Blessing;
 [ExcludeFromCodeCoverage]
 internal static class BlessingTabRenderer
 {
-    private const float Padding = 16f;
-    private const float SectionLabelHeight = 22f;
-    private const float LeaderRowHeight = 22f;
-    private const float DividerSpacing = 18f;
-    private const float ScrollbarWidth = 16f;
-    private const float TreePaneHeight = 340f;
-    private const float BannerHeight = 26f;
+    private static float Padding => UiScale.Scaled(16f);
+    private static float SectionLabelHeight => UiScale.Scaled(22f);
+    private static float LeaderRowHeight => UiScale.Scaled(22f);
+    private static float DividerSpacing => UiScale.Scaled(18f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
+    private static float TreePaneHeight => UiScale.Scaled(340f);
+    private static float BannerHeight => UiScale.Scaled(26f);
 
     internal static BlessingTabRenderResult DrawBlessingsTab(BlessingTabViewModel vm)
     {
@@ -62,10 +62,10 @@ internal static class BlessingTabRenderer
 
         // Approximate tree rect for wheel-exclusion. Mirrors the body layout below.
         var preTreeOffset = HeaderHeight() + (vm.FreeRespecActive ? BannerHeight : 0f)
-                            + IntroHeight(vm, contentWidth) + 8f + DividerSpacing
-                            + SectionLabelHeight + vm.DeitySummaries.Count * LeaderRowHeight + 4f
-                            + DividerSpacing + LeaderRowHeight + (showSlots ? LeaderRowHeight : 0f) + 4f
-                            + DeitySelectorRenderer.Height + 6f + DividerSpacing;
+                            + IntroHeight(vm, contentWidth) + UiScale.Scaled(8f) + DividerSpacing
+                            + SectionLabelHeight + vm.DeitySummaries.Count * LeaderRowHeight + UiScale.Scaled(4f)
+                            + DividerSpacing + LeaderRowHeight + (showSlots ? LeaderRowHeight : 0f) + UiScale.Scaled(4f)
+                            + DeitySelectorRenderer.Height + UiScale.Scaled(6f) + DividerSpacing;
         var treeScreenTop = vm.Y + preTreeOffset - scrollY;
         var overTree = mousePos.X >= vm.X && mousePos.X <= vm.X + contentWidth
                                           && mousePos.Y >= treeScreenTop
@@ -76,7 +76,7 @@ internal static class BlessingTabRenderer
             var wheel = ImGui.GetIO().MouseWheel;
             if (wheel != 0f)
             {
-                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                var newScrollY = Math.Clamp(scrollY - wheel * UiScale.Scaled(30f), 0f, maxScroll);
                 if (MathF.Abs(newScrollY - scrollY) > 0.001f)
                 {
                     scrollY = newScrollY;
@@ -116,7 +116,7 @@ internal static class BlessingTabRenderer
         var introHeight = TextRenderer.MeasureWrappedHeight(intro, introWidth, Secondary);
         TextRenderer.DrawInfoText(drawList, intro, vm.X + Padding, topY, introWidth, Secondary,
             ColorPalette.White);
-        topY += introHeight + 8f;
+        topY += introHeight + UiScale.Scaled(8f);
 
         ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
         topY += DividerSpacing;
@@ -142,7 +142,7 @@ internal static class BlessingTabRenderer
             topY += LeaderRowHeight;
         }
 
-        topY += 4f;
+        topY += UiScale.Scaled(4f);
         ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
         topY += DividerSpacing;
 
@@ -171,12 +171,12 @@ internal static class BlessingTabRenderer
             topY += LeaderRowHeight;
         }
 
-        topY += 4f;
+        topY += UiScale.Scaled(4f);
 
         // --- Deity sub-index (selector strip, glyph primitives) — horizontally centered.
         var stripX = vm.X + (contentWidth - DeitySelectorRenderer.StripWidth) * 0.5f;
         var requestedDeity = DeitySelectorRenderer.Draw(stripX, topY, vm.ActiveDeity, vm.PatronDomain);
-        topY += DeitySelectorRenderer.Height + 6f;
+        topY += DeitySelectorRenderer.Height + UiScale.Scaled(6f);
 
         ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
         topY += DividerSpacing;
@@ -216,7 +216,7 @@ internal static class BlessingTabRenderer
             }
         }
 
-        topY += TreePaneHeight + 6f;
+        topY += TreePaneHeight + UiScale.Scaled(6f);
 
         drawList.PopClipRect();
 
@@ -297,15 +297,15 @@ internal static class BlessingTabRenderer
         var h = 0f;
         h += PaneHeaderRenderer.TotalHeight;
         h += freeRespec ? BannerHeight : 0f;
-        h += introH + 8f;
+        h += introH + UiScale.Scaled(8f);
         h += DividerSpacing;
         h += SectionLabelHeight;
         h += summaryRows * LeaderRowHeight;
-        h += 4f + DividerSpacing;
-        h += LeaderRowHeight + (showSlots ? LeaderRowHeight : 0f) + 4f;
-        h += DeitySelectorRenderer.Height + 6f;
+        h += UiScale.Scaled(4f) + DividerSpacing;
+        h += LeaderRowHeight + (showSlots ? LeaderRowHeight : 0f) + UiScale.Scaled(4f);
+        h += DeitySelectorRenderer.Height + UiScale.Scaled(6f);
         h += DividerSpacing;
-        h += TreePaneHeight + 6f;
+        h += TreePaneHeight + UiScale.Scaled(6f);
         return h;
     }
 }

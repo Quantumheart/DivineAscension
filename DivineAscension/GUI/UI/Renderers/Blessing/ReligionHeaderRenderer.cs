@@ -23,12 +23,12 @@ namespace DivineAscension.GUI.UI.Renderers.Blessing;
 [ExcludeFromCodeCoverage]
 internal static class ReligionHeaderRenderer
 {
-    private const float Padding = 12f;
-    private const float IconSize = 40f;
-    private const float ProgressBarHeight = 12f;
-    private const float ProgressBarMaxWidth = 480f;
-    private const float RowSpacing = 6f;
-    private const float BlockSpacing = 10f;
+    private static float Padding => UiScale.Scaled(12f);
+    private static float IconSize => UiScale.Scaled(40f);
+    private static float ProgressBarHeight => UiScale.Scaled(12f);
+    private static float ProgressBarMaxWidth => UiScale.Scaled(480f);
+    private static float RowSpacing => UiScale.Scaled(6f);
+    private static float BlockSpacing => UiScale.Scaled(10f);
 
     /// <summary>
     ///     Draw the two-block status into the rect at (vm.X, vm.Y, vm.Width).
@@ -61,7 +61,7 @@ internal static class ReligionHeaderRenderer
         {
             var msg = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_NO_RELIGION);
             drawList.AddText(ImGui.GetFont(), Body, new Vector2(x, y), subColor, msg);
-            return y + 22f;
+            return y + UiScale.Scaled(22f);
         }
 
         // Deity icon + name row.
@@ -76,7 +76,7 @@ internal static class ReligionHeaderRenderer
             drawList.AddRect(iconPos,
                 new Vector2(iconPos.X + IconSize, iconPos.Y + IconSize),
                 ImGui.ColorConvertFloat4ToU32(DomainHelper.GetDeityColor(vm.CurrentDeity) * 0.8f),
-                4f, ImDrawFlags.None, 2f);
+                UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(2f));
         }
         else
         {
@@ -86,7 +86,7 @@ internal static class ReligionHeaderRenderer
                 IconSize / 2f, fallback, 16);
         }
 
-        var textX = x + IconSize + 8f;
+        var textX = x + IconSize + UiScale.Scaled(8f);
         var religionName = vm.CurrentReligionName
             ?? LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNKNOWN_RELIGION);
         var deityName = !string.IsNullOrEmpty(vm.CurrentDeityName)
@@ -95,7 +95,7 @@ internal static class ReligionHeaderRenderer
 
         drawList.AddText(ImGui.GetFont(), SectionHeader, new Vector2(textX, y),
             labelColor, religionName);
-        drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(textX, y + 22f),
+        drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(textX, y + UiScale.Scaled(22f)),
             textColor, deityName);
 
         var cursorY = y + IconSize + RowSpacing;
@@ -110,7 +110,7 @@ internal static class ReligionHeaderRenderer
             : "";
         drawList.AddText(ImGui.GetFont(), Body, new Vector2(x, cursorY), subColor,
             $"{memberInfo}{roleInfo}");
-        cursorY += 18f;
+        cursorY += UiScale.Scaled(18f);
 
         // Progress bars cap at a comfortable reading width so the label stays
         // legible on wider content panes.
@@ -124,7 +124,7 @@ internal static class ReligionHeaderRenderer
         ProgressBarRenderer.DrawProgressBar(drawList, x, cursorY, barWidth, ProgressBarHeight,
             favor.ProgressPercentage, ColorPalette.Gold, ColorPalette.DarkBrown,
             favorLabel, favor.ProgressPercentage > 0.8f);
-        cursorY += ProgressBarHeight + 6f;
+        cursorY += ProgressBarHeight + UiScale.Scaled(6f);
 
         // Prestige progress — lapis bar so prestige reads as the "second ink"
         // alongside the gold favor bar (gold leaf + lapis blue = the classic
@@ -136,7 +136,7 @@ internal static class ReligionHeaderRenderer
         ProgressBarRenderer.DrawProgressBar(drawList, x, cursorY, barWidth, ProgressBarHeight,
             prestige.ProgressPercentage, ColorPalette.Lapis,
             ColorPalette.DarkBrown, prestigeLabel, prestige.ProgressPercentage > 0.8f);
-        cursorY += ProgressBarHeight + 2f;
+        cursorY += ProgressBarHeight + UiScale.Scaled(2f);
 
         return cursorY;
     }
@@ -146,7 +146,7 @@ internal static class ReligionHeaderRenderer
     {
         var sepColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.3f);
         drawList.AddLine(new Vector2(x, y - BlockSpacing / 2f),
-            new Vector2(x + width, y - BlockSpacing / 2f), sepColor, 1f);
+            new Vector2(x + width, y - BlockSpacing / 2f), sepColor, UiScale.Scaled(1f));
 
         var hasAny = vm.HasCivilization
                      || !string.IsNullOrEmpty(vm.CurrentCivilizationName)
@@ -156,7 +156,7 @@ internal static class ReligionHeaderRenderer
             var msg = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNKNOWN_CIVILIZATION);
             drawList.AddText(ImGui.GetFont(), Body, new Vector2(x, y),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), msg);
-            return y + 22f;
+            return y + UiScale.Scaled(22f);
         }
 
         // Civilization sigil hidden until the ledger redesign — see #385.
@@ -165,7 +165,7 @@ internal static class ReligionHeaderRenderer
         // can return without a schema or loader change. The text below keeps
         // the IconSize offset so the rail's two-row rhythm (deity row above
         // + civ row here) is preserved.
-        var textX = x + IconSize + 8f;
+        var textX = x + IconSize + UiScale.Scaled(8f);
         var civName = vm.CurrentCivilizationName
             ?? LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNKNOWN_CIVILIZATION);
         var rankName = RankRequirements.GetCivilizationRankName(vm.CivilizationRank);
@@ -173,7 +173,7 @@ internal static class ReligionHeaderRenderer
         // gold-leaf religion name above to give the rail a clear two-ink hierarchy.
         drawList.AddText(ImGui.GetFont(), SectionHeader, new Vector2(textX, y),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Lapis), civName);
-        drawList.AddText(ImGui.GetFont(), Body, new Vector2(textX, y + 22f),
+        drawList.AddText(ImGui.GetFont(), Body, new Vector2(textX, y + UiScale.Scaled(22f)),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.8f), $"[{rankName}]");
 
         var cursorY = y + IconSize + RowSpacing;
@@ -183,12 +183,12 @@ internal static class ReligionHeaderRenderer
             LocalizationKeys.UI_BLESSING_RELIGIONS_COUNT, memberCount);
         drawList.AddText(ImGui.GetFont(), Body, new Vector2(x, cursorY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), memberText);
-        cursorY += 18f;
+        cursorY += UiScale.Scaled(18f);
 
         if (memberCount > 0 && vm.CivilizationMemberReligions != null)
         {
-            const float deityIconSize = 18f;
-            const float deityIconSpacing = 4f;
+            var deityIconSize = UiScale.Scaled(18f);
+            var deityIconSpacing = UiScale.Scaled(4f);
             var deityX = x;
             foreach (var member in vm.CivilizationMemberReligions)
             {
@@ -202,7 +202,7 @@ internal static class ReligionHeaderRenderer
                 deityX += deityIconSize + deityIconSpacing;
                 if (deityX + deityIconSize > x + width) break;
             }
-            cursorY += deityIconSize + 4f;
+            cursorY += deityIconSize + UiScale.Scaled(4f);
         }
 
         if (vm.IsCivilizationFounder)
@@ -211,7 +211,7 @@ internal static class ReligionHeaderRenderer
             // mark titles and people of rank. TODO: localize this label.
             drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(x, cursorY),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Vermilion), "Founder");
-            cursorY += 18f;
+            cursorY += UiScale.Scaled(18f);
         }
 
         return cursorY;

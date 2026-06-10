@@ -18,11 +18,11 @@ namespace DivineAscension.GUI.UI.Renderers.Blessing;
 [ExcludeFromCodeCoverage]
 internal static class TooltipRenderer
 {
-    private const float TOOLTIP_MAX_WIDTH = 450f;
-    private const float TOOLTIP_PADDING = 16f;
-    private const float LINE_SPACING = 6f;
-    private const float SECTION_SPACING = 20f;
-    private const float TITLE_TO_SUBTEXT = 10f;
+    private static float TOOLTIP_MAX_WIDTH => UiScale.Scaled(450f);
+    private static float TOOLTIP_PADDING => UiScale.Scaled(16f);
+    private static float LINE_SPACING => UiScale.Scaled(6f);
+    private static float SECTION_SPACING => UiScale.Scaled(20f);
+    private static float TITLE_TO_SUBTEXT => UiScale.Scaled(10f);
 
     /// <summary>
     ///     Draw a tooltip for a blessing node when hovering
@@ -56,8 +56,8 @@ internal static class TooltipRenderer
         var windowPos = ImGui.GetWindowPos();
 
         // Position tooltip (offset from mouse, check screen edges)
-        var offsetX = 16f; // Offset from cursor
-        var offsetY = 16f;
+        var offsetX = UiScale.Scaled(16f); // Offset from cursor
+        var offsetY = UiScale.Scaled(16f);
 
         var tooltipX = mouseX + offsetX;
         var tooltipY = mouseY + offsetY;
@@ -72,21 +72,21 @@ internal static class TooltipRenderer
 
         // Ensure doesn't go off left edge
         if (tooltipX < windowPos.X)
-            tooltipX = windowPos.X + 4f; // Small padding from left edge
+            tooltipX = windowPos.X + UiScale.Scaled(4f); // Small padding from left edge
 
         // Ensure doesn't go off top edge
         if (tooltipY < windowPos.Y)
-            tooltipY = windowPos.Y + 4f; // Small padding from top edge
+            tooltipY = windowPos.Y + UiScale.Scaled(4f); // Small padding from top edge
 
         // Draw tooltip background
         var bgStart = new Vector2(tooltipX, tooltipY);
         var bgEnd = new Vector2(tooltipX + tooltipWidth, tooltipY + tooltipHeight);
         var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
-        drawList.AddRectFilled(bgStart, bgEnd, bgColor, 4f);
+        drawList.AddRectFilled(bgStart, bgEnd, bgColor, UiScale.Scaled(4f));
 
         // Draw border
         var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
-        drawList.AddRect(bgStart, bgEnd, borderColor, 4f, ImDrawFlags.None, 2f);
+        drawList.AddRect(bgStart, bgEnd, borderColor, UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(2f));
 
         // Draw status badge in top-right corner
         if (!tooltipData.IsUnlocked && !tooltipData.CanUnlock)
@@ -381,6 +381,6 @@ internal static class TooltipRenderer
         public bool IsBold { get; set; }
         public float SpacingAfter { get; set; }
 
-        public float Height => FontSize + 4f; // Font size + small buffer
+        public float Height => FontSize + UiScale.Scaled(4f); // Font size + small buffer
     }
 }
