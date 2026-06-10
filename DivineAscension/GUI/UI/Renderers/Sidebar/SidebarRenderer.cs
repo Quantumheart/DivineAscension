@@ -60,8 +60,19 @@ internal static class SidebarRenderer
         ImGui.SetCursorScreenPos(new Vector2(rect.X, rect.Y));
         ImGui.PushStyleColor(ImGuiCol.ChildBg, ColorPalette.TableBackground);
         ImGui.PushStyleColor(ImGuiCol.HeaderHovered, ColorPalette.Gold * 0.18f);
-        ImGui.BeginChild("##da-sidebar", new Vector2(rect.W, rect.H), false,
-            ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
+        // Codex-themed scrollbar for when the chapter list overflows the pane.
+        ImGui.PushStyleColor(ImGuiCol.ScrollbarBg, new Vector4(0f, 0f, 0f, 0f));
+        ImGui.PushStyleColor(ImGuiCol.ScrollbarGrab, ColorPalette.Gold * 0.35f);
+        ImGui.PushStyleColor(ImGuiCol.ScrollbarGrabHovered, ColorPalette.Gold * 0.55f);
+        ImGui.PushStyleColor(ImGuiCol.ScrollbarGrabActive, ColorPalette.Gold);
+
+        // Allow the nav to scroll when it overflows. The collapsed strip is too
+        // narrow for a visible bar, so it scrolls by wheel only; expanded shows
+        // the themed scrollbar.
+        var scrollFlags = vm.IsCollapsed
+            ? ImGuiWindowFlags.NoScrollbar
+            : ImGuiWindowFlags.None;
+        ImGui.BeginChild("##da-sidebar", new Vector2(rect.W, rect.H), false, scrollFlags);
 
         DrawHideToggle(vm, events);
 
@@ -85,7 +96,7 @@ internal static class SidebarRenderer
             spineColor, UiScale.Scaled(1f));
 
         ImGui.EndChild();
-        ImGui.PopStyleColor(2);
+        ImGui.PopStyleColor(6);
         return events;
     }
 
