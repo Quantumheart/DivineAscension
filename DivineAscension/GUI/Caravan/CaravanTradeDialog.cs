@@ -105,6 +105,8 @@ public class CaravanTradeDialog : ModSystem
 
     private void DrawWindow()
     {
+        using var fontScale = UiScale.BeginFontScale();
+
         var width = MathF.Min(WindowWidth, _viewport.Size.X - 64f);
         var height = MathF.Min(WindowHeight, _viewport.Size.Y - 64f);
 

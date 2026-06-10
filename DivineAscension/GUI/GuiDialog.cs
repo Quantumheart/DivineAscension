@@ -322,6 +322,7 @@ public partial class GuiDialog : ModSystem
         _manager.NotificationManager.Update(deltaSeconds);
 
         UiScale.SyncFromGameSettings();
+        using var fontScale = UiScale.BeginFontScale();
 
         // Toast anchors to the bottom-right of the full viewport.
         var windowWidth = _viewport.Size.X;
@@ -380,6 +381,10 @@ public partial class GuiDialog : ModSystem
     /// </summary>
     private void DrawWindow()
     {
+        // Scale implicit-font text + CalcTextSize in this window and its children
+        // with the UI scale; restored when the scope disposes at method end.
+        using var fontScale = UiScale.BeginFontScale();
+
         var window = _capi!.Gui.WindowBounds;
         var deltaTime = _stopwatch!.ElapsedMilliseconds / 1000f;
         _stopwatch.Restart();
