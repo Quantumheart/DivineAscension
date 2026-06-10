@@ -47,7 +47,7 @@ internal static class EthosGlyphRenderer
                 DrawSun(drawList, cx, cy, s, color);
                 return;
             default:
-                drawList.AddCircle(new Vector2(cx, cy), s * 0.3f, color, 16, 1.5f);
+                drawList.AddCircle(new Vector2(cx, cy), s * 0.3f, color, 16, UiScale.Scaled(1.5f));
                 return;
         }
     }
@@ -73,7 +73,7 @@ internal static class EthosGlyphRenderer
         drawList.AddRectFilled(
             new Vector2(cx - halfW, baseY - bandH * 0.5f),
             new Vector2(cx + halfW, baseY + bandH * 0.5f),
-            color, 1f);
+            color, UiScale.Scaled(1f));
     }
 
     private static void DrawScales(ImDrawListPtr drawList, float cx, float cy, float s, uint color)

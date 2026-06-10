@@ -22,10 +22,10 @@ namespace DivineAscension.GUI.UI.Renderers.Caravan;
 [ExcludeFromCodeCoverage]
 internal static class CaravanTradeRenderer
 {
-    private const float Padding = 18f;
-    private const float ColumnGap = 28f;
-    private const float RowHeight = 26f;
-    private const float SectionGap = 14f;
+    private static float Padding => UiScale.Scaled(18f);
+    private static float ColumnGap => UiScale.Scaled(28f);
+    private static float RowHeight => UiScale.Scaled(26f);
+    private static float SectionGap => UiScale.Scaled(14f);
 
     /// <summary>A pack item the local player can lay on the table.</summary>
     public readonly record struct PackEntry(string Code, string Name, int Quantity);
@@ -65,7 +65,7 @@ internal static class CaravanTradeRenderer
         TextRenderer.DrawInfoText(drawList,
             LocalizationService.Instance.Get("caravantrade.intro"),
             x, y, contentWidth, FontSizes.Body, ColorPalette.Grey);
-        y += RowHeight + 4f;
+        y += RowHeight + UiScale.Scaled(4f);
 
         // Two columns: self on the left.
         var colWidth = (contentWidth - ColumnGap) / 2f;
@@ -105,11 +105,11 @@ internal static class CaravanTradeRenderer
         {
             var entry = pack[i];
             var label = $"{entry.Name} ×{entry.Quantity}";
-            var btnWidth = ImGui.CalcTextSize(label).X + 24f;
+            var btnWidth = ImGui.CalcTextSize(label).X + UiScale.Scaled(24f);
             if (packX + btnWidth > x + contentWidth)
             {
                 packX = x;
-                packTop += RowHeight + 4f;
+                packTop += RowHeight + UiScale.Scaled(4f);
             }
 
             if (ButtonRenderer.DrawButton(drawList, label, packX, packTop, btnWidth, RowHeight,
@@ -118,7 +118,7 @@ internal static class CaravanTradeRenderer
                 addPackIndex = i;
             }
 
-            packX += btnWidth + 6f;
+            packX += btnWidth + UiScale.Scaled(6f);
         }
 
         y = packTop + RowHeight + SectionGap;
@@ -129,10 +129,10 @@ internal static class CaravanTradeRenderer
         TextRenderer.DrawInfoText(drawList,
             LocalizationService.Instance.Get("caravantrade.switcheroo_note"),
             x, y, contentWidth, FontSizes.Secondary, ColorPalette.MutedText);
-        y += RowHeight + 4f;
+        y += RowHeight + UiScale.Scaled(4f);
 
-        const float buttonWidth = 200f;
-        const float buttonHeight = 34f;
+        var buttonWidth = UiScale.Scaled(200f);
+        var buttonHeight = UiScale.Scaled(34f);
         var sealLabel = LocalizationService.Instance.Get(
             state.MyReady(myUid) ? "caravantrade.unseal" : "caravantrade.seal");
         var sealEnabled = state.HasPartner(myUid);
@@ -140,8 +140,8 @@ internal static class CaravanTradeRenderer
 
         var actionsY = windowY + windowHeight - buttonHeight - Padding;
         if (actionsY < y) actionsY = y;
-        var sealX = x + (contentWidth / 2f) - buttonWidth - 10f;
-        var leaveX = x + (contentWidth / 2f) + 10f;
+        var sealX = x + (contentWidth / 2f) - buttonWidth - UiScale.Scaled(10f);
+        var leaveX = x + (contentWidth / 2f) + UiScale.Scaled(10f);
 
         if (ButtonRenderer.DrawButton(drawList, sealLabel, sealX, actionsY, buttonWidth, buttonHeight,
                 isPrimary: true, enabled: sealEnabled))
@@ -171,7 +171,7 @@ internal static class CaravanTradeRenderer
         {
             var slot = offer[i];
             var label = $"{slot.DisplayName} ×{slot.Quantity}";
-            if (ButtonRenderer.DrawButton(drawList, label, x, rowY, width, RowHeight - 4f,
+            if (ButtonRenderer.DrawButton(drawList, label, x, rowY, width, RowHeight - UiScale.Scaled(4f),
                     isPrimary: false, enabled: true))
             {
                 removeIndex = i;
@@ -235,13 +235,13 @@ internal static class CaravanTradeRenderer
         TextRenderer.DrawLabel(drawList, right, rightX, y, FontSizes.Body, ColorPalette.White);
 
         var leftWidth = ImGui.CalcTextSize(left).X;
-        var dotsStart = x + leftWidth + 6f;
-        var dotsEnd = rightX - 6f;
+        var dotsStart = x + leftWidth + UiScale.Scaled(6f);
+        var dotsEnd = rightX - UiScale.Scaled(6f);
         if (dotsEnd <= dotsStart) return;
 
         var color = ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor);
         var dotY = y + FontSizes.Body * 0.6f;
-        for (var dx = dotsStart; dx < dotsEnd; dx += 6f)
-            drawList.AddCircleFilled(new Vector2(dx, dotY), 1f, color);
+        for (var dx = dotsStart; dx < dotsEnd; dx += UiScale.Scaled(6f))
+            drawList.AddCircleFilled(new Vector2(dx, dotY), UiScale.Scaled(1f), color);
     }
 }

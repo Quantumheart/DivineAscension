@@ -23,8 +23,8 @@ namespace DivineAscension.GUI.UI.Renderers.PlayerInfo;
 [ExcludeFromCodeCoverage]
 internal static class NotificationFeedRenderer
 {
-    private const float HeaderHeight = 27f;
-    private const float InnerPadding = 12f;
+    private static float HeaderHeight => UiScale.Scaled(27f);
+    private static float InnerPadding => UiScale.Scaled(12f);
 
     public static void Draw(
         float x, float y, float width, float height,
@@ -39,9 +39,9 @@ internal static class NotificationFeedRenderer
         drawList.AddRectFilled(
             new Vector2(x, y),
             new Vector2(x + width, y + height),
-            bg, 4f);
+            bg, UiScale.Scaled(4f));
 
-        DrawHeader(x + InnerPadding, y + 4f, width - InnerPadding * 2f, showUnreadOnly, events);
+        DrawHeader(x + InnerPadding, y + UiScale.Scaled(4f), width - InnerPadding * 2f, showUnreadOnly, events);
 
         var listTop = y + HeaderHeight;
         var listHeight = y + height - listTop - InnerPadding;
@@ -124,17 +124,17 @@ internal static class NotificationFeedRenderer
     private static void DrawNotificationRow(int index, NotificationHistoryEntry entry,
         float width, List<PlayerInfoEvent> events)
     {
-        const float iconSize = 20f;
-        const float iconRightGap = 8f;
-        const float verticalPadding = 4f;
-        const float rowSpacing = 4f;
+        var iconSize = UiScale.Scaled(20f);
+        var iconRightGap = UiScale.Scaled(8f);
+        var verticalPadding = UiScale.Scaled(4f);
+        var rowSpacing = UiScale.Scaled(4f);
 
         var fontHeight = ImGui.GetFontSize();
-        var textColumnWidth = MathF.Max(0f, width - iconSize - iconRightGap - 4f);
+        var textColumnWidth = MathF.Max(0f, width - iconSize - iconRightGap - UiScale.Scaled(4f));
 
         var titleLine = $"{entry.Timestamp:HH:mm}  {entry.Title}";
         var hasBody = !string.IsNullOrEmpty(entry.Body);
-        var rowHeight = verticalPadding * 2f + fontHeight + (hasBody ? fontHeight + 2f : 0f);
+        var rowHeight = verticalPadding * 2f + fontHeight + (hasBody ? fontHeight + UiScale.Scaled(2f) : 0f);
         rowHeight = MathF.Max(rowHeight, iconSize + verticalPadding * 2f);
 
         var rowStart = ImGui.GetCursorScreenPos();
@@ -158,7 +158,7 @@ internal static class NotificationFeedRenderer
             var fill = hovered
                 ? ColorPalette.WithAlpha(ColorPalette.Gold, 0.18f)
                 : ColorPalette.WithAlpha(ColorPalette.Gold, 0.08f);
-            drawList.AddRectFilled(rowStart, rowEnd, ImGui.ColorConvertFloat4ToU32(fill), 3f);
+            drawList.AddRectFilled(rowStart, rowEnd, ImGui.ColorConvertFloat4ToU32(fill), UiScale.Scaled(3f));
         }
 
         var iconY = rowStart.Y + verticalPadding;
@@ -184,10 +184,10 @@ internal static class NotificationFeedRenderer
 
         if (hasBody)
         {
-            var bodyY = rowStart.Y + verticalPadding + fontHeight + 2f;
+            var bodyY = rowStart.Y + verticalPadding + fontHeight + UiScale.Scaled(2f);
             var bodyColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
             drawList.PushClipRect(new Vector2(textX, bodyY),
-                new Vector2(textX + textColumnWidth, bodyY + fontHeight + 2f), true);
+                new Vector2(textX + textColumnWidth, bodyY + fontHeight + UiScale.Scaled(2f)), true);
             drawList.AddText(new Vector2(textX, bodyY), bodyColor, entry.Body);
             drawList.PopClipRect();
         }

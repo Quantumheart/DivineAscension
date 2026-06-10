@@ -34,25 +34,25 @@ namespace DivineAscension.GUI.UI.Renderers.PlayerInfo;
 [ExcludeFromCodeCoverage]
 internal static class PlayerInfoRenderer
 {
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float SectionLabelHeight = 22f;
-    private const float ProseLineHeight = 18f;
-    private const float ProseBottomSpacing = 12f;
-    private const float StatRowHeight = 22f;
-    private const float StatBlockBottomSpacing = 6f;
-    private const float ProgressRowHeight = 22f;
-    private const float ProgressBarHeight = 12f;
-    private const float ScrollbarWidth = 16f;
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float SectionLabelHeight => UiScale.Scaled(22f);
+    private static float ProseLineHeight => UiScale.Scaled(18f);
+    private static float ProseBottomSpacing => UiScale.Scaled(12f);
+    private static float StatRowHeight => UiScale.Scaled(22f);
+    private static float StatBlockBottomSpacing => UiScale.Scaled(6f);
+    private static float ProgressRowHeight => UiScale.Scaled(22f);
+    private static float ProgressBarHeight => UiScale.Scaled(12f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
 
     // Recent Tidings — the player-scoped activity tail (#334).
     private const int TidingsCap = 5;
-    private const float TidingsRowHeight = 22f;
-    private const float TidingsLeftPadding = 16f;
-    private const float TidingsGlyphSize = 14f;
-    private const float TidingsGlyphGap = 8f;
-    private const float TidingsFooterTopSpacing = 6f;
-    private const float TidingsFooterHeight = 20f;
+    private static float TidingsRowHeight => UiScale.Scaled(22f);
+    private static float TidingsLeftPadding => UiScale.Scaled(16f);
+    private static float TidingsGlyphSize => UiScale.Scaled(14f);
+    private static float TidingsGlyphGap => UiScale.Scaled(8f);
+    private static float TidingsFooterTopSpacing => UiScale.Scaled(6f);
+    private static float TidingsFooterHeight => UiScale.Scaled(20f);
 
     public static IReadOnlyList<PlayerInfoEvent> Draw(PlayerInfoViewModel vm)
     {
@@ -78,7 +78,7 @@ internal static class PlayerInfoRenderer
             var wheel = ImGui.GetIO().MouseWheel;
             if (wheel != 0)
             {
-                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                var newScrollY = Math.Clamp(scrollY - wheel * UiScale.Scaled(30f), 0f, maxScroll);
                 if (Math.Abs(newScrollY - scrollY) > 0.001f)
                 {
                     scrollY = newScrollY;
@@ -298,11 +298,11 @@ internal static class PlayerInfoRenderer
         drawList.AddText(new Vector2(x, y),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White), rankName);
 
-        const float padding = 8f;
+        var padding = UiScale.Scaled(8f);
         var barLeft = x + rankSize.X + padding;
         var barRight = rightX - padding;
         var availableBarWidth = barRight - barLeft;
-        if (availableBarWidth > 24f)
+        if (availableBarWidth > UiScale.Scaled(24f))
         {
             var barY = y + (rightSize.Y - ProgressBarHeight) / 2f;
             ProgressBarRenderer.DrawProgressBar(drawList, barLeft, barY,
@@ -380,7 +380,7 @@ internal static class PlayerInfoRenderer
         var line = BuildTidingLine(entry);
         drawList.PushClipRect(new Vector2(textX, y),
             new Vector2(x + width, y + TidingsRowHeight), true);
-        drawList.AddText(new Vector2(textX, y + 2f),
+        drawList.AddText(new Vector2(textX, y + UiScale.Scaled(2f)),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White), line);
         drawList.PopClipRect();
     }
