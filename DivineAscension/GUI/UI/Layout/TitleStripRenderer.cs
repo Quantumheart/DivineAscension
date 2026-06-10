@@ -65,14 +65,15 @@ internal static class TitleStripRenderer
         // Bold when the atlas baked it, default font otherwise — measure with
         // the font we'll actually draw with so the right diamond hugs the
         // glyph metrics rather than drifting.
-        var cinzelTitle = CinzelFontSystem.GetBold(TitleFontSize);
+        var cinzelTitle = CinzelFontSystem.GetBold(
+            CinzelFontSystem.NearestBakedSize((int)UiScale.Scaled(TitleFontSize)));
         ImGuiNET.ImFontPtr titleFont;
         float titleFontSize;
         Vector2 titleSize;
         if (cinzelTitle.HasValue)
         {
             titleFont = cinzelTitle.Value;
-            titleFontSize = TitleFontSize;
+            titleFontSize = titleFont.FontSize;
             ImGui.PushFont(titleFont);
             titleSize = ImGui.CalcTextSize(TitleText);
             ImGui.PopFont();
