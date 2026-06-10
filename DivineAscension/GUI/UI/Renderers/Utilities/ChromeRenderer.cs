@@ -121,40 +121,44 @@ internal static class ChromeRenderer
     ///     so callers can lay it flush with the chapter title baseline.
     ///     Falls back to a plain large letter when Cinzel isn't loaded yet.
     /// </summary>
-    public const float DropCapSize = 40f;
+    public static float DropCapSize => UiScale.Scaled(40f);
     private const int DropCapFontSize = 36;
 
     public static void DrawDropCap(ImDrawListPtr drawList, char letter, float x, float y,
         Vector4 color)
     {
+        var size = DropCapSize;
         var min = new Vector2(x, y);
-        var max = new Vector2(x + DropCapSize, y + DropCapSize);
+        var max = new Vector2(x + size, y + size);
         var fillColor = ImGui.ColorConvertFloat4ToU32(new Vector4(color.X, color.Y, color.Z, 0.22f));
         var borderColor = ImGui.ColorConvertFloat4ToU32(color * 0.7f);
-        drawList.AddRectFilled(min, max, fillColor, 4f);
-        drawList.AddRect(min, max, borderColor, 4f, ImDrawFlags.None, 1f);
+        drawList.AddRectFilled(min, max, fillColor, UiScale.Scaled(4f));
+        drawList.AddRect(min, max, borderColor, UiScale.Scaled(4f), ImDrawFlags.None, UiScale.Scaled(1f));
 
         var letterText = letter.ToString();
         var letterColor = ImGui.ColorConvertFloat4ToU32(color);
-        var serif = CinzelFontSystem.GetBold(DropCapFontSize);
+        // Scale the glyph with the UI, snapped to the nearest baked Cinzel size.
+        var bakedSize = CinzelFontSystem.NearestBakedSize((int)UiScale.Scaled(DropCapFontSize));
+        var serif = CinzelFontSystem.GetBold(bakedSize);
         if (serif.HasValue)
         {
             var font = serif.Value;
             // Measure at the baked size (corrected for FontGlobalScale) so the
             // glyph centres in the box instead of drifting top-left (#588).
             var glyphSize = TextRenderer.MeasureBakedSerif(font, letterText);
-            var glyphX = x + (DropCapSize - glyphSize.X) / 2f;
-            var glyphY = y + (DropCapSize - glyphSize.Y) / 2f;
+            var glyphX = x + (size - glyphSize.X) / 2f;
+            var glyphY = y + (size - glyphSize.Y) / 2f;
             drawList.AddText(font, font.FontSize, new Vector2(glyphX, glyphY), letterColor, letterText);
         }
         else
         {
             var defaultFont = ImGui.GetFont();
-            var renderScale = DropCapFontSize / ImGui.GetFontSize();
+            var fontSize = UiScale.Scaled(DropCapFontSize);
+            var renderScale = fontSize / ImGui.GetFontSize();
             var glyphSize = ImGui.CalcTextSize(letterText) * renderScale;
-            var glyphX = x + (DropCapSize - glyphSize.X) / 2f;
-            var glyphY = y + (DropCapSize - glyphSize.Y) / 2f;
-            drawList.AddText(defaultFont, DropCapFontSize, new Vector2(glyphX, glyphY), letterColor, letterText);
+            var glyphX = x + (size - glyphSize.X) / 2f;
+            var glyphY = y + (size - glyphSize.Y) / 2f;
+            drawList.AddText(defaultFont, fontSize, new Vector2(glyphX, glyphY), letterColor, letterText);
         }
     }
 
