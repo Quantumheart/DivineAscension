@@ -26,30 +26,30 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 [ExcludeFromCodeCoverage]
 internal static class CivilizationBrowseRenderer
 {
-    private const float ProseLineHeight = 18f;
-    private const float ProseBottomSpacing = 12f;
-    private const float SearchRowHeight = 26f;
-    private const float SearchRowBottomSpacing = 6f;
-    private const float FilterRowHeight = 26f;
-    private const float FilterRowBottomSpacing = 8f;
-    private const float FilterChipGap = 10f;
-    private const float FilterChipPaddingX = 8f;
-    private const float ActiveMarkerSize = 4f;
-    private const float ActiveMarkerGap = 6f;
-    private const float RefreshGlyphSize = 24f;
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float RowLine1Height = 26f;
-    private const float RowLine2Spacing = 2f;
-    private const float RowGap = 10f;
-    private const float DescriptionIndent = 24f;
-    private const float RowOrnamentSize = 5f;
-    private const float RowOrnamentGap = 10f;
-    private const float ChevronSize = 10f;
-    private const float ChevronGap = 8f;
-    private const float CounterTopSpacing = 8f;
-    private const float CounterHeight = 22f;
-    private const float ScrollbarWidth = 16f;
+    private static float ProseLineHeight => UiScale.Scaled(18f);
+    private static float ProseBottomSpacing => UiScale.Scaled(12f);
+    private static float SearchRowHeight => UiScale.Scaled(26f);
+    private static float SearchRowBottomSpacing => UiScale.Scaled(6f);
+    private static float FilterRowHeight => UiScale.Scaled(26f);
+    private static float FilterRowBottomSpacing => UiScale.Scaled(8f);
+    private static float FilterChipGap => UiScale.Scaled(10f);
+    private static float FilterChipPaddingX => UiScale.Scaled(8f);
+    private static float ActiveMarkerSize => UiScale.Scaled(4f);
+    private static float ActiveMarkerGap => UiScale.Scaled(6f);
+    private static float RefreshGlyphSize => UiScale.Scaled(24f);
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float RowLine1Height => UiScale.Scaled(26f);
+    private static float RowLine2Spacing => UiScale.Scaled(2f);
+    private static float RowGap => UiScale.Scaled(10f);
+    private static float DescriptionIndent => UiScale.Scaled(24f);
+    private static float RowOrnamentSize => UiScale.Scaled(5f);
+    private static float RowOrnamentGap => UiScale.Scaled(10f);
+    private static float ChevronSize => UiScale.Scaled(10f);
+    private static float ChevronGap => UiScale.Scaled(8f);
+    private static float CounterTopSpacing => UiScale.Scaled(8f);
+    private static float CounterHeight => UiScale.Scaled(22f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
 
     public static CivilizationBrowseRenderResult Draw(
         CivilizationBrowseViewModel viewModel,
@@ -164,7 +164,7 @@ internal static class CivilizationBrowseRenderer
         var rowCenterY = y + FilterRowHeight / 2f;
         drawList.AddText(new Vector2(x, rowCenterY - labelSize.Y / 2f), labelColor, label);
 
-        var cursor = x + labelSize.X + 16f;
+        var cursor = x + labelSize.X + UiScale.Scaled(16f);
 
         var refreshX = x + width - RefreshGlyphSize;
         var refreshY = y + (FilterRowHeight - RefreshGlyphSize) / 2f;
@@ -184,8 +184,8 @@ internal static class CivilizationBrowseRenderer
             var chipWidth = FilterChipPaddingX + markerWidth + chipSize.X + FilterChipPaddingX;
             if (cursor + chipWidth > chipLimitX) break;
 
-            var chipMinY = y + (FilterRowHeight - chipSize.Y) / 2f - 2f;
-            var chipMaxY = chipMinY + chipSize.Y + 4f;
+            var chipMinY = y + (FilterRowHeight - chipSize.Y) / 2f - UiScale.Scaled(2f);
+            var chipMaxY = chipMinY + chipSize.Y + UiScale.Scaled(4f);
             var chipMin = new Vector2(cursor, chipMinY);
             var chipMax = new Vector2(cursor + chipWidth, chipMaxY);
 
@@ -196,9 +196,9 @@ internal static class CivilizationBrowseRenderer
             {
                 var underlineColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.55f);
                 drawList.AddLine(
-                    new Vector2(chipMin.X + 2f, chipMaxY + 1f),
-                    new Vector2(chipMax.X - 2f, chipMaxY + 1f),
-                    underlineColor, 1f);
+                    new Vector2(chipMin.X + UiScale.Scaled(2f), chipMaxY + UiScale.Scaled(1f)),
+                    new Vector2(chipMax.X - UiScale.Scaled(2f), chipMaxY + UiScale.Scaled(1f)),
+                    underlineColor, UiScale.Scaled(1f));
             }
 
             if (isHover) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
@@ -271,7 +271,7 @@ internal static class CivilizationBrowseRenderer
             var t = i / (float)segments;
             var a = arcStart + arcSweep * t;
             var p = new Vector2(cx + MathF.Cos(a) * r, cy + MathF.Sin(a) * r);
-            if (i > 0) drawList.AddLine(prev, p, ink, 1.5f);
+            if (i > 0) drawList.AddLine(prev, p, ink, UiScale.Scaled(1.5f));
             prev = p;
         }
         var endA = arcStart + arcSweep;
@@ -304,7 +304,7 @@ internal static class CivilizationBrowseRenderer
             var emptyText = LocalizationService.Instance.Get(emptyKey);
             TextRenderer.DrawInfoText(drawList, emptyText, x, y, width, Body, ColorPalette.Grey);
             var measured = TextRenderer.MeasureWrappedHeight(emptyText, width, Body);
-            return y + (measured > 0 ? measured : ProseLineHeight) + 8f;
+            return y + (measured > 0 ? measured : ProseLineHeight) + UiScale.Scaled(8f);
         }
 
         var rowY = y;
@@ -331,7 +331,7 @@ internal static class CivilizationBrowseRenderer
             {
                 ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
                 var hoverBg = ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown * 0.25f);
-                drawList.AddRectFilled(rowMin, rowMax, hoverBg, 2f);
+                drawList.AddRectFilled(rowMin, rowMax, hoverBg, UiScale.Scaled(2f));
             }
 
             DrawRowLine1(drawList, civ, x, rowY, width);
@@ -386,7 +386,7 @@ internal static class CivilizationBrowseRenderer
         drawList.AddText(ImGui.GetFont(), Body, new Vector2(ordersX, textY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White), ordersText);
 
-        const float padding = 6f;
+        var padding = UiScale.Scaled(6f);
         var leaderStart = nameX + nameSize.X + padding;
         var leaderEnd = ordersX - padding;
         DrawLeaderDots(drawList, leaderStart, leaderEnd, textY);
@@ -424,13 +424,13 @@ internal static class CivilizationBrowseRenderer
 
         var lineColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.45f);
         var lineY = y + textSize.Y / 2f;
-        const float sideGap = 12f;
+        var sideGap = UiScale.Scaled(12f);
         if (textX - sideGap > x)
             drawList.AddLine(new Vector2(x + sideGap, lineY),
-                new Vector2(textX - sideGap, lineY), lineColor, 1f);
+                new Vector2(textX - sideGap, lineY), lineColor, UiScale.Scaled(1f));
         if (textX + textSize.X + sideGap < x + width)
             drawList.AddLine(new Vector2(textX + textSize.X + sideGap, lineY),
-                new Vector2(x + width - sideGap, lineY), lineColor, 1f);
+                new Vector2(x + width - sideGap, lineY), lineColor, UiScale.Scaled(1f));
 
         drawList.AddText(new Vector2(textX, y), color, text);
     }
@@ -445,7 +445,7 @@ internal static class CivilizationBrowseRenderer
         h += DividerHeight;
         if (vm.Civilizations.Count == 0)
         {
-            h += ProseLineHeight + 8f;
+            h += ProseLineHeight + UiScale.Scaled(8f);
         }
         else
         {

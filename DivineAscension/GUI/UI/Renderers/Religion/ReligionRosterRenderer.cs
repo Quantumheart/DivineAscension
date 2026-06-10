@@ -28,11 +28,11 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 [ExcludeFromCodeCoverage]
 internal static class ReligionRosterRenderer
 {
-    private const float TopPadding = 8f;
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float ScrollbarWidth = 16f;
-    private const float SectionLabelHeight = 22f;
+    private static float TopPadding => UiScale.Scaled(8f);
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
+    private static float SectionLabelHeight => UiScale.Scaled(22f);
 
     public static ReligionRosterRenderResult Draw(ReligionRosterViewModel vm, ImDrawListPtr drawList)
     {
@@ -118,13 +118,13 @@ internal static class ReligionRosterRenderer
         return new ReligionRosterRenderResult(events, height);
     }
 
-    private const float AddButtonSize = 26f;
+    private static float AddButtonSize => UiScale.Scaled(26f);
 
     private static void DrawAddButton(
         ImDrawListPtr drawList, float x, float y, float contentWidth, List<RosterEvent> events)
     {
         var bx = x + contentWidth - AddButtonSize;
-        var by = y + TopPadding + 2f;
+        var by = y + TopPadding + UiScale.Scaled(2f);
         if (ButtonRenderer.DrawButton(drawList, string.Empty, bx, by, AddButtonSize, AddButtonSize,
                 isPrimary: false, enabled: true))
         {
@@ -133,7 +133,7 @@ internal static class ReligionRosterRenderer
 
         ChromeRenderer.DrawPlus(drawList,
             bx + AddButtonSize / 2f, by + AddButtonSize / 2f,
-            AddButtonSize - 12f, ColorPalette.LightText);
+            AddButtonSize - UiScale.Scaled(12f), ColorPalette.LightText);
     }
 
     private static void DrawInviteDialog(
@@ -150,18 +150,18 @@ internal static class ReligionRosterRenderer
         drawList.AddRectFilled(winPos, new Vector2(winPos.X + winSize.X, winPos.Y + winSize.Y),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.BlackOverlay));
 
-        const float dialogWidth = 460f;
-        const float dialogHeight = 220f;
+        var dialogWidth = UiScale.Scaled(460f);
+        var dialogHeight = UiScale.Scaled(220f);
         var dlgX = winPos.X + (winSize.X - dialogWidth) / 2f;
         var dlgY = winPos.Y + (winSize.Y - dialogHeight) / 2f;
 
         // Parchment mini-page with a faded-ink border, matching the role-edit dialog.
         drawList.AddRectFilled(new Vector2(dlgX, dlgY), new Vector2(dlgX + dialogWidth, dlgY + dialogHeight),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Background), 6f);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Background), UiScale.Scaled(6f));
         drawList.AddRect(new Vector2(dlgX, dlgY), new Vector2(dlgX + dialogWidth, dlgY + dialogHeight),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), 6f, ImDrawFlags.None, 1.5f);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), UiScale.Scaled(6f), ImDrawFlags.None, UiScale.Scaled(1.5f));
 
-        const float padding = 18f;
+        var padding = UiScale.Scaled(18f);
         var bodyWidth = dialogWidth - padding * 2f;
         var curX = dlgX + padding;
         var curY = dlgY + padding;
@@ -170,26 +170,26 @@ internal static class ReligionRosterRenderer
         TextRenderer.DrawLabel(drawList,
             loc.Get(LocalizationKeys.UI_RELIGION_ROSTER_INVITE_TITLE),
             curX, curY, PageTitle, ColorPalette.Gold);
-        curY += PageTitle + 6f;
+        curY += PageTitle + UiScale.Scaled(6f);
         ChromeRenderer.DrawDivider(drawList, curX, curY, bodyWidth);
-        curY += 16f;
+        curY += UiScale.Scaled(16f);
 
         // Prompt + name field.
         TextRenderer.DrawInfoText(drawList,
             loc.Get(LocalizationKeys.UI_RELIGION_ROSTER_INVITE_LABEL),
             curX, curY, bodyWidth, Body, ColorPalette.White);
-        curY += 24f;
+        curY += UiScale.Scaled(24f);
 
         var newName = TextInput.Draw(drawList, "##rosterInvite", vm.InvitePlayerName,
-            curX, curY, bodyWidth, 32f,
+            curX, curY, bodyWidth, UiScale.Scaled(32f),
             loc.Get(LocalizationKeys.UI_RELIGION_ROSTER_INVITE_PLACEHOLDER));
         if (newName != vm.InvitePlayerName)
             events.Add(new RosterEvent.InviteNameChanged(newName));
 
         // Footer: Cancel + Invite (right-aligned).
-        const float btnWidth = 120f;
-        const float btnHeight = 32f;
-        const float btnGap = 10f;
+        var btnWidth = UiScale.Scaled(120f);
+        var btnHeight = UiScale.Scaled(32f);
+        var btnGap = UiScale.Scaled(10f);
         var btnY = dlgY + dialogHeight - padding - btnHeight;
         var inviteX = dlgX + dialogWidth - padding - btnWidth;
         var cancelX = inviteX - btnWidth - btnGap;
@@ -236,7 +236,7 @@ internal static class ReligionRosterRenderer
     {
         var h = TopPadding;
         h += PaneHeaderRenderer.TotalHeight;
-        h += 22f; // intro line
+        h += UiScale.Scaled(22f); // intro line
         h += DividerHeight;
         if (vm.HasMembers)
         {

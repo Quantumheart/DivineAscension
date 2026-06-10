@@ -29,28 +29,28 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 [ExcludeFromCodeCoverage]
 internal static class ReligionBrowseRenderer
 {
-    private const float ProseLineHeight = 18f;
-    private const float ProseBottomSpacing = 12f;
-    private const float SearchRowHeight = 26f;
-    private const float SearchRowBottomSpacing = 6f;
-    private const float FilterRowHeight = 26f;
-    private const float FilterRowBottomSpacing = 8f;
-    private const float FilterChipGap = 10f;
-    private const float FilterChipPaddingX = 8f;
-    private const float ActiveMarkerSize = 4f;
-    private const float ActiveMarkerGap = 6f;
-    private const float RefreshGlyphSize = 24f;
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float RowHeight = 28f;
-    private const float RowSpacing = 4f;
-    private const float RowOrnamentSize = 5f;
-    private const float RowOrnamentGap = 10f;
-    private const float ChevronSize = 10f;
-    private const float ChevronGap = 8f;
-    private const float CounterTopSpacing = 8f;
-    private const float CounterHeight = 22f;
-    private const float ScrollbarWidth = 16f;
+    private static float ProseLineHeight => UiScale.Scaled(18f);
+    private static float ProseBottomSpacing => UiScale.Scaled(12f);
+    private static float SearchRowHeight => UiScale.Scaled(26f);
+    private static float SearchRowBottomSpacing => UiScale.Scaled(6f);
+    private static float FilterRowHeight => UiScale.Scaled(26f);
+    private static float FilterRowBottomSpacing => UiScale.Scaled(8f);
+    private static float FilterChipGap => UiScale.Scaled(10f);
+    private static float FilterChipPaddingX => UiScale.Scaled(8f);
+    private static float ActiveMarkerSize => UiScale.Scaled(4f);
+    private static float ActiveMarkerGap => UiScale.Scaled(6f);
+    private static float RefreshGlyphSize => UiScale.Scaled(24f);
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float RowHeight => UiScale.Scaled(28f);
+    private static float RowSpacing => UiScale.Scaled(4f);
+    private static float RowOrnamentSize => UiScale.Scaled(5f);
+    private static float RowOrnamentGap => UiScale.Scaled(10f);
+    private static float ChevronSize => UiScale.Scaled(10f);
+    private static float ChevronGap => UiScale.Scaled(8f);
+    private static float CounterTopSpacing => UiScale.Scaled(8f);
+    private static float CounterHeight => UiScale.Scaled(22f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
 
     public static ReligionBrowseRenderResult Draw(
         ReligionBrowseViewModel viewModel,
@@ -182,7 +182,7 @@ internal static class ReligionBrowseRenderer
         var rowCenterY = y + FilterRowHeight / 2f;
         drawList.AddText(new Vector2(x, rowCenterY - labelSize.Y / 2f), labelColor, label);
 
-        var cursor = x + labelSize.X + 16f;
+        var cursor = x + labelSize.X + UiScale.Scaled(16f);
 
         // Refresh glyph anchored at right edge of contentWidth (scrollbar gutter
         // already reserved by the caller).
@@ -204,8 +204,8 @@ internal static class ReligionBrowseRenderer
             var chipWidth = FilterChipPaddingX + markerWidth + chipSize.X + FilterChipPaddingX;
             if (cursor + chipWidth > chipLimitX) break;
 
-            var chipMinY = y + (FilterRowHeight - chipSize.Y) / 2f - 2f;
-            var chipMaxY = chipMinY + chipSize.Y + 4f;
+            var chipMinY = y + (FilterRowHeight - chipSize.Y) / 2f - UiScale.Scaled(2f);
+            var chipMaxY = chipMinY + chipSize.Y + UiScale.Scaled(4f);
             var chipMin = new Vector2(cursor, chipMinY);
             var chipMax = new Vector2(cursor + chipWidth, chipMaxY);
 
@@ -216,9 +216,9 @@ internal static class ReligionBrowseRenderer
             {
                 var underlineColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.55f);
                 drawList.AddLine(
-                    new Vector2(chipMin.X + 2f, chipMaxY + 1f),
-                    new Vector2(chipMax.X - 2f, chipMaxY + 1f),
-                    underlineColor, 1f);
+                    new Vector2(chipMin.X + UiScale.Scaled(2f), chipMaxY + UiScale.Scaled(1f)),
+                    new Vector2(chipMax.X - UiScale.Scaled(2f), chipMaxY + UiScale.Scaled(1f)),
+                    underlineColor, UiScale.Scaled(1f));
             }
 
             if (isHover)
@@ -291,7 +291,7 @@ internal static class ReligionBrowseRenderer
             var t = i / (float)segments;
             var a = arcStart + arcSweep * t;
             var p = new Vector2(cx + MathF.Cos(a) * r, cy + MathF.Sin(a) * r);
-            if (i > 0) drawList.AddLine(prev, p, ink, 1.5f);
+            if (i > 0) drawList.AddLine(prev, p, ink, UiScale.Scaled(1.5f));
             prev = p;
         }
         var endA = arcStart + arcSweep;
@@ -324,7 +324,7 @@ internal static class ReligionBrowseRenderer
             var emptyText = LocalizationService.Instance.Get(emptyKey);
             TextRenderer.DrawInfoText(drawList, emptyText, x, y, width, Body, ColorPalette.Grey);
             var measured = TextRenderer.MeasureWrappedHeight(emptyText, width, Body);
-            return y + (measured > 0 ? measured : ProseLineHeight) + 8f;
+            return y + (measured > 0 ? measured : ProseLineHeight) + UiScale.Scaled(8f);
         }
 
         var rowY = y;
@@ -343,7 +343,7 @@ internal static class ReligionBrowseRenderer
                 hovered = religion;
                 ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
                 var hoverBg = ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown * 0.25f);
-                drawList.AddRectFilled(rowMin, rowMax, hoverBg, 2f);
+                drawList.AddRectFilled(rowMin, rowMax, hoverBg, UiScale.Scaled(2f));
             }
 
             DrawRow(drawList, religion, x, rowY, width);
@@ -408,7 +408,7 @@ internal static class ReligionBrowseRenderer
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White), domainText);
 
         // Dotted leaders between name end and domain start.
-        const float padding = 6f;
+        var padding = UiScale.Scaled(6f);
         var leaderStart = nameX + nameSize.X + padding;
         var leaderEnd = domainX - padding;
         DrawLeaderDots(drawList, leaderStart, leaderEnd, textY);
@@ -446,13 +446,13 @@ internal static class ReligionBrowseRenderer
 
         var lineColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.45f);
         var lineY = y + textSize.Y / 2f;
-        const float sideGap = 12f;
+        var sideGap = UiScale.Scaled(12f);
         if (textX - sideGap > x)
             drawList.AddLine(new Vector2(x + sideGap, lineY),
-                new Vector2(textX - sideGap, lineY), lineColor, 1f);
+                new Vector2(textX - sideGap, lineY), lineColor, UiScale.Scaled(1f));
         if (textX + textSize.X + sideGap < x + width)
             drawList.AddLine(new Vector2(textX + textSize.X + sideGap, lineY),
-                new Vector2(x + width - sideGap, lineY), lineColor, 1f);
+                new Vector2(x + width - sideGap, lineY), lineColor, UiScale.Scaled(1f));
 
         drawList.AddText(new Vector2(textX, y), color, text);
     }
@@ -466,7 +466,7 @@ internal static class ReligionBrowseRenderer
         h += FilterRowHeight + FilterRowBottomSpacing;
         h += DividerHeight;
         if (vm.Religions.Count == 0)
-            h += ProseLineHeight + 8f;
+            h += ProseLineHeight + UiScale.Scaled(8f);
         else
             h += vm.Religions.Count * (RowHeight + RowSpacing);
         h += CounterTopSpacing + CounterHeight;

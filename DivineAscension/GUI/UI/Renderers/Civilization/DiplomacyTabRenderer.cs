@@ -31,35 +31,35 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 [ExcludeFromCodeCoverage]
 internal static class DiplomacyTabRenderer
 {
-    private const float DividerHeight = 18f;
-    private const float DividerYPadding = 6f;
-    private const float OrnateDividerHeight = 22f;
-    private const float SectionHeadingHeight = 26f;
-    private const float ProseLineHeight = 18f;
-    private const float ProseBottomSpacing = 10f;
-    private const float ScrollbarWidth = 16f;
+    private static float DividerHeight => UiScale.Scaled(18f);
+    private static float DividerYPadding => UiScale.Scaled(6f);
+    private static float OrnateDividerHeight => UiScale.Scaled(22f);
+    private static float SectionHeadingHeight => UiScale.Scaled(26f);
+    private static float ProseLineHeight => UiScale.Scaled(18f);
+    private static float ProseBottomSpacing => UiScale.Scaled(10f);
+    private static float ScrollbarWidth => UiScale.Scaled(16f);
 
     // Standing-accord entry geometry.
-    private const float EntryGlyphSize = 18f;
-    private const float EntryGlyphGap = 12f;
-    private const float EntryLeftPadding = 6f;
-    private const float EntryLineHeight = 20f;
-    private const float EntryActionHeight = 24f;
-    private const float EntryActionWidth = 150f;
-    private const float EntryBottomSpacing = 10f;
-    private const float SlimDividerHeight = 18f;
-    private const float SlimDividerYPadding = 4f;
+    private static float EntryGlyphSize => UiScale.Scaled(18f);
+    private static float EntryGlyphGap => UiScale.Scaled(12f);
+    private static float EntryLeftPadding => UiScale.Scaled(6f);
+    private static float EntryLineHeight => UiScale.Scaled(20f);
+    private static float EntryActionHeight => UiScale.Scaled(24f);
+    private static float EntryActionWidth => UiScale.Scaled(150f);
+    private static float EntryBottomSpacing => UiScale.Scaled(10f);
+    private static float SlimDividerHeight => UiScale.Scaled(18f);
+    private static float SlimDividerYPadding => UiScale.Scaled(4f);
 
     // Pending proposal row geometry.
-    private const float ProposalEnvelopeSize = 18f;
-    private const float ProposalGlyphGap = 10f;
-    private const float ProposalTextLeading = 4f;
-    private const float ProposalActionHeight = 22f;
-    private const float ProposalAcceptWidth = 78f;
-    private const float ProposalRefuseWidth = 78f;
-    private const float ProposalActionGap = 8f;
-    private const float ProposalRowHeight = 28f;
-    private const float ProposalRowSpacing = 4f;
+    private static float ProposalEnvelopeSize => UiScale.Scaled(18f);
+    private static float ProposalGlyphGap => UiScale.Scaled(10f);
+    private static float ProposalTextLeading => UiScale.Scaled(4f);
+    private static float ProposalActionHeight => UiScale.Scaled(22f);
+    private static float ProposalAcceptWidth => UiScale.Scaled(78f);
+    private static float ProposalRefuseWidth => UiScale.Scaled(78f);
+    private static float ProposalActionGap => UiScale.Scaled(8f);
+    private static float ProposalRowHeight => UiScale.Scaled(28f);
+    private static float ProposalRowSpacing => UiScale.Scaled(4f);
 
     public static DiplomacyTabRendererResult Draw(
         DiplomacyTabViewModel vm,
@@ -257,7 +257,7 @@ internal static class DiplomacyTabRenderer
         // Right-aligned action button per status.
         var actionY = lineY;
         DrawEntryAction(drawList, rel, hasScheduledBreak, textRight, actionY, events);
-        var bottomY = actionY + EntryActionHeight + 4f;
+        var bottomY = actionY + EntryActionHeight + UiScale.Scaled(4f);
         return bottomY;
     }
 
@@ -414,9 +414,9 @@ internal static class DiplomacyTabRenderer
                 // Crossed blades — two diagonals through the centre.
                 var color = ImGui.ColorConvertFloat4ToU32(ColorPalette.Vermilion);
                 drawList.AddLine(new Vector2(cx - half, cy - half),
-                    new Vector2(cx + half, cy + half), color, 2f);
+                    new Vector2(cx + half, cy + half), color, UiScale.Scaled(2f));
                 drawList.AddLine(new Vector2(cx + half, cy - half),
-                    new Vector2(cx - half, cy + half), color, 2f);
+                    new Vector2(cx - half, cy + half), color, UiScale.Scaled(2f));
                 break;
         }
     }
@@ -429,10 +429,10 @@ internal static class DiplomacyTabRenderer
         var right = new Vector2(cx + halfSize, cy);
         var bottom = new Vector2(cx, cy + halfSize);
         var left = new Vector2(cx - halfSize, cy);
-        drawList.AddLine(top, right, col, 1.5f);
-        drawList.AddLine(right, bottom, col, 1.5f);
-        drawList.AddLine(bottom, left, col, 1.5f);
-        drawList.AddLine(left, top, col, 1.5f);
+        drawList.AddLine(top, right, col, UiScale.Scaled(1.5f));
+        drawList.AddLine(right, bottom, col, UiScale.Scaled(1.5f));
+        drawList.AddLine(bottom, left, col, UiScale.Scaled(1.5f));
+        drawList.AddLine(left, top, col, UiScale.Scaled(1.5f));
     }
 
     private static int StatusGroupOrder(DiplomaticStatus status) => status switch
@@ -494,7 +494,7 @@ internal static class DiplomacyTabRenderer
         var contentWidth = vm.Width - ChapterStripRenderer.ScrollbarGutter;
 
         // Error banner reserves a rough line + padding when present.
-        if (!string.IsNullOrEmpty(vm.ErrorMessage)) h += 48f;
+        if (!string.IsNullOrEmpty(vm.ErrorMessage)) h += UiScale.Scaled(48f);
 
         // Intro prose.
         var intro = string.IsNullOrWhiteSpace(vm.CurrentCivilizationName)
@@ -544,7 +544,7 @@ internal static class DiplomacyTabRenderer
                 && (rel.BreakScheduledDate.Value - DateTime.UtcNow).TotalSeconds > 0)
                 lines += 1;                                        // countdown line
         }
-        var h = lines * EntryLineHeight + EntryActionHeight + 4f;
+        var h = lines * EntryLineHeight + EntryActionHeight + UiScale.Scaled(4f);
         return h;
     }
 
