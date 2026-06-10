@@ -113,4 +113,41 @@ internal static class UiScale
 
         public void Dispose() => ImGui.GetIO().FontGlobalScale = _previous;
     }
+
+    /// <summary>
+    ///     Scale ImGui's spacing/size style metrics by <see cref="Factor" /> for the
+    ///     duration of the returned scope. Native widgets (Button, Checkbox,
+    ///     InputText, Selectable, scrollbars) size their frames from font size PLUS
+    ///     these metrics, and <see cref="BeginFontScale" /> only scales the font —
+    ///     so without this, scaled text sits in unscaled frames with tight spacing.
+    ///
+    ///     <para>
+    ///     Reads the live base values (whatever VSImGui set) and pushes them times
+    ///     <see cref="Factor" />, then pops on dispose — no global mutation, no
+    ///     cumulative drift across frames. Use with <c>using</c> alongside
+    ///     <see cref="BeginFontScale" /> at the top of a dialog draw. Rounding radii
+    ///     are intentionally left alone (the dialog zeroes window/frame rounding).
+    ///     </para>
+    /// </summary>
+    public static StyleScaleScope BeginStyleScale() => new(_factor);
+
+    /// <summary>RAII scope that pushes scaled style vars and pops them. See <see cref="BeginStyleScale" />.</summary>
+    public readonly ref struct StyleScaleScope
+    {
+        private const int PushedCount = 7;
+
+        internal StyleScaleScope(float scale)
+        {
+            var s = ImGui.GetStyle();
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, s.FramePadding * scale);
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, s.ItemSpacing * scale);
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemInnerSpacing, s.ItemInnerSpacing * scale);
+            ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, s.CellPadding * scale);
+            ImGui.PushStyleVar(ImGuiStyleVar.IndentSpacing, s.IndentSpacing * scale);
+            ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, s.ScrollbarSize * scale);
+            ImGui.PushStyleVar(ImGuiStyleVar.GrabMinSize, s.GrabMinSize * scale);
+        }
+
+        public void Dispose() => ImGui.PopStyleVar(PushedCount);
+    }
 }
