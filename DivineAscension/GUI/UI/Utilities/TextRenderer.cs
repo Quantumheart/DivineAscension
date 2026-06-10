@@ -55,9 +55,7 @@ public static class TextRenderer
         if (serif.HasValue)
         {
             var font = serif.Value;
-            ImGui.PushFont(font);
-            var width = ImGui.CalcTextSize(text).X;
-            ImGui.PopFont();
+            var width = MeasureBakedSerif(font, text).X;
             drawList.AddText(font, font.FontSize, new Vector2(x, y), textColor, text);
             return width;
         }
@@ -76,12 +74,28 @@ public static class TextRenderer
         var serif = CinzelFontSystem.GetRegular(CinzelFontSystem.NearestBakedSize((int)fontSize));
         if (serif.HasValue)
         {
-            ImGui.PushFont(serif.Value);
-            var width = ImGui.CalcTextSize(text).X;
-            ImGui.PopFont();
-            return width;
+            return MeasureBakedSerif(serif.Value, text).X;
         }
         return ImGui.CalcTextSize(text).X * (fontSize / ImGui.GetFontSize());
+    }
+
+    /// <summary>
+    ///     Measure <paramref name="text" /> in <paramref name="font" /> at its baked
+    ///     size, removing the <c>FontGlobalScale</c> inflation that
+    ///     <see cref="ImGui.CalcTextSize(string)" /> applies while a font is pushed.
+    ///     The result matches an explicit-size <c>AddText(font, font.FontSize, …)</c>
+    ///     draw, which ignores the global scale. Without this correction, serif
+    ///     glyphs drawn at a baked size are over-measured by <c>UiScale.Factor</c>
+    ///     under <see cref="UiScale.BeginFontScale" />, pulling centred or
+    ///     right-anchored layout toward the top-left (#588).
+    /// </summary>
+    public static Vector2 MeasureBakedSerif(ImGuiNET.ImFontPtr font, string text)
+    {
+        ImGui.PushFont(font);
+        var size = ImGui.CalcTextSize(text);
+        ImGui.PopFont();
+        var globalScale = ImGui.GetIO().FontGlobalScale;
+        return globalScale > 0f ? size / globalScale : size;
     }
 
     /// <summary>
