@@ -19,12 +19,13 @@ public static class BlessingSlotCalculator
         ArgumentNullException.ThrowIfNull(config);
 
         var favorSlots = GetFavorSlots(config, favorRank);
-        if (prestigeRank is null)
-        {
-            return favorSlots;
-        }
+        var total = prestigeRank is null
+            ? favorSlots
+            : favorSlots + GetPrestigeBonus(config, prestigeRank.Value);
 
-        return favorSlots + GetPrestigeBonus(config, prestigeRank.Value);
+        // Enforce the balance ceiling here rather than rejecting out-of-range config at load time,
+        // so admins can raise the dials (or the cap) without one bad value resetting the config (#616).
+        return Math.Clamp(total, 0, config.MaxTotalActiveBlessingSlots);
     }
 
     private static int GetFavorSlots(GameBalanceConfig config, FavorRank rank) => rank switch

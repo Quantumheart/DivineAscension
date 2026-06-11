@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace DivineAscension.Configuration;
 
@@ -116,8 +117,20 @@ public class GameBalanceConfig
     /// <summary>Bonus active blessing slots from Mythic religion prestige (default: 2)</summary>
     public int MythicBonusSlots { get; set; } = 2;
 
-    /// <summary>Hard cap on total active blessing slots (favor + prestige bonus).</summary>
-    public const int MaxTotalBlessingSlots = 8;
+    /// <summary>
+    /// Balance ceiling on total active blessing slots (favor + prestige bonus). Default 8.
+    /// This is a soft cap enforced by clamping at runtime (see <see cref="BlessingSlotCalculator"/>),
+    /// not a structural constraint — raising it lets a player unlock more slots, lowering it caps them.
+    /// Out-of-range slot fields are clamped (not rejected) so one bad value never discards the rest
+    /// of the config. Range: 1..64.
+    /// </summary>
+    public int MaxTotalActiveBlessingSlots { get; set; } = 8;
+
+    /// <summary>Lower bound enforced on <see cref="MaxTotalActiveBlessingSlots"/>.</summary>
+    public const int MinAllowedMaxTotalActiveBlessingSlots = 1;
+
+    /// <summary>Upper bound enforced on <see cref="MaxTotalActiveBlessingSlots"/>.</summary>
+    public const int MaxAllowedMaxTotalActiveBlessingSlots = 64;
 
     // === RELIGION BLESSING SLOTS ===
 
@@ -281,8 +294,10 @@ public class GameBalanceConfig
             throw new InvalidOperationException("Holy site tier multipliers must be ascending");
         }
 
-        ValidateBlessingSlots();
-        ValidateReligionBlessingSlots();
+        // Blessing-slot bounds are NOT validated here: out-of-range slot values are clamped
+        // (see ClampBlessingSlots) rather than thrown, so one bad slot field never causes the
+        // entire config to be discarded and reset to defaults. The balance ceiling is enforced
+        // at runtime by BlessingSlotCalculator.
 
         if (UnlearnRefundPercent < 0f || UnlearnRefundPercent > 1f)
         {
@@ -301,72 +316,74 @@ public class GameBalanceConfig
         }
     }
 
-    private void ValidateBlessingSlots()
+    /// <summary>
+    /// Brings every blessing-slot field into a usable range in place, returning a human-readable
+    /// message for each field that had to be adjusted. Negative slot counts are clamped to 0 and
+    /// <see cref="MaxTotalActiveBlessingSlots"/> is clamped to [<see cref="MinAllowedMaxTotalActiveBlessingSlots"/>,
+    /// <see cref="MaxAllowedMaxTotalActiveBlessingSlots"/>].
+    ///
+    /// The balance ceiling itself (favor + prestige bonus exceeding the cap) is intentionally NOT
+    /// clamped here — it is enforced gracefully at runtime by <see cref="BlessingSlotCalculator"/>,
+    /// so an admin can raise the dials and the cap moves with them. This method only repairs values
+    /// that are structurally invalid, never rejecting the whole config.
+    /// </summary>
+    /// <returns>Empty when nothing was changed; otherwise one message per adjusted field.</returns>
+    public IReadOnlyList<string> ClampBlessingSlots()
     {
-        int[] favorSlots =
-        {
-            InitiateActiveBlessingSlots,
-            DiscipleActiveBlessingSlots,
-            ZealotActiveBlessingSlots,
-            ChampionActiveBlessingSlots,
-            AvatarActiveBlessingSlots
-        };
+        var adjustments = new List<string>();
 
-        int[] prestigeBonus =
-        {
-            FledglingBonusSlots,
-            EstablishedBonusSlots,
-            RenownedBonusSlots,
-            LegendaryBonusSlots,
-            MythicBonusSlots
-        };
+        ClampNonNegative(nameof(InitiateActiveBlessingSlots), InitiateActiveBlessingSlots,
+            v => InitiateActiveBlessingSlots = v, adjustments);
+        ClampNonNegative(nameof(DiscipleActiveBlessingSlots), DiscipleActiveBlessingSlots,
+            v => DiscipleActiveBlessingSlots = v, adjustments);
+        ClampNonNegative(nameof(ZealotActiveBlessingSlots), ZealotActiveBlessingSlots,
+            v => ZealotActiveBlessingSlots = v, adjustments);
+        ClampNonNegative(nameof(ChampionActiveBlessingSlots), ChampionActiveBlessingSlots,
+            v => ChampionActiveBlessingSlots = v, adjustments);
+        ClampNonNegative(nameof(AvatarActiveBlessingSlots), AvatarActiveBlessingSlots,
+            v => AvatarActiveBlessingSlots = v, adjustments);
 
-        foreach (var slots in favorSlots)
+        ClampNonNegative(nameof(FledglingBonusSlots), FledglingBonusSlots,
+            v => FledglingBonusSlots = v, adjustments);
+        ClampNonNegative(nameof(EstablishedBonusSlots), EstablishedBonusSlots,
+            v => EstablishedBonusSlots = v, adjustments);
+        ClampNonNegative(nameof(RenownedBonusSlots), RenownedBonusSlots,
+            v => RenownedBonusSlots = v, adjustments);
+        ClampNonNegative(nameof(LegendaryBonusSlots), LegendaryBonusSlots,
+            v => LegendaryBonusSlots = v, adjustments);
+        ClampNonNegative(nameof(MythicBonusSlots), MythicBonusSlots,
+            v => MythicBonusSlots = v, adjustments);
+
+        ClampNonNegative(nameof(FledglingReligionBlessingSlots), FledglingReligionBlessingSlots,
+            v => FledglingReligionBlessingSlots = v, adjustments);
+        ClampNonNegative(nameof(EstablishedReligionBlessingSlots), EstablishedReligionBlessingSlots,
+            v => EstablishedReligionBlessingSlots = v, adjustments);
+        ClampNonNegative(nameof(RenownedReligionBlessingSlots), RenownedReligionBlessingSlots,
+            v => RenownedReligionBlessingSlots = v, adjustments);
+        ClampNonNegative(nameof(LegendaryReligionBlessingSlots), LegendaryReligionBlessingSlots,
+            v => LegendaryReligionBlessingSlots = v, adjustments);
+        ClampNonNegative(nameof(MythicReligionBlessingSlots), MythicReligionBlessingSlots,
+            v => MythicReligionBlessingSlots = v, adjustments);
+
+        var clampedCap = Math.Clamp(MaxTotalActiveBlessingSlots,
+            MinAllowedMaxTotalActiveBlessingSlots, MaxAllowedMaxTotalActiveBlessingSlots);
+        if (clampedCap != MaxTotalActiveBlessingSlots)
         {
-            if (slots < 0)
-            {
-                throw new InvalidOperationException("Active blessing slot counts must be >= 0");
-            }
+            adjustments.Add(
+                $"{nameof(MaxTotalActiveBlessingSlots)} {MaxTotalActiveBlessingSlots} out of range " +
+                $"[{MinAllowedMaxTotalActiveBlessingSlots}, {MaxAllowedMaxTotalActiveBlessingSlots}] — clamped to {clampedCap}");
+            MaxTotalActiveBlessingSlots = clampedCap;
         }
 
-        foreach (var bonus in prestigeBonus)
-        {
-            if (bonus < 0)
-            {
-                throw new InvalidOperationException("Prestige bonus blessing slot counts must be >= 0");
-            }
-        }
-
-        foreach (var favor in favorSlots)
-        {
-            foreach (var bonus in prestigeBonus)
-            {
-                if (favor + bonus > MaxTotalBlessingSlots)
-                {
-                    throw new InvalidOperationException(
-                        $"Total active blessing slots (favor + prestige bonus) must not exceed {MaxTotalBlessingSlots}");
-                }
-            }
-        }
+        return adjustments;
     }
 
-    private void ValidateReligionBlessingSlots()
+    private static void ClampNonNegative(string fieldName, int value, Action<int> setter, List<string> adjustments)
     {
-        int[] religionSlots =
+        if (value < 0)
         {
-            FledglingReligionBlessingSlots,
-            EstablishedReligionBlessingSlots,
-            RenownedReligionBlessingSlots,
-            LegendaryReligionBlessingSlots,
-            MythicReligionBlessingSlots
-        };
-
-        foreach (var slots in religionSlots)
-        {
-            if (slots < 0)
-            {
-                throw new InvalidOperationException("Religion blessing slot counts must be >= 0");
-            }
+            adjustments.Add($"{fieldName} {value} is negative — clamped to 0");
+            setter(0);
         }
     }
 }
