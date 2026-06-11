@@ -80,4 +80,50 @@ public class BlessingSlotCalculatorTests
         Assert.Throws<ArgumentNullException>(() =>
             BlessingSlotCalculator.GetMaxUnlocks(null!, FavorRank.Initiate, null));
     }
+
+    [Fact]
+    public void GetMaxUnlocks_ClampsTotalToConfiguredCap()
+    {
+        // favor 7 + bonus 4 = 11, but the cap binds at 8.
+        var config = new GameBalanceConfig
+        {
+            AvatarActiveBlessingSlots = 7,
+            MythicBonusSlots = 4,
+            MaxTotalActiveBlessingSlots = 8
+        };
+
+        var slots = BlessingSlotCalculator.GetMaxUnlocks(config, FavorRank.Avatar, PrestigeRank.Mythic);
+
+        Assert.Equal(8, slots);
+    }
+
+    [Fact]
+    public void GetMaxUnlocks_HonoursRaisedCap()
+    {
+        // Raising the cap lets the same dials yield more slots — the wall moves with the config.
+        var config = new GameBalanceConfig
+        {
+            AvatarActiveBlessingSlots = 7,
+            MythicBonusSlots = 4,
+            MaxTotalActiveBlessingSlots = 16
+        };
+
+        var slots = BlessingSlotCalculator.GetMaxUnlocks(config, FavorRank.Avatar, PrestigeRank.Mythic);
+
+        Assert.Equal(11, slots);
+    }
+
+    [Fact]
+    public void GetMaxUnlocks_ClampsFavorOnlyTotalToCap()
+    {
+        var config = new GameBalanceConfig
+        {
+            AvatarActiveBlessingSlots = 20,
+            MaxTotalActiveBlessingSlots = 8
+        };
+
+        var slots = BlessingSlotCalculator.GetMaxUnlocks(config, FavorRank.Avatar, null);
+
+        Assert.Equal(8, slots);
+    }
 }

@@ -64,16 +64,39 @@ public class GameBalanceConfigBlessingSlotsTests
     [InlineData(nameof(GameBalanceConfig.RenownedBonusSlots))]
     [InlineData(nameof(GameBalanceConfig.LegendaryBonusSlots))]
     [InlineData(nameof(GameBalanceConfig.MythicBonusSlots))]
-    public void Validate_RejectsNegativeSlotValues(string propertyName)
+    [InlineData(nameof(GameBalanceConfig.FledglingReligionBlessingSlots))]
+    [InlineData(nameof(GameBalanceConfig.MythicReligionBlessingSlots))]
+    public void Validate_AcceptsNegativeSlotValues_WithoutThrowing(string propertyName)
     {
+        // A negative slot field must NOT cause Validate() to throw — that would reset the whole
+        // config to defaults (#616). Repair is the job of ClampBlessingSlots instead.
         var config = new GameBalanceConfig();
         typeof(GameBalanceConfig).GetProperty(propertyName)!.SetValue(config, -1);
 
-        Assert.Throws<InvalidOperationException>(() => config.Validate());
+        var ex = Record.Exception(() => config.Validate());
+
+        Assert.Null(ex);
+    }
+
+    [Theory]
+    [InlineData(nameof(GameBalanceConfig.InitiateActiveBlessingSlots))]
+    [InlineData(nameof(GameBalanceConfig.AvatarActiveBlessingSlots))]
+    [InlineData(nameof(GameBalanceConfig.MythicBonusSlots))]
+    [InlineData(nameof(GameBalanceConfig.MythicReligionBlessingSlots))]
+    public void ClampBlessingSlots_ClampsNegativeToZero_AndReports(string propertyName)
+    {
+        var config = new GameBalanceConfig();
+        var property = typeof(GameBalanceConfig).GetProperty(propertyName)!;
+        property.SetValue(config, -5);
+
+        var adjustments = config.ClampBlessingSlots();
+
+        Assert.Equal(0, (int)property.GetValue(config)!);
+        Assert.Contains(adjustments, m => m.Contains(propertyName));
     }
 
     [Fact]
-    public void Validate_RejectsTotalAboveHardCap()
+    public void ClampBlessingSlots_LeavesValidConfigUntouched()
     {
         var config = new GameBalanceConfig
         {
@@ -81,15 +104,36 @@ public class GameBalanceConfigBlessingSlotsTests
             MythicBonusSlots = 2
         };
 
-        Assert.Throws<InvalidOperationException>(() => config.Validate());
+        var adjustments = config.ClampBlessingSlots();
+
+        Assert.Empty(adjustments);
+        // High-but-non-negative values survive — the cap is enforced at runtime, not by reset.
+        Assert.Equal(7, config.AvatarActiveBlessingSlots);
+        Assert.Equal(2, config.MythicBonusSlots);
+    }
+
+    [Theory]
+    [InlineData(0, GameBalanceConfig.MinAllowedMaxTotalActiveBlessingSlots)]
+    [InlineData(-3, GameBalanceConfig.MinAllowedMaxTotalActiveBlessingSlots)]
+    [InlineData(9999, GameBalanceConfig.MaxAllowedMaxTotalActiveBlessingSlots)]
+    public void ClampBlessingSlots_ClampsCapToAllowedRange(int input, int expected)
+    {
+        var config = new GameBalanceConfig { MaxTotalActiveBlessingSlots = input };
+
+        var adjustments = config.ClampBlessingSlots();
+
+        Assert.Equal(expected, config.MaxTotalActiveBlessingSlots);
+        Assert.Contains(adjustments, m => m.Contains(nameof(GameBalanceConfig.MaxTotalActiveBlessingSlots)));
     }
 
     [Fact]
-    public void Validate_AcceptsTotalAtHardCap()
+    public void Validate_AcceptsTotalAboveDefaultCap_WithoutThrowing()
     {
+        // Previously this reset the entire config; now an over-cap total is tolerated and clamped
+        // at runtime instead of rejected at load (#616).
         var config = new GameBalanceConfig
         {
-            AvatarActiveBlessingSlots = 6,
+            AvatarActiveBlessingSlots = 7,
             MythicBonusSlots = 2
         };
 
@@ -99,20 +143,19 @@ public class GameBalanceConfigBlessingSlotsTests
     }
 
     [Fact]
-    public void Validate_RejectsCrossPairAboveHardCap()
+    public void MaxTotalActiveBlessingSlots_DefaultsTo8()
     {
-        var config = new GameBalanceConfig
-        {
-            ChampionActiveBlessingSlots = 6,
-            RenownedBonusSlots = 3
-        };
-
-        Assert.Throws<InvalidOperationException>(() => config.Validate());
+        Assert.Equal(8, new GameBalanceConfig().MaxTotalActiveBlessingSlots);
     }
 
     [Fact]
-    public void HardCapConstant_Is8()
+    public void MaxTotalActiveBlessingSlots_IsConfigurable()
     {
-        Assert.Equal(8, GameBalanceConfig.MaxTotalBlessingSlots);
+        var config = new GameBalanceConfig { MaxTotalActiveBlessingSlots = 12 };
+
+        var adjustments = config.ClampBlessingSlots();
+
+        Assert.Empty(adjustments);
+        Assert.Equal(12, config.MaxTotalActiveBlessingSlots);
     }
 }

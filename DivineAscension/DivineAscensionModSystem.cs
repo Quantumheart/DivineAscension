@@ -123,6 +123,13 @@ public class DivineAscensionModSystem : ModSystem
         // Register with ConfigLib if available
         TryRegisterWithConfigLib(api);
 
+        // Clamp blessing-slot fields in place first so out-of-range slot values are repaired
+        // (and logged per field) instead of tripping Validate() and discarding the whole config (#616).
+        foreach (var adjustment in _gameBalanceConfig.ClampBlessingSlots())
+        {
+            api.Logger.Warning($"[DivineAscension] Blessing slot config adjusted: {adjustment}");
+        }
+
         // Validate config regardless of ConfigLib presence
         try
         {
@@ -516,6 +523,11 @@ public class DivineAscensionModSystem : ModSystem
     {
         try
         {
+            foreach (var adjustment in _gameBalanceConfig.ClampBlessingSlots())
+            {
+                _sapi?.Logger.Warning($"[DivineAscension] Blessing slot config adjusted: {adjustment}");
+            }
+
             _gameBalanceConfig.Validate();
             _sapi?.Logger.Notification($"[DivineAscension] Configuration updated: {settingCode}");
 
