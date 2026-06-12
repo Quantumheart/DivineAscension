@@ -23,8 +23,11 @@ Repo: `quantumheart/divineascension` (the only repo these tools may touch).
   don't guess.
 
 ## 2. Branch
-- Develop on the feature branch the task specifies (e.g. `claude/...`). If none
-  was given, create one: `git checkout -b claude/issue-<N>-<slug>`.
+- Always branch fresh from `master`. Never stack on the currently checked-out
+  branch unless the user explicitly asks: `git fetch origin master && git checkout -b <type>/<slug> origin/master`.
+- Name `<type>` by the nature of the change, matching the commit convention:
+  `feat/`, `bug/`, `refactor/`, or `chore/`. Pick a short `<slug>` from the
+  issue (e.g. `feat/blessing-slot-cap`, `bug/sidebar-scroll`).
 - Never push to `main`/`master` or another contributor's branch without explicit
   permission.
 
