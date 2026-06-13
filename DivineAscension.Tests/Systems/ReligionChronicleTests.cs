@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Tests.Helpers;
 using Moq;
@@ -24,7 +25,7 @@ public class ReligionChronicleTests
 
     public ReligionChronicleTests()
     {
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         _religionManager = new ReligionManager(mockLogger.Object, new FakeEventService(),
             new FakePersistenceService(), new FakeWorldService());
     }

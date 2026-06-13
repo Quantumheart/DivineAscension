@@ -27,7 +27,6 @@ public class PlayerDataNetworkHandlerTests
     private readonly FakePersistenceService _persistenceService;
     private readonly FakeTimeService _timeService;
     private readonly FakeWorldService _worldService;
-    private readonly Mock<ILogger> _mockLogger;
     private readonly Mock<ILoggerWrapper> _mockLoggerWrapper;
     private readonly Mock<IReligionManager> _mockReligionManager;
     private readonly SpyNetworkService _networkService;
@@ -38,7 +37,6 @@ public class PlayerDataNetworkHandlerTests
     public PlayerDataNetworkHandlerTests()
     {
         _config = new GameBalanceConfig();
-        _mockLogger = new Mock<ILogger>();
         _mockLoggerWrapper = new Mock<ILoggerWrapper>();
         _mockReligionManager = new Mock<IReligionManager>();
         _eventService = new FakeEventService();
@@ -53,7 +51,6 @@ public class PlayerDataNetworkHandlerTests
             _mockReligionManager.Object, _config);
 
         _handler = new PlayerDataNetworkHandler(
-            _mockLogger.Object,
             _worldService,
             _eventService,
             _networkService,

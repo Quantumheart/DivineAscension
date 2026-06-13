@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Commands;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Commands.Helpers;
 using DivineAscension.Tests.Helpers;
@@ -32,7 +33,7 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
         var mockNetworkService = new Mock<INetworkService>();
         var mockMessengerService = new Mock<IPlayerMessengerService>();
         var mockWorldService = new Mock<IWorldService>();
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             null!,
@@ -56,7 +57,7 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
         var mockNetworkService = new Mock<INetworkService>();
         var mockMessengerService = new Mock<IPlayerMessengerService>();
         var mockWorldService = new Mock<IWorldService>();
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
@@ -80,7 +81,7 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
         var mockNetworkService = new Mock<INetworkService>();
         var mockMessengerService = new Mock<IPlayerMessengerService>();
         var mockWorldService = new Mock<IWorldService>();
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
@@ -103,7 +104,7 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
         var mockCooldownManager = TestFixtures.CreateMockCooldownManager();
         var mockMessengerService = new Mock<IPlayerMessengerService>();
         var mockWorldService = new Mock<IWorldService>();
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
@@ -127,7 +128,7 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
         var mockNetworkService = new Mock<INetworkService>();
         var mockMessengerService = new Mock<IPlayerMessengerService>();
         var mockWorldService = new Mock<IWorldService>();
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         // Act
         var commands = new ReligionCommands(
             _mockSapi.Object,
@@ -176,7 +177,7 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
         // Assert
         Assert.Null(exception);
         _mockChatCommands.Verify(c => c.Create("religion"), Times.Once);
-        _mockLogger.Verify(l => l.Notification(It.Is<string>(s => s.Contains("Religion commands registered"))),
+        _mockLoggerWrapper.Verify(l => l.Notification(It.Is<string>(s => s.Contains("Religion commands registered"))),
             Times.Once);
     }
 

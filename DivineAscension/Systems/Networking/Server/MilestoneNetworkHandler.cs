@@ -2,6 +2,7 @@ using System.Linq;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Models;
 using DivineAscension.Network;
+using DivineAscension.Services;
 using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
@@ -14,7 +15,7 @@ namespace DivineAscension.Systems.Networking.Server;
 /// </summary>
 public class MilestoneNetworkHandler
 {
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly ICivilizationMilestoneManager _milestoneManager;
     private readonly ICivilizationManager _civilizationManager;
     private readonly IReligionManager _religionManager;
@@ -24,7 +25,7 @@ public class MilestoneNetworkHandler
     private readonly IBlessingRegistry _blessingRegistry;
 
     public MilestoneNetworkHandler(
-        ILogger logger,
+        ILoggerWrapper logger,
         ICivilizationMilestoneManager milestoneManager,
         ICivilizationManager civilizationManager,
         IReligionManager religionManager,

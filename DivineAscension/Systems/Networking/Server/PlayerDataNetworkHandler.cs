@@ -25,7 +25,6 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
     private readonly IPlayerProgressionDataManager? _playerProgressionDataManager;
     private readonly IReligionManager? _religionManager;
     private readonly IReligionPrestigeManager? _religionPrestigeManager;
-    private readonly ILogger? _logger;
     private readonly IWorldService? _worldService;
     private readonly IEventService? _eventService;
     private readonly INetworkService? _networkService;
@@ -35,7 +34,7 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
     ///     Initialize the handler with all required dependencies.
     ///     This must be called before RegisterHandlers.
     /// </summary>
-    public PlayerDataNetworkHandler(ILogger logger,
+    public PlayerDataNetworkHandler(
         IWorldService worldService,
         IEventService eventService,
         INetworkService networkService,
@@ -44,7 +43,6 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
         IReligionPrestigeManager religionPrestigeManager,
         GameBalanceConfig config)
     {
-        _logger = logger;
         _worldService = worldService;
         _eventService = eventService;
         _networkService = networkService;

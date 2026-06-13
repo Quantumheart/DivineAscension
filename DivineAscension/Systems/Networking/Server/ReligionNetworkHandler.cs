@@ -24,7 +24,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionManager _religionManager;
     private readonly IRoleManager _roleManager;
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly INetworkService _networkService;
     private readonly IPlayerMessengerService _messengerService;
     private readonly ICooldownManager _cooldownManager;
@@ -34,7 +34,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
     ///     Constructor for dependency injection
     /// </summary>
     public ReligionNetworkHandler(
-        ILogger logger,
+        ILoggerWrapper logger,
         IReligionManager religionManager,
         IPlayerProgressionDataManager playerProgressionDataManager,
         IRoleManager roleManager,

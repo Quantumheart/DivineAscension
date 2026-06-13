@@ -1,6 +1,7 @@
 using System.Linq;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Network;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -12,13 +13,13 @@ namespace DivineAscension.Systems.Networking.Server;
 /// </summary>
 public class ActivityNetworkHandler
 {
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly IActivityLogManager _activityLogManager;
     private readonly IReligionManager _religionManager;
     private readonly INetworkService _networkService;
 
     public ActivityNetworkHandler(
-        ILogger logger,
+        ILoggerWrapper logger,
         IActivityLogManager activityLogManager,
         IReligionManager religionManager,
         INetworkService networkService)

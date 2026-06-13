@@ -22,7 +22,7 @@ public class ReligionManager : IReligionManager
     private const string DATA_KEY = "divineascension_religions";
     private const string INVITE_DATA_KEY = "divineascension_religion_invites";
     private readonly IEventService _eventService;
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly IPersistenceService _persistenceService;
     private readonly ConcurrentDictionary<string, string> _playerToReligionIndex = new();
     private readonly ConcurrentDictionary<string, ReligionData> _religions = new();
@@ -31,7 +31,7 @@ public class ReligionManager : IReligionManager
     private ReligionWorldData _inviteData = new();
 
     public ReligionManager(
-        ILogger logger,
+        ILoggerWrapper logger,
         IEventService eventService,
         IPersistenceService persistenceService,
         IWorldService worldService)

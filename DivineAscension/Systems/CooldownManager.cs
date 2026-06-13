@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Utilities;
 using Vintagestory.API.Common;
@@ -21,7 +22,7 @@ public class CooldownManager : ICooldownManager
     private readonly ModConfigData _config;
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<CooldownType, long>> _cooldowns = new();
     private readonly IEventService _eventService;
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly IWorldService _worldService;
     private long _cleanupCallbackId;
 
@@ -32,7 +33,7 @@ public class CooldownManager : ICooldownManager
     /// <param name="eventService">Event service for periodic callbacks</param>
     /// <param name="worldService">World service for player and time access</param>
     /// <param name="config">Mod configuration containing cooldown durations</param>
-    public CooldownManager(ILogger logger, IEventService eventService, IWorldService worldService, ModConfigData config)
+    public CooldownManager(ILoggerWrapper logger, IEventService eventService, IWorldService worldService, ModConfigData config)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));

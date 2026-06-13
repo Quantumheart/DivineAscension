@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Services;
 using DivineAscension.Systems.BuffSystem;
 using DivineAscension.Tests.Helpers;
 using Moq;
@@ -16,13 +17,12 @@ public class BuffManagerTests
 {
     private readonly BuffManager _buffManager;
     private readonly Mock<ICoreServerAPI> _mockAPI;
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<ILoggerWrapper> _mockLogger;
 
     public BuffManagerTests()
     {
         _mockAPI = TestFixtures.CreateMockServerAPI();
-        _mockLogger = new Mock<ILogger>();
-        _mockAPI.Setup(a => a.Logger).Returns(_mockLogger.Object);
+        _mockLogger = new Mock<ILoggerWrapper>();
 
         var fakeWorldService = new FakeWorldService();
         _buffManager = new BuffManager(_mockLogger.Object, fakeWorldService);

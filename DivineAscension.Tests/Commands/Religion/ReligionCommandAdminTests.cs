@@ -43,7 +43,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
             _mockCooldownManager.Object,
             _mockMessengerService.Object,
             _mockWorldService.Object,
-            _mockLogger.Object);
+            _mockLoggerWrapper.Object);
     }
 
     #region /religion admin repair tests
