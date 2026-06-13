@@ -22,7 +22,7 @@ namespace DivineAscension.Systems.Networking.Server;
 /// </summary>
 [ExcludeFromCodeCoverage]
 public class CivilizationNetworkHandler(
-    ILogger logger,
+    ILoggerWrapper logger,
     ICoreServerAPI sapi,
     CivilizationManager civilizationManager,
     IReligionManager religionManager,
@@ -32,7 +32,7 @@ public class CivilizationNetworkHandler(
     ICivilizationMilestoneManager milestoneManager)
     : IServerNetworkHandler
 {
-    private readonly ILogger _logger = logger;
+    private readonly ILoggerWrapper _logger = logger;
     private readonly ICoreServerAPI _sapi = sapi;
     private readonly INetworkService _networkService = networkService;
     private readonly IDiplomacyManager _diplomacyManager = diplomacyManager;

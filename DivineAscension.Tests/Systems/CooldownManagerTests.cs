@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Tests.Helpers;
 using Moq;
@@ -20,11 +21,11 @@ public class CooldownManagerTests
     private readonly CooldownManager _cooldownManager;
     private readonly FakeEventService _fakeEventService;
     private readonly FakeWorldService _fakeWorldService;
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<ILoggerWrapper> _mockLogger;
 
     public CooldownManagerTests()
     {
-        _mockLogger = new Mock<ILogger>();
+        _mockLogger = new Mock<ILoggerWrapper>();
         _fakeEventService = new FakeEventService();
         _fakeWorldService = new FakeWorldService();
         _config = new ModConfigData();

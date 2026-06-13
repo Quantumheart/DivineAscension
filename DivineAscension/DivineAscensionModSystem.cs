@@ -95,7 +95,10 @@ public class DivineAscensionModSystem : ModSystem
         // Initialize logging service FIRST (before any logging occurs)
         var loggingConfig = LoggingConfig.Default(); // or LoggingConfig.Silent()
         LoggingService.Instance.Initialize(api.Logger, loggingConfig);
-        
+
+        // ModSystem startup intentionally logs through the raw api.Logger: these lines run
+        // during Start/StartServerSide bootstrap, where the per-category ILoggerWrapper
+        // instances aren't created yet. Everything past initialization uses ILoggerWrapper.
         api.Logger.Notification("[DivineAscension] Mod loaded!");
 
         // Initialize profanity filter service

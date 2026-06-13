@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Tests.Helpers;
 using Moq;
@@ -21,7 +22,7 @@ public class SacredCalendarTests
     private readonly FakeEventService _events = new();
     private readonly FakePersistenceService _persistence = new();
     private readonly FakeWorldService _world = new();
-    private readonly Mock<ILogger> _logger = new();
+    private readonly Mock<ILoggerWrapper> _logger = new();
 
     private ReligionManager NewManager() =>
         new(_logger.Object, _events, _persistence, _world);

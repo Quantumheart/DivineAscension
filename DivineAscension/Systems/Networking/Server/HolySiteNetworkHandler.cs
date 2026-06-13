@@ -23,14 +23,14 @@ namespace DivineAscension.Systems.Networking.Server;
 public class HolySiteNetworkHandler : IServerNetworkHandler
 {
     private readonly IHolySiteManager _holySiteManager;
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly INetworkService _networkService;
     private readonly IReligionManager _religionManager;
     private readonly IRitualProgressManager _ritualProgressManager;
     private readonly Services.Interfaces.IRitualLoader _ritualLoader;
 
     public HolySiteNetworkHandler(
-        ILogger logger,
+        ILoggerWrapper logger,
         IHolySiteManager holySiteManager,
         IReligionManager religionManager,
         INetworkService networkService,

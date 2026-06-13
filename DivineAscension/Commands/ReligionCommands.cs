@@ -32,7 +32,7 @@ public class ReligionCommands(
     ICooldownManager cooldownManager,
     IPlayerMessengerService messengerService,
     IWorldService worldService,
-    ILogger logger)
+    ILoggerWrapper logger)
 {
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
@@ -60,7 +60,7 @@ public class ReligionCommands(
     private readonly IWorldService _worldService =
         worldService ?? throw new ArgumentNullException(nameof(worldService));
 
-    private readonly ILogger _logger =
+    private readonly ILoggerWrapper _logger =
         logger ?? throw new ArgumentNullException(nameof(logger));
 
     /// <summary>

@@ -23,7 +23,7 @@ namespace DivineAscension.Systems.Networking.Server;
 [ExcludeFromCodeCoverage]
 public class DiplomacyNetworkHandler : IServerNetworkHandler
 {
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly IDiplomacyManager _diplomacyManager;
     private readonly CivilizationManager _civilizationManager;
     private readonly IReligionManager _religionManager;
@@ -33,7 +33,7 @@ public class DiplomacyNetworkHandler : IServerNetworkHandler
     private readonly IWorldService _worldService;
 
     public DiplomacyNetworkHandler(
-        ILogger logger,
+        ILoggerWrapper logger,
         IDiplomacyManager diplomacyManager,
         CivilizationManager civilizationManager,
         IReligionManager religionManager,

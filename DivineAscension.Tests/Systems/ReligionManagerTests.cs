@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
@@ -23,14 +24,13 @@ public class ReligionManagerTests
     private readonly FakePersistenceService _fakePersistenceService;
     private readonly FakeWorldService _fakeWorldService;
     private readonly Mock<ICoreServerAPI> _mockAPI;
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<ILoggerWrapper> _mockLogger;
     private readonly ReligionManager _religionManager;
 
     public ReligionManagerTests()
     {
         _mockAPI = TestFixtures.CreateMockServerAPI();
-        _mockLogger = new Mock<ILogger>();
-        _mockAPI.Setup(a => a.Logger).Returns(_mockLogger.Object);
+        _mockLogger = new Mock<ILoggerWrapper>();
 
         _fakeEventService = new FakeEventService();
         _fakePersistenceService = new FakePersistenceService();

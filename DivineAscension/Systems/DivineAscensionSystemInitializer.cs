@@ -48,7 +48,6 @@ public static class DivineAscensionSystemInitializer
         api.Logger.Notification("[DivineAscension] Starting server-side system initialization...");
 
         // Create API wrapper services
-        var logger = api.Logger;
         var eventService = new ServerEventService(api.Event);
         var persistenceService = new ServerPersistenceService(api.WorldManager.SaveGame);
         var worldService = new ServerWorldService(api.World);
@@ -60,7 +59,8 @@ public static class DivineAscensionSystemInitializer
         LocalizationService.Instance.InitializeServer(api);
 
         // Initialize cooldown manager (early to prevent griefing attacks)
-        var cooldownManager = new CooldownManager(logger, eventService, worldService, modConfig);
+        var cooldownManager = new CooldownManager(LoggingService.Instance.CreateLogger("CooldownManager"),
+            eventService, worldService, modConfig);
         cooldownManager.Initialize();
 
         // Step 1: Clear any static event subscribers from previous loads
@@ -82,7 +82,8 @@ public static class DivineAscensionSystemInitializer
 
         api.RegisterEntityBehaviorClass("DivineAscensionBuffTracker", typeof(EntityBehaviorBuffTracker));
 
-        var religionManager = new ReligionManager(logger, eventService, persistenceService, worldService);
+        var religionManager = new ReligionManager(LoggingService.Instance.CreateLogger("ReligionManager"),
+            eventService, persistenceService, worldService);
         religionManager.Initialize();
 
         // Migrate existing religions with empty deity names (for backward compatibility)
@@ -259,7 +260,7 @@ public static class DivineAscensionSystemInitializer
         milestoneLoader.LoadMilestones();
 
         // Initialize Buff Manager (must be before AltarPrayerHandler)
-        var buffManager = new BuffManager(logger, worldService);
+        var buffManager = new BuffManager(LoggingService.Instance.CreateLogger("BuffManager"), worldService);
 
         // Create progression service facade (encapsulates favor, prestige, and activity logging)
         IPlayerProgressionService progressionService = new PlayerProgressionService(
@@ -402,7 +403,7 @@ public static class DivineAscensionSystemInitializer
 
         var religionCommands = new ReligionCommands(api, religionManager, playerReligionDataManager,
             religionPrestigeManager, networkService, roleManager, cooldownManager, messengerService, worldService,
-            logger);
+            LoggingService.Instance.CreateLogger("ReligionCommands"));
         religionCommands.RegisterCommands();
 
         var roleCommands =
@@ -411,7 +412,8 @@ public static class DivineAscensionSystemInitializer
 
         var civilizationCommands =
             new CivilizationCommands(api, civilizationManager, religionManager, playerReligionDataManager,
-                cooldownManager, messengerService, worldService, logger);
+                cooldownManager, messengerService, worldService,
+                LoggingService.Instance.CreateLogger("CivilizationCommands"));
         civilizationCommands.RegisterCommands();
 
         var holySiteCommands = new HolySiteCommands(
@@ -422,7 +424,6 @@ public static class DivineAscensionSystemInitializer
 
         // Create and initialize network handlers
         var playerDataHandler = new PlayerDataNetworkHandler(
-            logger,
             worldService,
             eventService,
             networkService,
@@ -450,7 +451,7 @@ public static class DivineAscensionSystemInitializer
             freeRespecWindow);
 
         var blessingHandler = new BlessingNetworkHandler(
-            logger,
+            LoggingService.Instance.CreateLogger("BlessingNetworkHandler"),
             blessingRegistry,
             blessingEffectSystem,
             playerReligionDataManager,
@@ -466,7 +467,7 @@ public static class DivineAscensionSystemInitializer
         blessingHandler.RegisterHandlers();
 
         var religionHandler = new ReligionNetworkHandler(
-            logger,
+            LoggingService.Instance.CreateLogger("ReligionNetworkHandler"),
             religionManager,
             playerReligionDataManager,
             roleManager,
@@ -477,7 +478,7 @@ public static class DivineAscensionSystemInitializer
         religionHandler.RegisterHandlers();
 
         var civilizationHandler = new CivilizationNetworkHandler(
-            logger,
+            LoggingService.Instance.CreateLogger("CivilizationNetworkHandler"),
             api,
             civilizationManager,
             religionManager,
@@ -488,7 +489,7 @@ public static class DivineAscensionSystemInitializer
         civilizationHandler.RegisterHandlers();
 
         var diplomacyHandler = new DiplomacyNetworkHandler(
-            logger,
+            LoggingService.Instance.CreateLogger("DiplomacyNetworkHandler"),
             diplomacyManager,
             civilizationManager,
             religionManager,
@@ -499,14 +500,14 @@ public static class DivineAscensionSystemInitializer
         diplomacyHandler.RegisterHandlers();
 
         var activityHandler = new ActivityNetworkHandler(
-            logger,
+            LoggingService.Instance.CreateLogger("ActivityNetworkHandler"),
             activityLogManager,
             religionManager,
             networkService);
         activityHandler.RegisterHandlers();
 
         var holySiteHandler = new HolySiteNetworkHandler(
-            logger,
+            LoggingService.Instance.CreateLogger("HolySiteNetworkHandler"),
             holySiteManager,
             religionManager,
             networkService,
@@ -515,7 +516,7 @@ public static class DivineAscensionSystemInitializer
         holySiteHandler.RegisterHandlers();
 
         var milestoneHandler = new MilestoneNetworkHandler(
-            logger,
+            LoggingService.Instance.CreateLogger("MilestoneNetworkHandler"),
             civilizationMilestoneManager,
             civilizationManager,
             religionManager,

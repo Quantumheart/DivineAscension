@@ -257,6 +257,30 @@ public static class TestFixtures
         );
     }
 
+    /// <summary>
+    ///     Verifies that a wrapped-logger notification was called with the expected message substring
+    /// </summary>
+    public static void VerifyLoggerNotification(Mock<ILoggerWrapper> mockLogger, string expectedSubstring)
+    {
+        mockLogger.Verify(
+            l => l.Notification(It.Is<string>(s => s.Contains(expectedSubstring))),
+            Times.AtLeastOnce(),
+            $"Expected logger notification containing: {expectedSubstring}"
+        );
+    }
+
+    /// <summary>
+    ///     Verifies that a wrapped-logger debug message was called with the expected message substring
+    /// </summary>
+    public static void VerifyLoggerDebug(Mock<ILoggerWrapper> mockLogger, string expectedSubstring)
+    {
+        mockLogger.Verify(
+            l => l.Debug(It.Is<string>(s => s.Contains(expectedSubstring))),
+            Times.AtLeastOnce(),
+            $"Expected logger debug containing: {expectedSubstring}"
+        );
+    }
+
     #endregion
 
     #region Localization Helpers

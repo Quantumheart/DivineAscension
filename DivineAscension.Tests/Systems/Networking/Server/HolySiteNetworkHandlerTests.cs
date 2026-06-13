@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network.HolySite;
+using DivineAscension.Services;
 using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Server;
@@ -20,7 +21,7 @@ public class HolySiteNetworkHandlerTests
 {
     private readonly HolySiteNetworkHandler _handler;
     private readonly Mock<IHolySiteManager> _mockHolySiteManager;
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<ILoggerWrapper> _mockLogger;
     private readonly Mock<IServerPlayer> _mockPlayer;
     private readonly Mock<IReligionManager> _mockReligionManager;
     private readonly Mock<IRitualProgressManager> _mockRitualProgressManager;
@@ -34,7 +35,7 @@ public class HolySiteNetworkHandlerTests
         _mockPlayer.Setup(p => p.PlayerUID).Returns("player1");
         _mockPlayer.Setup(p => p.PlayerName).Returns("Player One");
 
-        _mockLogger = new Mock<ILogger>();
+        _mockLogger = new Mock<ILoggerWrapper>();
         _mockHolySiteManager = new Mock<IHolySiteManager>();
         _mockReligionManager = new Mock<IReligionManager>();
         _mockRitualProgressManager = new Mock<IRitualProgressManager>();

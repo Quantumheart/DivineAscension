@@ -4,6 +4,7 @@ using DivineAscension.Commands;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
@@ -19,6 +20,7 @@ public class ReligionCommandsTestHelpers
 {
     protected Mock<IChatCommandApi> _mockChatCommands;
     protected Mock<ILogger> _mockLogger;
+    protected Mock<ILoggerWrapper> _mockLoggerWrapper;
     protected Mock<ICoreServerAPI> _mockSapi;
     protected Mock<IServerWorldAccessor> _mockWorld;
     protected Mock<IPlayerProgressionDataManager> _playerProgressionDataManager;
@@ -36,6 +38,7 @@ public class ReligionCommandsTestHelpers
 
         _mockSapi = new Mock<ICoreServerAPI>();
         _mockLogger = new Mock<ILogger>();
+        _mockLoggerWrapper = new Mock<ILoggerWrapper>();
         _mockChatCommands = new Mock<IChatCommandApi>();
         _mockWorld = new Mock<IServerWorldAccessor>();
 
@@ -77,7 +80,7 @@ public class ReligionCommandsTestHelpers
             mockCooldownManager.Object,
             _mockMessengerService.Object,
             _mockWorldService.Object,
-            _mockLogger.Object);
+            _mockLoggerWrapper.Object);
     }
 
     /// <summary>

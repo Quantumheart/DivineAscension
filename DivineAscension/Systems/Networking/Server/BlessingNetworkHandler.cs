@@ -24,7 +24,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
 {
     private static readonly IReadOnlyList<DeityDomain> AllDeities = DeityDomains.All;
 
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly BlessingRegistry _blessingRegistry;
     private readonly BlessingEffectSystem _blessingEffectSystem;
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
@@ -39,7 +39,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
     private readonly IFreeRespecWindow _freeRespecWindow;
 
     public BlessingNetworkHandler(
-        ILogger logger,
+        ILoggerWrapper logger,
         BlessingRegistry blessingRegistry,
         BlessingEffectSystem blessingEffectSystem,
         IPlayerProgressionDataManager playerProgressionDataManager,

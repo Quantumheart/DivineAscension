@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DivineAscension.API.Interfaces;
+using DivineAscension.Services;
 using DivineAscension.Systems.BuffSystem.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -13,10 +14,10 @@ namespace DivineAscension.Systems.BuffSystem;
 /// </summary>
 public class BuffManager : IBuffManager
 {
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly IWorldService _worldService;
 
-    public BuffManager(ILogger logger, IWorldService worldService)
+    public BuffManager(ILoggerWrapper logger, IWorldService worldService)
     {
         _logger = logger;
         _worldService = worldService;
