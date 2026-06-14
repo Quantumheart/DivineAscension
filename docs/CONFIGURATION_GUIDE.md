@@ -101,6 +101,17 @@ Rate-limits destructive operations to prevent griefing.
 
 ---
 
+## Logging
+
+Control how much the mod logs with four per-level toggles in
+`ModConfig/divineascension.yaml` (requires [ConfigLib](https://mods.vintagestory.at/configlib)):
+`EnableDebugLogs`, `EnableNotificationLogs`, `EnableWarningLogs`, `EnableErrorLogs`
+(all default `true`). Uncheck all four for complete silence. Changes made via the
+ConfigLib GUI apply live. See
+[topics/configuration/logging.md](topics/configuration/logging.md) for details.
+
+---
+
 ## Data Files
 
 Customize blessings, offerings, and rituals via JSON files in `assets/divineascension/config/`.

@@ -39,6 +39,21 @@ public class LoggingService
     }
 
     /// <summary>
+    ///     The current logging configuration. Wrappers read this live on every call, so config
+    ///     changes (or a re-Initialize from the other game side) take effect immediately.
+    /// </summary>
+    internal LoggingConfig CurrentConfig => _config;
+
+    /// <summary>
+    ///     Applies new logging settings to the live configuration, mutating the current config
+    ///     instance in place so loggers already handed out reflect the change without a restart.
+    /// </summary>
+    public void ApplyConfig(LoggingConfig source)
+    {
+        _config.CopyFrom(source ?? throw new ArgumentNullException(nameof(source)));
+    }
+
+    /// <summary>
     ///     Create a logger wrapper for a specific category.
     /// </summary>
     public ILoggerWrapper CreateLogger(string category)
@@ -48,7 +63,7 @@ public class LoggingService
             throw new InvalidOperationException("LoggingService must be initialized before creating loggers");
         }
 
-        return new LoggerWrapper(_logger, _config, category);
+        return new LoggerWrapper(this, _logger, category);
     }
 
     /// <summary>
@@ -79,76 +94,88 @@ public interface ILoggerWrapper
 /// </summary>
 internal class LoggerWrapper : ILoggerWrapper
 {
+    private readonly LoggingService _service;
     private readonly ILogger _logger;
-    private readonly LoggingConfig _config;
     private readonly string _category;
 
-    public LoggerWrapper(ILogger logger, LoggingConfig config, string category)
+    public LoggerWrapper(LoggingService service, ILogger logger, string category)
     {
+        _service = service;
         _logger = logger;
-        _config = config;
         _category = category;
     }
 
+    // Read the config LIVE on every call instead of snapshotting it at construction. The service
+    // is a process-wide singleton that both the client and server ModSystem initialize, and runtime
+    // config changes mutate it — a captured reference would go stale and ignore those updates.
+    private LoggingConfig Config => _service.CurrentConfig;
+
     public void Debug(string message)
     {
-        if (!_config.EnableDebug) return;
-        if (IsFilteredOut()) return;
+        var config = Config;
+        if (!config.EnableDebug) return;
+        if (IsFilteredOut(config)) return;
         _logger.Debug(message);
     }
 
     public void Notification(string message)
     {
-        if (!_config.EnableNotification) return;
-        if (IsFilteredOut()) return;
+        var config = Config;
+        if (!config.EnableNotification) return;
+        if (IsFilteredOut(config)) return;
         _logger.Notification(message);
     }
 
     public void Warning(string message)
     {
-        if (!_config.EnableWarning) return;
-        if (IsFilteredOut()) return;
+        var config = Config;
+        if (!config.EnableWarning) return;
+        if (IsFilteredOut(config)) return;
         _logger.Warning(message);
     }
 
     public void Error(string message)
     {
-        if (!_config.EnableError) return;
-        if (IsFilteredOut()) return;
+        var config = Config;
+        if (!config.EnableError) return;
+        if (IsFilteredOut(config)) return;
         _logger.Error(message);
     }
 
     public void Event(string message)
     {
-        if (!_config.EnableEvent) return;
-        if (IsFilteredOut()) return;
+        var config = Config;
+        if (!config.EnableEvent) return;
+        if (IsFilteredOut(config)) return;
         _logger.Event(message);
     }
 
     public void Build(string message)
     {
-        if (!_config.EnableBuild) return;
-        if (IsFilteredOut()) return;
+        var config = Config;
+        if (!config.EnableBuild) return;
+        if (IsFilteredOut(config)) return;
         _logger.Build(message);
     }
 
     public void Chat(string message)
     {
-        if (!_config.EnableChat) return;
-        if (IsFilteredOut()) return;
+        var config = Config;
+        if (!config.EnableChat) return;
+        if (IsFilteredOut(config)) return;
         _logger.Chat(message);
     }
 
-    private bool IsFilteredOut()
+    private bool IsFilteredOut(LoggingConfig config)
     {
         // Check if this category is in the excluded categories list
-        if (_config.ExcludedCategories.Contains(_category))
+        if (config.ExcludedCategories.Contains(_category))
         {
             return true;
         }
 
         // Check if this category is in the included categories list (if list is not empty)
-        if (_config.IncludedCategories.Count > 0 && !_config.IncludedCategories.Contains(_category))
+        if (config.IncludedCategories.Count > 0 && !config.IncludedCategories.Contains(_category))
         {
             return true;
         }

@@ -124,4 +124,22 @@ public class LoggingConfig
     {
         return new LoggingConfig();
     }
+
+    /// <summary>
+    ///     Copies the level toggles and category filters from another config into this instance,
+    ///     mutating it in place. Lets a shared config object be re-tuned at runtime without
+    ///     replacing the reference held by already-created logger wrappers.
+    /// </summary>
+    public void CopyFrom(LoggingConfig other)
+    {
+        EnableDebug = other.EnableDebug;
+        EnableNotification = other.EnableNotification;
+        EnableWarning = other.EnableWarning;
+        EnableError = other.EnableError;
+        EnableEvent = other.EnableEvent;
+        EnableBuild = other.EnableBuild;
+        EnableChat = other.EnableChat;
+        ExcludedCategories = new HashSet<string>(other.ExcludedCategories);
+        IncludedCategories = new HashSet<string>(other.IncludedCategories);
+    }
 }
