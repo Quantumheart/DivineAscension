@@ -92,8 +92,10 @@ public class DivineAscensionModSystem : ModSystem
     public override void Start(ICoreAPI api)
     {
         base.Start(api);
-        // Initialize logging service FIRST (before any logging occurs)
-        var loggingConfig = LoggingConfig.Default(); // or LoggingConfig.Silent()
+        // Initialize logging service FIRST (before any logging occurs). Starts fully enabled for
+        // early bootstrap; the admin's GameBalanceConfig logging toggles are applied below once
+        // ConfigLib has loaded the config.
+        var loggingConfig = LoggingConfig.Default();
         LoggingService.Instance.Initialize(api.Logger, loggingConfig);
 
         // ModSystem startup intentionally logs through the raw api.Logger: these lines run
@@ -141,8 +143,18 @@ public class DivineAscensionModSystem : ModSystem
         catch (Exception ex)
         {
             api.Logger.Error($"[DivineAscension] Config validation failed: {ex.Message}. Using defaults.");
-            _gameBalanceConfig = new GameBalanceConfig(); // Reset to defaults
+            // Reset values IN PLACE — never replace the instance, ConfigLib holds a reference to it
+            // and writes GUI changes into it. Swapping it strands every later config change.
+            _gameBalanceConfig.CopyFrom(new GameBalanceConfig());
         }
+
+        // Apply the admin-selected logging levels now that ConfigLib (if present) has populated
+        // the config. Early bootstrap above logs at full verbosity since the toggles aren't known yet.
+        LoggingService.Instance.ApplyConfig(_gameBalanceConfig.BuildLoggingConfig());
+        api.Logger.Notification(
+            $"[DivineAscension] Logging levels — Debug:{_gameBalanceConfig.EnableDebugLogs} " +
+            $"Notification:{_gameBalanceConfig.EnableNotificationLogs} Warning:{_gameBalanceConfig.EnableWarningLogs} " +
+            $"Error:{_gameBalanceConfig.EnableErrorLogs}");
 
         // Register network channel and message types
         api.Network.RegisterChannel(NETWORK_CHANNEL)
@@ -504,9 +516,9 @@ public class DivineAscensionModSystem : ModSystem
                 "divineascension", // domain (string)
                 _gameBalanceConfig, // configObject (object)
                 null, // path (string?) - optional, use default
-                null, // onSyncedFromServer (Action?) - optional
+                (Action)OnConfigReloaded, // onSyncedFromServer - re-apply logging after a server sync
                 (Action<string>)OnConfigChanged, // onSettingChanged (Action<string>?) - our callback
-                null // onConfigSaved (Action?) - optional
+                (Action)OnConfigReloaded // onConfigSaved - re-apply logging after a GUI save
             });
 
             api.Logger.Notification(
@@ -520,10 +532,25 @@ public class DivineAscensionModSystem : ModSystem
     }
 
     /// <summary>
+    /// Called by ConfigLib after the config is saved (GUI edit) or synced from the server.
+    /// Re-applies logging levels regardless of which callback ConfigLib uses for the change.
+    /// </summary>
+    private void OnConfigReloaded()
+    {
+        LoggingService.Instance.ApplyConfig(_gameBalanceConfig.BuildLoggingConfig());
+    }
+
+    /// <summary>
     /// Called by ConfigLib when configuration settings change at runtime.
     /// </summary>
     private void OnConfigChanged(string settingCode)
     {
+        // Re-apply logging levels FIRST and unconditionally. Logging is independent of balance
+        // validation, so an invalid balance value (e.g. out-of-order thresholds changed in the same
+        // save) must not throw past this and leave the logs un-silenced. ApplyConfig mutates the
+        // shared LoggingConfig in place, so loggers already handed out pick up the change live.
+        LoggingService.Instance.ApplyConfig(_gameBalanceConfig.BuildLoggingConfig());
+
         try
         {
             foreach (var adjustment in _gameBalanceConfig.ClampBlessingSlots())

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace DivineAscension.Configuration;
 
@@ -213,6 +214,62 @@ public class GameBalanceConfig
 
     /// <summary>Favor/Prestige multiplier for Tier 3 holy sites (default: 1.75)</summary>
     public float HolySiteTier3Multiplier { get; set; } = 1.75f;
+
+    // === LOGGING ===
+    //
+    // Per-level toggles for the mod's category loggers. Booleans render as checkboxes in the
+    // ConfigLib GUI and round-trip reliably through YAML. Defaults are all-on, matching prior
+    // behaviour. Uncheck all four for complete silence. Applied at startup and re-applied live
+    // when changed via the ConfigLib GUI. Event/Build/Chat levels follow the notification toggle.
+
+    /// <summary>Enable Debug-level logs — verbose, highest volume (default: true).</summary>
+    public bool EnableDebugLogs { get; set; } = true;
+
+    /// <summary>Enable Notification-level logs — startup and major events (default: true).</summary>
+    public bool EnableNotificationLogs { get; set; } = true;
+
+    /// <summary>Enable Warning-level logs (default: true).</summary>
+    public bool EnableWarningLogs { get; set; } = true;
+
+    /// <summary>Enable Error-level logs — recommended to keep on (default: true).</summary>
+    public bool EnableErrorLogs { get; set; } = true;
+
+    /// <summary>
+    /// Builds the <see cref="LoggingConfig" /> described by the per-level toggles above.
+    /// Event/Build/Chat (rarely used) follow the notification toggle.
+    /// </summary>
+    public LoggingConfig BuildLoggingConfig()
+    {
+        return new LoggingConfig
+        {
+            EnableDebug = EnableDebugLogs,
+            EnableNotification = EnableNotificationLogs,
+            EnableWarning = EnableWarningLogs,
+            EnableError = EnableErrorLogs,
+            EnableEvent = EnableNotificationLogs,
+            EnableBuild = EnableNotificationLogs,
+            EnableChat = EnableNotificationLogs
+        };
+    }
+
+    // === RESET ===
+
+    /// <summary>
+    /// Copies every settable property from <paramref name="other" /> into this instance.
+    /// Used to reset to defaults in place after a failed validation WITHOUT replacing the object
+    /// reference — ConfigLib holds a reference to the registered instance and writes GUI changes
+    /// into it, so swapping the reference would strand ConfigLib's updates on an orphaned object.
+    /// </summary>
+    public void CopyFrom(GameBalanceConfig other)
+    {
+        foreach (var property in typeof(GameBalanceConfig).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        {
+            if (property.CanRead && property.CanWrite)
+            {
+                property.SetValue(this, property.GetValue(other));
+            }
+        }
+    }
 
     // === VALIDATION ===
 
