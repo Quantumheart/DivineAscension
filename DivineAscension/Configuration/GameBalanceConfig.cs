@@ -222,9 +222,10 @@ public class GameBalanceConfig
     // less output. Applied at startup and re-applied live when changed via the ConfigLib GUI.
     // Event/Build/Chat levels follow the notification toggle.
     //
-    // These toggles only take effect in Debug builds. Release builds suppress all wrapper logging
-    // regardless of these values (see LoggingService.DebugBuild) — a shipped install logs only its
-    // one-shot bootstrap lines.
+    // Debug/Notification (and the Event/Build/Chat that follow it) only take effect in Debug builds;
+    // Release suppresses those noisy levels regardless of these values (see LoggingService.DebugBuild).
+    // Warning and Error take effect in BOTH builds so a shipped server keeps a repro trail — their
+    // toggles still apply, so unchecking them silences even Release.
 
     /// <summary>Enable Debug-level logs — verbose, highest volume (default: true; Debug builds only).</summary>
     public bool EnableDebugLogs { get; set; } = true;
@@ -232,10 +233,10 @@ public class GameBalanceConfig
     /// <summary>Enable Notification-level logs — startup and major events (default: true; Debug builds only).</summary>
     public bool EnableNotificationLogs { get; set; } = true;
 
-    /// <summary>Enable Warning-level logs (default: true; Debug builds only).</summary>
+    /// <summary>Enable Warning-level logs (default: true; applies in Debug and Release).</summary>
     public bool EnableWarningLogs { get; set; } = true;
 
-    /// <summary>Enable Error-level logs (default: true; Debug builds only).</summary>
+    /// <summary>Enable Error-level logs — recommended to keep on (default: true; applies in Debug and Release).</summary>
     public bool EnableErrorLogs { get; set; } = true;
 
     /// <summary>
