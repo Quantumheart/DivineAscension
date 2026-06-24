@@ -187,6 +187,9 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         // Remove old modifiers first
         RemoveBlessingsFromPlayer(player);
 
+        // Resolve health behavior up front so we can translate health modifiers below.
+        var healthBehavior = agent.GetBehavior<EntityBehaviorHealth>();
+
         // Apply new modifiers
         var appliedCount = 0;
         var appliedSet = new HashSet<string>();
@@ -199,6 +202,14 @@ public class BlessingEffectSystem : IBlessingEffectSystem
             // Use namespaced modifier ID to avoid conflicts
             var modifierId = string.Format(SystemConstants.ModifierIdFormat, player.PlayerUID);
             var value = modifier.Value;
+
+            // VS EntityBehaviorHealth.UpdateMaxHealth() only consumes "maxhealthExtraPoints"
+            // (flat HP added to base); it never reads "maxhealthExtraMultiplier". Blessing data
+            // expresses max-health bonuses as a fractional multiplier, so convert that into flat
+            // extra points relative to the entity's base max health. Otherwise the value is stored
+            // in Stats (and echoed by the command) but never reaches the character sheet.
+            if (healthBehavior != null)
+                (statName, value) = TranslateHealthModifier(statName, value, healthBehavior.BaseMaxHealth);
 
             try
             {
@@ -225,7 +236,6 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         _appliedModifiers[player.PlayerUID] = appliedSet;
 
         // Force health recalculation after applying stats
-        var healthBehavior = agent.GetBehavior<EntityBehaviorHealth>();
         if (healthBehavior != null)
         {
             var beforeHealth = healthBehavior.MaxHealth;
@@ -244,6 +254,22 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         if (appliedCount > 0)
             _logger.Notification(
                 $"{SystemConstants.LogPrefix} {string.Format(SystemConstants.SuccessAppliedModifiersFormat, appliedCount, player.PlayerName)}");
+    }
+
+    /// <summary>
+    ///     Translates a raw blessing stat modifier into the key/value the VS engine actually reads.
+    ///     Max-health blessings are authored as a fractional multiplier ("maxhealthExtraMultiplier"),
+    ///     but <c>EntityBehaviorHealth.UpdateMaxHealth()</c> only honors flat "maxhealthExtraPoints"
+    ///     (added to base health). Convert the multiplier into flat points relative to base max health.
+    ///     All other stats pass through unchanged.
+    /// </summary>
+    internal static (string statName, float value) TranslateHealthModifier(string statName, float value,
+        float baseMaxHealth)
+    {
+        if (statName == VintageStoryStats.MaxHealthExtraMultiplier)
+            return (VintageStoryStats.MaxHealthExtraPoints, baseMaxHealth * value);
+
+        return (statName, value);
     }
 
     /// <summary>
@@ -386,6 +412,10 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         if (player.Entity == null || player.Entity.Stats == null) return;
 
         var stats = player.Entity.Stats;
+
+        // Max health: blessings store a multiplier but it is applied as flat extra points
+        // (see ApplyBlessingsToPlayer). WeightedSum base 1 so GetBlended-1 yields the points.
+        RegisterStatIfNeeded(stats, VintageStoryStats.MaxHealthExtraPoints, EnumStatBlendType.WeightedSum);
 
         // Craft (Forge & Craft) - Most are percentage modifiers
         // ToolDurability uses FlatSum (base 0) since we want the raw bonus value in our patch
