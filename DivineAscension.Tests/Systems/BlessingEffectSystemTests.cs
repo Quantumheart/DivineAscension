@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using DivineAscension.API.Interfaces;
+using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
@@ -718,6 +719,38 @@ public class BlessingEffectSystemTests
         _mockPlayerReligionDataManager.VerifyAdd(
             m => m.OnPlayerLeavesReligion += It.IsAny<PlayerProgressionDataManager.PlayerReligionDataChangedDelegate>(),
             Times.Once());
+    }
+
+    #endregion
+
+    #region TranslateHealthModifier Tests
+
+    [Fact]
+    public void TranslateHealthModifier_ConvertsHealthMultiplierToFlatPoints()
+    {
+        // Arrange - VS EntityBehaviorHealth only reads "maxhealthExtraPoints", never the
+        // "maxhealthExtraMultiplier" key the blessing data uses. 10% of a 15 HP base = +1.5 points.
+        const float baseMaxHealth = 15f;
+
+        // Act
+        var (statName, value) = BlessingEffectSystem.TranslateHealthModifier(
+            VintageStoryStats.MaxHealthExtraMultiplier, 0.10f, baseMaxHealth);
+
+        // Assert
+        Assert.Equal(VintageStoryStats.MaxHealthExtraPoints, statName);
+        Assert.Equal(1.5f, value, 3);
+    }
+
+    [Fact]
+    public void TranslateHealthModifier_LeavesOtherStatsUnchanged()
+    {
+        // Act
+        var (statName, value) = BlessingEffectSystem.TranslateHealthModifier(
+            VintageStoryStats.WalkSpeed, 0.10f, 15f);
+
+        // Assert - non-health stats pass through verbatim
+        Assert.Equal(VintageStoryStats.WalkSpeed, statName);
+        Assert.Equal(0.10f, value, 3);
     }
 
     #endregion
