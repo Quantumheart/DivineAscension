@@ -76,6 +76,9 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         Assert.Contains("Player", result.StatusMessage);
         Assert.Contains("Combat", result.StatusMessage);
         Assert.Contains("Channel divine power", result.StatusMessage);
+        // Labels are plain and the value is appended by the command. A stray "{0}" in any
+        // label string leaks an unsubstituted placeholder into chat (e.g. "Deity: {0} Craft").
+        Assert.DoesNotContain("{0}", result.StatusMessage);
     }
 
     [Fact]
