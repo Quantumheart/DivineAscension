@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Configuration;
 using DivineAscension.Services;
@@ -14,6 +15,11 @@ namespace DivineAscension.Tests.Services;
 [ExcludeFromCodeCoverage]
 public class LoggingServiceTests
 {
+    // A level that the config leaves enabled emits once in Debug builds, but never in Release —
+    // the wrapper suppresses every level in Release regardless of config (LoggingService.DebugBuild).
+    private static readonly Func<Times> EmittedWhenEnabled =
+        LoggingService.DebugBuild ? Times.Once : Times.Never;
+
     [Fact]
     public void ApplyConfig_Silent_SuppressesAlreadyCreatedLogger()
     {
@@ -23,7 +29,7 @@ public class LoggingServiceTests
         // Logger handed out BEFORE the config change (mirrors systems built at startup).
         var logger = LoggingService.Instance.CreateLogger("FavorSystem");
         logger.Notification("before");
-        underlying.Verify(l => l.Notification("before"), Times.Once);
+        underlying.Verify(l => l.Notification("before"), EmittedWhenEnabled);
 
         LoggingService.Instance.ApplyConfig(LoggingConfig.Silent());
 
@@ -57,7 +63,7 @@ public class LoggingServiceTests
         logger.Error("e");
 
         underlying.Verify(l => l.Debug("d"), Times.Never);
-        underlying.Verify(l => l.Error("e"), Times.Once);
+        underlying.Verify(l => l.Error("e"), EmittedWhenEnabled);
     }
 
     [Fact]
@@ -93,6 +99,6 @@ public class LoggingServiceTests
 
         logger.Notification("restored");
 
-        underlying.Verify(l => l.Notification("restored"), Times.Once);
+        underlying.Verify(l => l.Notification("restored"), EmittedWhenEnabled);
     }
 }

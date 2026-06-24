@@ -89,6 +89,14 @@ public class DivineAscensionModSystem : ModSystem
 
     public string ModName => "divineascension";
 
+    // One-shot bootstrap notifications. These run before the per-category ILoggerWrapper instances
+    // exist, so they use the raw logger and are NOT build-gated: they are deliberately the only logs
+    // a Release install emits (everything routed through the wrapper is suppressed in Release).
+    private static void BootNotify(ILogger logger, string message)
+    {
+        logger.Notification(message);
+    }
+
     public override void Start(ICoreAPI api)
     {
         base.Start(api);
@@ -101,7 +109,7 @@ public class DivineAscensionModSystem : ModSystem
         // ModSystem startup intentionally logs through the raw api.Logger: these lines run
         // during Start/StartServerSide bootstrap, where the per-category ILoggerWrapper
         // instances aren't created yet. Everything past initialization uses ILoggerWrapper.
-        api.Logger.Notification("[DivineAscension] Mod loaded!");
+        BootNotify(api.Logger, "[DivineAscension] Mod loaded!");
 
         // Initialize profanity filter service
         ProfanityFilterService.Instance.Initialize(api);
@@ -111,7 +119,7 @@ public class DivineAscensionModSystem : ModSystem
         {
             _harmony = new Harmony("com.divineascension.patches");
             _harmony.PatchAll(Assembly.GetExecutingAssembly());
-            api.Logger.Notification("[DivineAscension] Harmony patches registered.");
+            BootNotify(api.Logger, "[DivineAscension] Harmony patches registered.");
         }
 
         // Register BlockBehavior classes
@@ -123,7 +131,7 @@ public class DivineAscensionModSystem : ModSystem
         api.RegisterBlockBehaviorClass("DivineAscensionOre", typeof(BlockBehaviorOre));
         api.RegisterBlockBehaviorClass("DivineAscensionBlessedCrop", typeof(BlockBehaviorBlessedCrop));
         api.RegisterCollectibleBehaviorClass("ChiselTracking", typeof(CollectibleBehaviorChiselTracking));
-        api.Logger.Notification("[DivineAscension] Block and Collectible behavior classes registered");
+        BootNotify(api.Logger, "[DivineAscension] Block and Collectible behavior classes registered");
 
         // Register with ConfigLib if available
         TryRegisterWithConfigLib(api);
@@ -151,7 +159,7 @@ public class DivineAscensionModSystem : ModSystem
         // Apply the admin-selected logging levels now that ConfigLib (if present) has populated
         // the config. Early bootstrap above logs at full verbosity since the toggles aren't known yet.
         LoggingService.Instance.ApplyConfig(_gameBalanceConfig.BuildLoggingConfig());
-        api.Logger.Notification(
+        BootNotify(api.Logger,
             $"[DivineAscension] Logging levels — Debug:{_gameBalanceConfig.EnableDebugLogs} " +
             $"Notification:{_gameBalanceConfig.EnableNotificationLogs} Warning:{_gameBalanceConfig.EnableWarningLogs} " +
             $"Error:{_gameBalanceConfig.EnableErrorLogs}");
@@ -244,6 +252,17 @@ public class DivineAscensionModSystem : ModSystem
         base.AssetsFinalize(api);
 
         // Block behaviors are now applied via JSON patches in assets/divineascension/patches/
+
+        // Re-apply the admin's logging toggles now that ConfigLib has loaded the YAML.
+        //
+        // ConfigLib only writes a saved value into _gameBalanceConfig when that setting *changes*
+        // (its SettingChanged -> AssignSettingValue handler), and it loads the file during its own
+        // AssetsLoaded — AFTER our Start() ran the first ApplyConfig against the all-on defaults.
+        // It also only fires onSyncedFromServer (-> OnConfigReloaded) on the client side, so a server
+        // booting from a persisted "logging off" YAML never re-synced the LoggingService and kept
+        // logging at full volume until the admin toggled a setting. AssetsFinalize runs after every
+        // mod's AssetsLoaded on both sides, so _gameBalanceConfig reflects the disk values here.
+        LoggingService.Instance.ApplyConfig(_gameBalanceConfig.BuildLoggingConfig());
     }
 
     public override void StartServerSide(ICoreServerAPI api)
@@ -309,13 +328,13 @@ public class DivineAscensionModSystem : ModSystem
             SaveModConfig);
         configCommands.RegisterCommands();
 
-        api.Logger.Notification("[DivineAscension] Server-side initialization complete");
+        BootNotify(api.Logger, "[DivineAscension] Server-side initialization complete");
     }
 
     public override void StartClientSide(ICoreClientAPI api)
     {
         base.StartClientSide(api);
-        api.Logger.Notification("[DivineAscension] Initializing client-side systems...");
+        BootNotify(api.Logger, "[DivineAscension] Initializing client-side systems...");
 
         // Initialize thread safety utilities for telemetry
         ThreadSafetyUtils.Initialize(api);
@@ -333,7 +352,7 @@ public class DivineAscensionModSystem : ModSystem
         NetworkClient.RegisterHandlers(clientChannel);
         UiService = new UiService(NetworkClient);
 
-        api.Logger.Notification("[DivineAscension] Client-side initialization complete");
+        BootNotify(api.Logger, "[DivineAscension] Client-side initialization complete");
     }
 
     public override void Dispose()
@@ -448,12 +467,12 @@ public class DivineAscensionModSystem : ModSystem
     {
         if (!api.ModLoader.IsModEnabled("configlib"))
         {
-            api.Logger.Notification(
+            BootNotify(api.Logger,
                 "[DivineAscension] ConfigLib not installed. Using hardcoded default configuration. Install ConfigLib for in-game configuration GUI.");
             return;
         }
 
-        api.Logger.Notification("[DivineAscension] ConfigLib is enabled. Config file: ModConfig/divineascension.yaml");
+        BootNotify(api.Logger, "[DivineAscension] ConfigLib is enabled. Config file: ModConfig/divineascension.yaml");
 
         try
         {
@@ -521,13 +540,13 @@ public class DivineAscensionModSystem : ModSystem
                 (Action)OnConfigReloaded // onConfigSaved - re-apply logging after a GUI save
             });
 
-            api.Logger.Notification(
+            BootNotify(api.Logger,
                 "[DivineAscension] ConfigLib integration enabled. Config file: ModConfig/divineascension.yaml");
         }
         catch (Exception ex)
         {
             api.Logger.Error($"[DivineAscension] Failed to register with ConfigLib: {ex.Message}");
-            api.Logger.Notification("[DivineAscension] Using hardcoded default configuration");
+            BootNotify(api.Logger, "[DivineAscension] Using hardcoded default configuration");
         }
     }
 
