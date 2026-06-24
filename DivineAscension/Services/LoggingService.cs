@@ -12,9 +12,10 @@ public class LoggingService
 {
     /// <summary>
     ///     True only when the mod is compiled in a Debug configuration. In Release builds the logger
-    ///     wrappers suppress every level — errors included — regardless of the ConfigLib toggles, so a
-    ///     shipped install emits nothing beyond the one-shot bootstrap lines. In Debug builds the
-    ///     per-level config toggles apply normally.
+    ///     wrappers suppress the noisy levels (Debug/Notification/Event/Build/Chat) regardless of the
+    ///     ConfigLib toggles, so a shipped install stays quiet. Warning and Error always evaluate (in
+    ///     both builds) so a production server keeps a repro trail; they still honor their config
+    ///     toggles. In Debug builds every level's config toggle applies normally.
     /// </summary>
     internal static readonly bool DebugBuild =
 #if DEBUG
@@ -123,10 +124,10 @@ internal class LoggerWrapper : ILoggerWrapper
     // config changes mutate it — a captured reference would go stale and ignore those updates.
     private LoggingConfig Config => _service.CurrentConfig;
 
-    // Release builds emit nothing through the wrapper — every level, errors included, is suppressed
-    // (LoggingService.DebugBuild == false) regardless of the ConfigLib toggles. The only logs a
-    // shipped install produces are the one-shot bootstrap lines (see DivineAscensionModSystem). In
-    // Debug builds the per-level config toggles apply normally.
+    // In Release the noisy levels (Debug/Notification/Event/Build/Chat) are build-gated off
+    // regardless of the ConfigLib toggles, keeping a shipped install quiet. Warning and Error are
+    // NOT build-gated — they always evaluate so a production server keeps a repro trail — but they
+    // still honor their config toggles. In Debug builds every level's config toggle applies.
 
     public void Debug(string message)
     {
@@ -148,7 +149,6 @@ internal class LoggerWrapper : ILoggerWrapper
 
     public void Warning(string message)
     {
-        if (!LoggingService.DebugBuild) return;
         var config = Config;
         if (!config.EnableWarning) return;
         if (IsFilteredOut(config)) return;
@@ -157,7 +157,6 @@ internal class LoggerWrapper : ILoggerWrapper
 
     public void Error(string message)
     {
-        if (!LoggingService.DebugBuild) return;
         var config = Config;
         if (!config.EnableError) return;
         if (IsFilteredOut(config)) return;

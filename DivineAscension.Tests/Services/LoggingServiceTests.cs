@@ -15,8 +15,9 @@ namespace DivineAscension.Tests.Services;
 [ExcludeFromCodeCoverage]
 public class LoggingServiceTests
 {
-    // A level that the config leaves enabled emits once in Debug builds, but never in Release —
-    // the wrapper suppresses every level in Release regardless of config (LoggingService.DebugBuild).
+    // A build-gated noisy level (Debug/Notification/Event/Build/Chat) emits once in Debug builds but
+    // never in Release — the wrapper suppresses those levels in Release regardless of config
+    // (LoggingService.DebugBuild). Warning/Error are NOT build-gated and assert Times.Once directly.
     private static readonly Func<Times> EmittedWhenEnabled =
         LoggingService.DebugBuild ? Times.Once : Times.Never;
 
@@ -63,7 +64,8 @@ public class LoggingServiceTests
         logger.Error("e");
 
         underlying.Verify(l => l.Debug("d"), Times.Never);
-        underlying.Verify(l => l.Error("e"), EmittedWhenEnabled);
+        // Error is not build-gated — it emits in both Debug and Release when the toggle is on.
+        underlying.Verify(l => l.Error("e"), Times.Once);
     }
 
     [Fact]
