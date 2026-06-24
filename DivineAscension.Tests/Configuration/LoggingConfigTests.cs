@@ -9,7 +9,8 @@ public class LoggingConfigTests
     [Fact]
     public void GameBalanceConfig_DefaultsToAllLevelsEnabled()
     {
-        // No-config / legacy worlds must keep full logging.
+        // Defaults are all-on; these toggles drive Debug builds (Release suppresses wrapper logging
+        // entirely regardless — see LoggingService.DebugBuild).
         var config = new GameBalanceConfig();
 
         Assert.True(config.EnableDebugLogs);

@@ -218,20 +218,24 @@ public class GameBalanceConfig
     // === LOGGING ===
     //
     // Per-level toggles for the mod's category loggers. Booleans render as checkboxes in the
-    // ConfigLib GUI and round-trip reliably through YAML. Defaults are all-on, matching prior
-    // behaviour. Uncheck all four for complete silence. Applied at startup and re-applied live
-    // when changed via the ConfigLib GUI. Event/Build/Chat levels follow the notification toggle.
+    // ConfigLib GUI and round-trip reliably through YAML. Defaults are all-on. Uncheck levels for
+    // less output. Applied at startup and re-applied live when changed via the ConfigLib GUI.
+    // Event/Build/Chat levels follow the notification toggle.
+    //
+    // These toggles only take effect in Debug builds. Release builds suppress all wrapper logging
+    // regardless of these values (see LoggingService.DebugBuild) — a shipped install logs only its
+    // one-shot bootstrap lines.
 
-    /// <summary>Enable Debug-level logs — verbose, highest volume (default: true).</summary>
+    /// <summary>Enable Debug-level logs — verbose, highest volume (default: true; Debug builds only).</summary>
     public bool EnableDebugLogs { get; set; } = true;
 
-    /// <summary>Enable Notification-level logs — startup and major events (default: true).</summary>
+    /// <summary>Enable Notification-level logs — startup and major events (default: true; Debug builds only).</summary>
     public bool EnableNotificationLogs { get; set; } = true;
 
-    /// <summary>Enable Warning-level logs (default: true).</summary>
+    /// <summary>Enable Warning-level logs (default: true; Debug builds only).</summary>
     public bool EnableWarningLogs { get; set; } = true;
 
-    /// <summary>Enable Error-level logs — recommended to keep on (default: true).</summary>
+    /// <summary>Enable Error-level logs (default: true; Debug builds only).</summary>
     public bool EnableErrorLogs { get; set; } = true;
 
     /// <summary>
