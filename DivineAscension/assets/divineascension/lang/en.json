@@ -1560,6 +1560,11 @@
   "caravantrade.leave": "Leave the table",
   "caravantrade.cancelled": "The trade was called off.",
   "caravantrade.partner_left": "Your trading partner left the table.",
+  "caravantrade.shrine_broken": "The shrine was broken — the trade is off. Your wares are untouched.",
+  "caravantrade.too_far_leashed": "A trader strayed too far from the shrine; the trade was called off.",
+  "caravantrade.completed": "The bargain is struck — the wares have changed hands.",
+  "caravantrade.swap_missing_items": "The bargain fell through — a trader no longer holds what they offered. Your wares are untouched.",
+  "caravantrade.swap_failed": "The bargain could not be completed. Your wares are untouched.",
   "caravantrade.error.too_far": "You are too far from the shrine to trade here.",
   "caravantrade.error.full": "This trade table is already occupied by two traders.",
   "caravantrade.error.busy": "Finish your current trade before starting another."
