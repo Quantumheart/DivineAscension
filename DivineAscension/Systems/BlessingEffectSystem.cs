@@ -484,18 +484,13 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     /// <summary>
     ///     Helper to register a stat only if it doesn't already exist
     /// </summary>
-    private void RegisterStatIfNeeded(EntityStats stats, string statName, EnumStatBlendType blendType)
+    internal static void RegisterStatIfNeeded(EntityStats stats, string statName, EnumStatBlendType blendType)
     {
-        try
-        {
-            // Check if stat already exists by attempting to get it
-            // If it doesn't exist, Register it
-            stats.Register(statName, blendType);
-        }
-        catch (Exception)
-        {
-            // Stat already registered, ignore
-        }
+        foreach (var existing in stats)
+            if (existing.Key == statName)
+                return;
+
+        stats.Register(statName, blendType);
     }
 
     /// <summary>

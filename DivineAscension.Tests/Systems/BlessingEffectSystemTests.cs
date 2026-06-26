@@ -754,4 +754,40 @@ public class BlessingEffectSystemTests
     }
 
     #endregion
+
+    #region RegisterStatIfNeeded Tests
+
+    [Fact]
+    public void RegisterStatIfNeeded_PreservesExistingForeignModifiers()
+    {
+        // Arrange - simulate a VS character trait (e.g. a +15 HP "beefy" trait) that already wrote
+        // a flat-points modifier under "maxhealthExtraPoints" via Stats.Set(..., "trait", ...).
+        var stats = new EntityStats(null!);
+        var traitStat = new EntityFloatStats();
+        traitStat.Set("trait", 15f, true);
+        stats[VintageStoryStats.MaxHealthExtraPoints] = traitStat;
+
+        // Act - re-registering the stat (as happens on every player join) must not clobber the trait.
+        BlessingEffectSystem.RegisterStatIfNeeded(
+            stats, VintageStoryStats.MaxHealthExtraPoints, EnumStatBlendType.WeightedSum);
+
+        // Assert - WeightedSum of base(1) + trait(15) survives; the trait's +15 is intact.
+        Assert.Equal(16f, stats.GetBlended(VintageStoryStats.MaxHealthExtraPoints), 3);
+    }
+
+    [Fact]
+    public void RegisterStatIfNeeded_RegistersStatWhenAbsent()
+    {
+        // Arrange - fresh stats with nothing registered.
+        var stats = new EntityStats(null!);
+
+        // Act
+        BlessingEffectSystem.RegisterStatIfNeeded(
+            stats, VintageStoryStats.MaxHealthExtraPoints, EnumStatBlendType.WeightedSum);
+
+        // Assert - newly registered stat carries the default base value of 1.
+        Assert.Equal(1f, stats.GetBlended(VintageStoryStats.MaxHealthExtraPoints), 3);
+    }
+
+    #endregion
 }
