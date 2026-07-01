@@ -3,9 +3,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using DivineAscension.Network.Caravan;
 using DivineAscension.Services;
+using DivineAscension.Systems.Altar;
 using DivineAscension.Systems.Caravan;
 using DivineAscension.Tests.Helpers;
 using Moq;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Xunit;
 
@@ -25,6 +27,8 @@ public class CaravanTradeSessionManagerTests
     private readonly FakeWorldService _world = new();
     private readonly FakeEventService _events = new();
     private readonly SpyPlayerMessenger _messenger = new();
+    private readonly FakeCaravanTradeInventory _inventory = new();
+    private readonly AltarEventEmitter _emitter = new();
     private readonly CaravanTradeSessionManager _manager;
 
     private readonly IServerPlayer _alice;
@@ -38,7 +42,7 @@ public class CaravanTradeSessionManagerTests
     public CaravanTradeSessionManagerTests()
     {
         var logger = new Mock<ILoggerWrapper>().Object;
-        _manager = new CaravanTradeSessionManager(logger, _net, _world, _events, _messenger);
+        _manager = new CaravanTradeSessionManager(logger, _net, _world, _events, _messenger, _inventory, _emitter);
         _manager.Initialize();
 
         _alice = _world.CreatePlayer("alice", "Alice");
@@ -141,14 +145,12 @@ public class CaravanTradeSessionManagerTests
         Open(_alice, Shrine);
         Open(_bob, Shrine);
         SetReady(_alice, Shrine, true);
-        SetReady(_bob, Shrine, true);
 
         var sealedSync = LastSync();
         Assert.True(sealedSync!.SideAReady);
-        Assert.True(sealedSync.SideBReady);
 
-        // Alice changes her offer — both seals must break.
-        Offer(_alice, Shrine, "axe");
+        // Bob changes his offer — Alice's seal must break (any change voids both seals).
+        Offer(_bob, Shrine, "axe");
 
         var after = LastSync();
         Assert.False(after!.SideAReady);
@@ -166,17 +168,85 @@ public class CaravanTradeSessionManagerTests
     }
 
     [Fact]
-    public void SetReady_BothParties_ReachesSealedState()
+    public void SetReady_BothParties_WithItems_SwapsAndClosesSession()
     {
         Open(_alice, Shrine);
         Open(_bob, Shrine);
+        Offer(_alice, Shrine, "axe");
+        Offer(_bob, Shrine, "bread");
         SetReady(_alice, Shrine, true);
         SetReady(_bob, Shrine, true);
 
+        // The atomic swap fired exactly once and the table closed.
+        Assert.Equal(1, _inventory.SwapCount);
         var sync = LastSync();
-        Assert.True(sync!.SideAReady);
-        Assert.True(sync.SideBReady);
-        Assert.Equal(TradePhase.Active, sync.Phase);
+        Assert.Equal(TradePhase.Closed, sync!.Phase);
+        Assert.True(_messenger.GetMessageCountForPlayer("alice") > 0);
+        Assert.True(_messenger.GetMessageCountForPlayer("bob") > 0);
+
+        // Session is gone — further packets produce no new sync.
+        var before = SyncCount();
+        Offer(_alice, Shrine, "stick");
+        Assert.Equal(before, SyncCount());
+    }
+
+    [Fact]
+    public void SetReady_BothParties_MissingItems_AbortsSwap_UnsealsAndKeepsOpen()
+    {
+        _inventory.CanProvide["alice"] = false; // Alice no longer holds her offer
+
+        Open(_alice, Shrine);
+        Open(_bob, Shrine);
+        Offer(_alice, Shrine, "axe");
+        Offer(_bob, Shrine, "bread");
+        SetReady(_alice, Shrine, true);
+        SetReady(_bob, Shrine, true);
+
+        // No items moved; both seals dropped; table still open and usable.
+        Assert.Equal(0, _inventory.SwapCount);
+        var sync = LastSync();
+        Assert.Equal(TradePhase.Active, sync!.Phase);
+        Assert.False(sync.SideAReady);
+        Assert.False(sync.SideBReady);
+        Assert.True(_messenger.GetMessageCountForPlayer("alice") > 0);
+
+        // Session lives — Bob can still update his offer.
+        var before = SyncCount();
+        Offer(_bob, Shrine, "cheese");
+        Assert.True(SyncCount() > before);
+    }
+
+    [Fact]
+    public void ShrineBroken_ClosesActiveSession()
+    {
+        Open(_alice, Shrine);
+        Open(_bob, Shrine);
+
+        _emitter.RaiseAltarBroken(_alice, new BlockPos(Shrine.X, Shrine.Y, Shrine.Z));
+
+        var sync = LastSync();
+        Assert.Equal(TradePhase.Closed, sync!.Phase);
+
+        // Session torn down: later packets are ignored.
+        var before = SyncCount();
+        Offer(_bob, Shrine, "bread");
+        Assert.Equal(before, SyncCount());
+    }
+
+    [Fact]
+    public void LeashTick_WithBothInReach_LeavesSessionOpen()
+    {
+        // Mock entities report no position, so the reach check treats both as in range.
+        Open(_alice, Shrine);
+        Open(_bob, Shrine);
+
+        var before = SyncCount();
+        _events.TriggerPeriodicCallbacks(1f);
+
+        // No spurious close.
+        Assert.Equal(before, SyncCount());
+        Offer(_bob, Shrine, "bread");
+        Assert.True(SyncCount() > before);
     }
 
     [Fact]
@@ -236,4 +306,26 @@ public class CaravanTradeSessionManagerTests
         Assert.DoesNotContain(_net.GetSentMessages<TradeStateSyncPacket>(), s => s.ShrineX == OtherShrine.X);
         Assert.True(_messenger.GetMessageCountForPlayer("alice") > 0);
     }
+}
+
+/// <summary>
+///     Test double for the inventory seam: records swap calls and lets a test mark a player as
+///     no longer holding their offer. Item movement itself is play-tested (no real VS inventory).
+/// </summary>
+[ExcludeFromCodeCoverage]
+internal sealed class FakeCaravanTradeInventory : ICaravanTradeInventory
+{
+    /// <summary>Per-UID provisioning result; absent UID defaults to true (player holds the offer).</summary>
+    public Dictionary<string, bool> CanProvide { get; } = new();
+
+    public int SwapCount { get; private set; }
+
+    public bool CanProvideOffer(IServerPlayer player, IReadOnlyList<TradeOfferSlot> offer)
+        => !CanProvide.TryGetValue(player.PlayerUID, out var ok) || ok;
+
+    public void SwapOffers(
+        IServerPlayer sideA, IReadOnlyList<TradeOfferSlot> offerA,
+        IServerPlayer sideB, IReadOnlyList<TradeOfferSlot> offerB,
+        BlockPos dropPos)
+        => SwapCount++;
 }

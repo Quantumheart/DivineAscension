@@ -216,12 +216,18 @@ public static class DivineAscensionSystemInitializer
 
             // Player-to-player trade table hosted at caravan shrines (#433). Server-authoritative
             // session state + sync; subscribes to the trade request packets and player disconnect.
+            var caravanTradeInventory = new CaravanTradeInventory(
+                LoggingService.Instance.CreateLogger("CaravanTradeInventory"),
+                worldService);
+
             caravanTradeSessionManager = new CaravanTradeSessionManager(
                 LoggingService.Instance.CreateLogger("CaravanTradeSessionManager"),
                 networkService,
                 worldService,
                 eventService,
-                messengerService);
+                messengerService,
+                caravanTradeInventory,
+                altarEventEmitter);
             caravanTradeSessionManager.Initialize();
         }
 
