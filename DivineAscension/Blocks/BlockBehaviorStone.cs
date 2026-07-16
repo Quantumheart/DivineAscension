@@ -37,7 +37,11 @@ public class BlockBehaviorStone : BlockBehavior
     
     
     /// <summary>
-    /// Intercepts GetDrops
+    /// Intercepts GetDrops to apply the StoneYield blessing bonus to the drop
+    /// chance multiplier. The player, its entity, or its stats may be null
+    /// when a block is broken by a non-player source (e.g. RustboundMagic
+    /// spell dig pulses, gravity, explosions). In those cases we skip the
+    /// bonus and fall through to the base drops instead of crashing.
     /// </summary>
     public override ItemStack[] GetDrops(
         IWorldAccessor world,
@@ -46,7 +50,8 @@ public class BlockBehaviorStone : BlockBehavior
         ref float dropChanceMultiplier,
         ref EnumHandling handling)
     {
-        if (world.Side == EnumAppSide.Server)
+        if (world.Side == EnumAppSide.Server
+            && byPlayer?.Entity?.Stats != null)
         {
             // Apply stone yield bonus to drop multiplier
             var stoneYieldBonus = byPlayer.Entity.Stats.GetBlended(VintageStoryStats.StoneYield);

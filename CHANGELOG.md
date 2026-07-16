@@ -1,3 +1,8 @@
+## [4.8.1] - 2026-01-14
+
+### Fixed
+- Guard BlockBehaviorStone.GetDrops against null player/entity (fixes crash with RustboundMagic spell dig pulses)
+
 ## [4.8.0] - 2026-01-14
 
 ### Added
