@@ -24,6 +24,15 @@ public static class KhorasEffectHandlers
         private const int REPAIR_INTERVAL_MS = 300000; // 5 minutes in milliseconds
         private const int REPAIR_AMOUNT = 1;
 
+        // Toolsmith tinkered-tool attribute names (no compile-time dependency on Toolsmith).
+        // These match the constants in Toolsmith.Utils.ToolsmithAttributes.
+        private const string AttrToolheadCurrentDurability = "tinkeredToolHeadDurability";
+        private const string AttrToolheadMaxDurability = "tinkeredToolHeadMaxDurability";
+        private const string AttrToolhandleCurrentDurability = "tinkeredToolHandleDurability";
+        private const string AttrToolhandleMaxDurability = "tinkeredToolHandleMaxDurability";
+        private const string AttrToolbindingCurrentDurability = "tinkeredToolBindingDurability";
+        private const string AttrToolbindingMaxDurability = "tinkeredToolBindingMaxDurability";
+
         private readonly Dictionary<string, long> _lastRepairTime = new();
         private IEventService? _eventService;
         private ILoggerWrapper? _logger;
@@ -120,7 +129,17 @@ public static class KhorasEffectHandlers
                 // Only repair tools, not weapons or armor
                 if (!IsTool(itemstack)) continue;
 
-                // Check if item needs repair
+                // Try Toolsmith tinkered-tool repair first (multi-part tools use
+                // separate per-part durability attributes and prevent default
+                // vanilla damage, so the vanilla path below never repairs them).
+                if (TryRepairTinkeredTool(itemstack, slot))
+                {
+                    repairedCount++;
+                    continue;
+                }
+
+                // Vanilla repair path (also covers Toolsmith smithed tools,
+                // which use the vanilla durability attribute).
                 var currentDurability = itemstack.Attributes.GetInt("durability", itemstack.Collectible.Durability);
                 var maxDurability = itemstack.Collectible.Durability;
 
@@ -134,6 +153,56 @@ public static class KhorasEffectHandlers
             }
 
             return repairedCount;
+        }
+
+        /// <summary>
+        ///     Repairs a Toolsmith tinkered tool's individual part durabilities
+        ///     (head, handle, binding). Returns true if the item was a tinkered
+        ///     tool and at least one part was repaired; false if the item is not a
+        ///     tinkered tool (caller should fall through to vanilla repair).
+        /// </summary>
+        private bool TryRepairTinkeredTool(ItemStack itemstack, ItemSlot slot)
+        {
+            var attrs = itemstack.Attributes;
+            if (attrs == null) return false;
+
+            // Detect tinkered tool by presence of head max durability attribute.
+            // Non-Toolsmith items won't have this attribute (GetInt returns 0).
+            var headMax = attrs.GetInt(AttrToolheadMaxDurability);
+            if (headMax <= 0) return false;
+
+            var headCur = attrs.GetInt(AttrToolheadCurrentDurability);
+            var handleMax = attrs.GetInt(AttrToolhandleMaxDurability);
+            var handleCur = attrs.GetInt(AttrToolhandleCurrentDurability);
+            var bindingMax = attrs.GetInt(AttrToolbindingMaxDurability);
+            var bindingCur = attrs.GetInt(AttrToolbindingCurrentDurability);
+
+            var repaired = false;
+
+            // Repair head
+            if (headCur < headMax)
+            {
+                attrs.SetInt(AttrToolheadCurrentDurability, Math.Min(headCur + REPAIR_AMOUNT, headMax));
+                repaired = true;
+            }
+
+            // Repair handle (only if a handle exists — max > 0)
+            if (handleMax > 0 && handleCur < handleMax)
+            {
+                attrs.SetInt(AttrToolhandleCurrentDurability, Math.Min(handleCur + REPAIR_AMOUNT, handleMax));
+                repaired = true;
+            }
+
+            // Repair binding (only if a binding exists — max > 0)
+            if (bindingMax > 0 && bindingCur < bindingMax)
+            {
+                attrs.SetInt(AttrToolbindingCurrentDurability, Math.Min(bindingCur + REPAIR_AMOUNT, bindingMax));
+                repaired = true;
+            }
+
+            if (repaired) slot.MarkDirty();
+
+            return repaired;
         }
 
         /// <summary>
