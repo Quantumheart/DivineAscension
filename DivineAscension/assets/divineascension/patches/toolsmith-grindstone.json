@@ -1,9 +1,0 @@
-[
-  {
-    "op": "addmerge",
-    "path": "/behaviors",
-    "value": [{ "name": "DivineAscensionGrindstone" }],
-    "file": "toolsmith:blocktypes/grindstone.json",
-    "side": "Server"
-  }
-]
