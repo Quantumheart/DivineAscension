@@ -25,6 +25,7 @@ using DivineAscension.Systems.Networking.Client;
 using DivineAscension.Systems.Networking.Server;
 using DivineAscension.Systems.Patches;
 using DivineAscension.Systems.Toolsmith;
+using DivineAscension.Systems.Butchering;
 using DivineAscension.Utilities;
 using HarmonyLib;
 using JetBrains.Annotations;
@@ -45,6 +46,7 @@ public class DivineAscensionModSystem : ModSystem
     private AltarDestructionHandler? _altarDestructionHandler;
     private AltarEventEmitter? _altarEventEmitter;
     private ToolsmithEventEmitter? _toolsmithEventEmitter;
+    private ButcheringEventEmitter? _butcheringEventEmitter;
     private AltarPlacementHandler? _altarPlacementHandler;
     private AltarPrayerHandler? _altarPrayerHandler;
     private CaravanShrinePlacementHandler? _caravanShrinePlacementHandler;
@@ -308,9 +310,13 @@ public class DivineAscensionModSystem : ModSystem
         _altarPrayerHandler = result.AltarPrayerHandler;
         _altarEventEmitter = result.AltarEventEmitter;
         _toolsmithEventEmitter = result.ToolsmithEventEmitter;
+        _butcheringEventEmitter = result.ButcheringEventEmitter;
 
         // Apply conditional Harmony patches for Toolsmith compatibility (checks IsModEnabled internally)
         ToolsmithPatches.Initialize(api, _toolsmithEventEmitter);
+        // Apply conditional Harmony patches for Butchering compatibility (checks IsModEnabled internally)
+        ButcheringPatches.Initialize(api, _butcheringEventEmitter);
+
         _lecternEventEmitter = result.LecternEventEmitter;
         _lecternInteractionHandler = result.LecternInteractionHandler;
         _playerDataNetworkHandler = result.PlayerDataNetworkHandler;
@@ -405,6 +411,8 @@ public class DivineAscensionModSystem : ModSystem
         _altarEventEmitter?.ClearSubscribers();
         _toolsmithEventEmitter?.ClearSubscribers();
         ToolsmithPatches.ClearSubscribers();
+        _butcheringEventEmitter?.ClearSubscribers();
+        ButcheringPatches.ClearSubscribers();
         _lecternEventEmitter?.ClearSubscribers();
         PitKilnPatches.ClearSubscribers();
         AnvilPatches.ClearSubscribers();
