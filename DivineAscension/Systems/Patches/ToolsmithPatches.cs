@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using DivineAscension.Systems.Toolsmith;
 using HarmonyLib;
@@ -12,10 +13,12 @@ namespace DivineAscension.Systems.Patches;
 
 /// <summary>
 ///     Conditional Harmony patches for Toolsmith compatibility.
-///     Targets Toolsmith's BlockGrindstone, BlockWorkbench, and ItemWhetstone via reflection
-///     (no compile-time dependency on Toolsmith). Only applied when Toolsmith is installed.
-///     These classes override interaction methods without calling base, so the JSON-patch +
-///     BlockBehavior approach doesn't work — direct Harmony postfixes are required.
+///     Targets Toolsmith's BlockGrindstone, BlockWorkbench, ItemWhetstone, and
+///     TinkeringUtility via reflection (no compile-time dependency on Toolsmith).
+///     Only applied when Toolsmith is installed.
+///     Toolsmith's custom classes override interaction methods without calling base,
+///     so the JSON-patch + BlockBehavior approach doesn't work — direct Harmony
+///     postfixes are required.
 /// </summary>
 public static class ToolsmithPatches
 {
@@ -28,14 +31,11 @@ public static class ToolsmithPatches
     private static readonly HashSet<string> GrindstoneDisassemblyFired = new();
     private static readonly HashSet<string> WhetstoneSharpeningFired = new();
 
-    // Per-player cooldown for workbench assembly (covers multiple hammer strikes)
-    private static readonly Dictionary<string, DateTime> WorkbenchAssemblyCooldown = new();
+    // Per-player cooldown for workbench reforging (covers multiple hammer strikes)
     private static readonly Dictionary<string, DateTime> WorkbenchReforgeCooldown = new();
     private static readonly HashSet<string> WorkbenchDisassemblyFired = new();
 
     // Workbench slot indices (from Toolsmith's WorkbenchSlots enum)
-    private const int CraftingSlot1 = 1;
-    private const int CraftingSlot5 = 5;
     private const int ViseSlot = 6;
     private const int ReforgeStagingSlot = 7;
 
@@ -61,7 +61,7 @@ public static class ToolsmithPatches
 
         var patched = 0;
 
-        // BlockGrindstone
+        // BlockGrindstone — sharpening and disassembly
         var grindstoneType = ResolveType("Toolsmith.ToolTinkering.Blocks.BlockGrindstone");
         if (grindstoneType != null)
         {
@@ -76,7 +76,7 @@ public static class ToolsmithPatches
             api.Logger.Warning("[DivineAscension] Could not resolve Toolsmith BlockGrindstone type.");
         }
 
-        // BlockWorkbench
+        // BlockWorkbench — disassembly and reforging (assembly is detected via TinkeringUtility)
         var workbenchType = ResolveType("Toolsmith.ToolTinkering.Blocks.BlockWorkbench");
         if (workbenchType != null)
         {
@@ -89,7 +89,7 @@ public static class ToolsmithPatches
             api.Logger.Warning("[DivineAscension] Could not resolve Toolsmith BlockWorkbench type.");
         }
 
-        // ItemWhetstone
+        // ItemWhetstone — whetstone sharpening
         var whetstoneType = ResolveType("Toolsmith.ToolTinkering.Items.ItemWhetstone");
         if (whetstoneType != null)
         {
@@ -103,13 +103,29 @@ public static class ToolsmithPatches
             api.Logger.Warning("[DivineAscension] Could not resolve Toolsmith ItemWhetstone type.");
         }
 
+        // TinkeringUtility — tool assembly detection (covers workbench + in-hand assembly)
+        var tinkeringUtilityType = ResolveType("Toolsmith.ToolTinkering.TinkeringUtility");
+        if (tinkeringUtilityType != null)
+        {
+            // TryCraftToolFromSlots — workbench assembly (returns ItemStack, null if failed)
+            PatchMethod(api, tinkeringUtilityType, "TryCraftToolFromSlots",
+                nameof(TryCraftToolFromSlots_Postfix));
+            // AssembleFullTool — in-hand assembly (void, replaces bundle with tool in slot)
+            PatchMethod(api, tinkeringUtilityType, "AssembleFullTool",
+                nameof(AssembleFullTool_Postfix));
+            patched++;
+        }
+        else
+        {
+            api.Logger.Warning("[DivineAscension] Could not resolve Toolsmith TinkeringUtility type.");
+        }
+
         api.Logger.Notification(
             $"[DivineAscension] Toolsmith compatibility patches applied ({patched} types patched).");
     }
 
     // ─── Grindstone postfixes ──────────────────────────────────────────────
 
-    // Reset tracking when a new grindstone interaction begins
     public static void Grindstone_InteractStart_Postfix(IWorldAccessor world, IPlayer byPlayer,
         BlockSelection blockSel)
     {
@@ -118,7 +134,6 @@ public static class ToolsmithPatches
         GrindstoneDisassemblyFired.Remove(byPlayer.PlayerUID);
     }
 
-    // Detect sharpening (no shift) and disassembly (shift + long hold)
     public static void Grindstone_InteractStep_Postfix(float secondsUsed, IWorldAccessor world,
         IPlayer byPlayer, BlockSelection blockSel)
     {
@@ -167,7 +182,7 @@ public static class ToolsmithPatches
 
     // ─── Workbench postfixes ───────────────────────────────────────────────
 
-    // Detect hammer strikes on crafting slots (assembly) and reforge slot (reforging)
+    // Detect reforging (hammer on reforge slot). Assembly is detected via TinkeringUtility.
     public static void Workbench_InteractStart_Postfix(IWorldAccessor world, IPlayer byPlayer,
         BlockSelection blockSel)
     {
@@ -181,19 +196,6 @@ public static class ToolsmithPatches
                         EnumTool.Hammer;
 
         if (hasHammer != true || byPlayer.Entity.Controls.ShiftKey) return;
-
-        // Assembly: hammer on crafting slots
-        if (slotIndex >= CraftingSlot1 && slotIndex <= CraftingSlot5)
-        {
-            if (IsCooldownElapsed(WorkbenchAssemblyCooldown, player.PlayerUID))
-            {
-                var hotbarSlot = byPlayer.InventoryManager.ActiveHotbarSlot;
-                _emitter.RaiseToolAssembled(player, blockSel.Position,
-                    hotbarSlot?.Itemstack ?? new ItemStack());
-            }
-
-            return;
-        }
 
         // Reforging: hammer on reforge staging slot
         if (slotIndex == ReforgeStagingSlot)
@@ -278,6 +280,43 @@ public static class ToolsmithPatches
         }
     }
 
+    // ─── TinkeringUtility postfixes (tool assembly) ────────────────────────
+
+    // Workbench assembly: TryCraftToolFromSlots returns the crafted ItemStack (null if failed).
+    // No player parameter — resolve from nearby players at the workbench position.
+    public static void TryCraftToolFromSlots_Postfix(ItemStack __result, IWorldAccessor world,
+        BlockSelection blockSel)
+    {
+        if (world.Side != EnumAppSide.Server || _emitter == null) return;
+        if (__result == null) return; // Assembly failed
+        if (blockSel?.Position == null) return;
+
+        var player = FindNearestPlayer(world, blockSel.Position, 8);
+        if (player == null) return;
+
+        _emitter.RaiseToolAssembled(player, blockSel.Position, __result);
+    }
+
+    // In-hand assembly: AssembleFullTool is void and replaces the bundle in the slot with the tool.
+    // Player is available via byEntity. Detect success by checking if the slot now holds a tool
+    // (not a bundle, not null).
+    public static void AssembleFullTool_Postfix(ItemSlot bundleSlot, EntityAgent byEntity)
+    {
+        if (byEntity?.Api?.Side != EnumAppSide.Server || _emitter == null) return;
+
+        // If the slot is null or still contains a "tinkertoolparts" bundle, assembly failed
+        var stack = bundleSlot?.Itemstack;
+        if (stack == null) return;
+        if (stack.Collectible?.Code?.Path?.Contains("tinkertoolparts") == true) return;
+
+        var player = (byEntity as EntityPlayer)?.Player as IServerPlayer;
+        if (player == null) return;
+
+        _emitter.RaiseToolAssembled(player,
+            new BlockPos((int)byEntity.Pos.X, (int)byEntity.Pos.Y, (int)byEntity.Pos.Z),
+            stack);
+    }
+
     // ─── Helpers ───────────────────────────────────────────────────────────
 
     private static Type? ResolveType(string fullName)
@@ -325,6 +364,31 @@ public static class ToolsmithPatches
         return true;
     }
 
+    private static IServerPlayer? FindNearestPlayer(IWorldAccessor world, BlockPos pos, int radius)
+    {
+        var bestDistSq = (radius + 0.5) * (radius + 0.5);
+        IServerPlayer? best = null;
+
+        foreach (var p in world.AllPlayers)
+        {
+            if (p is not IServerPlayer sp) continue;
+            var epos = sp.Entity?.Pos?.AsBlockPos;
+            if (epos == null) continue;
+
+            var dx = epos.X - pos.X;
+            var dy = epos.Y - pos.Y;
+            var dz = epos.Z - pos.Z;
+            var distSq = dx * (double)dx + dy * (double)dy + dz * (double)dz;
+            if (distSq <= bestDistSq)
+            {
+                bestDistSq = distSq;
+                best = sp;
+            }
+        }
+
+        return best;
+    }
+
     /// <summary>
     ///     Unpatches all Toolsmith compatibility patches and clears state.
     ///     Called from DivineAscensionModSystem.Dispose().
@@ -338,7 +402,6 @@ public static class ToolsmithPatches
         GrindstoneSharpeningFired.Clear();
         GrindstoneDisassemblyFired.Clear();
         WhetstoneSharpeningFired.Clear();
-        WorkbenchAssemblyCooldown.Clear();
         WorkbenchReforgeCooldown.Clear();
         WorkbenchDisassemblyFired.Clear();
     }
