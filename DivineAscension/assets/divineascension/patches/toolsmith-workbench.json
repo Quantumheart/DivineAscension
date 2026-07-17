@@ -1,0 +1,9 @@
+[
+  {
+    "op": "addmerge",
+    "path": "/behaviors/-",
+    "value": { "name": "DivineAscensionWorkbench" },
+    "file": "toolsmith:blocktypes/workbench.json",
+    "side": "Server"
+  }
+]

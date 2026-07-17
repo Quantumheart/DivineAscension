@@ -18,6 +18,7 @@ using DivineAscension.Systems.Lectern;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Server;
 using DivineAscension.Systems.Patches;
+using DivineAscension.Systems.Toolsmith;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Systems;
@@ -133,6 +134,9 @@ public static class DivineAscensionSystemInitializer
         BlockBehaviorAltar.SetEventEmitter(altarEventEmitter);
         BlockBehaviorCaravanShrine.SetEventEmitter(altarEventEmitter);
 
+        // Create ToolsmithEventEmitter (service locator for Toolsmith compatibility behaviors)
+        var toolsmithEventEmitter = new ToolsmithEventEmitter();
+
         // Create LecternEventEmitter (service locator for BlockBehaviorLectern)
         var lecternEventEmitter = new LecternEventEmitter();
         BlockBehaviorLectern.SetEventEmitter(lecternEventEmitter);
@@ -241,6 +245,7 @@ public static class DivineAscensionSystemInitializer
 
         // Set patrol dependencies before initialization
         favorSystem.SetPatrolDependencies(holySiteAreaTracker, civilizationManager, holySiteManager);
+        favorSystem.SetToolsmithEventEmitter(toolsmithEventEmitter);
         favorSystem.Initialize();
 
         // Create offering loader for JSON-based offering definitions (must be before AltarPrayerHandler)
@@ -577,6 +582,7 @@ public static class DivineAscensionSystemInitializer
             BlessingEffectSystem = blessingEffectSystem,
             RoleManager = roleManager,
             AltarEventEmitter = altarEventEmitter,
+            ToolsmithEventEmitter = toolsmithEventEmitter,
             LecternEventEmitter = lecternEventEmitter,
             LecternInteractionHandler = lecternInteractionHandler,
             RitualProgressManager = ritualProgressManager,
@@ -630,6 +636,7 @@ public class InitializationResult
     public BlessingEffectSystem BlessingEffectSystem { get; init; } = null!;
     public RoleManager RoleManager { get; init; } = null!;
     public AltarEventEmitter AltarEventEmitter { get; init; } = null!;
+    public ToolsmithEventEmitter ToolsmithEventEmitter { get; init; } = null!;
     public LecternEventEmitter LecternEventEmitter { get; init; } = null!;
     public LecternInteractionHandler LecternInteractionHandler { get; init; } = null!;
     public IRitualProgressManager RitualProgressManager { get; init; } = null!;

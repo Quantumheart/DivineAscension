@@ -9,6 +9,7 @@ using DivineAscension.Services;
 using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.HolySite;
 using DivineAscension.Systems.Interfaces;
+using DivineAscension.Systems.Toolsmith;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
@@ -55,6 +56,8 @@ public class FavorSystem : IFavorSystem
     private StoneFavorTracker? _stoneFavorTracker;
     private PatrolFavorTracker? _patrolFavorTracker;
     private TraderTransactionFavorTracker? _traderTransactionFavorTracker;
+    private ToolsmithFavorTracker? _toolsmithFavorTracker;
+    private ToolsmithEventEmitter? _toolsmithEventEmitter;
 
     public FavorSystem(ILoggerWrapper logger,
         IEventService eventService,
@@ -78,6 +81,15 @@ public class FavorSystem : IFavorSystem
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
         _timeService = timeService ?? throw new ArgumentNullException(nameof(timeService));
+    }
+
+    /// <summary>
+    /// Sets the ToolsmithEventEmitter for Toolsmith compatibility favor tracking.
+    /// Must be called before Initialize().
+    /// </summary>
+    public void SetToolsmithEventEmitter(ToolsmithEventEmitter emitter)
+    {
+        _toolsmithEventEmitter = emitter ?? throw new ArgumentNullException(nameof(emitter));
     }
 
     /// <summary>
@@ -162,6 +174,14 @@ public class FavorSystem : IFavorSystem
         _traderTransactionFavorTracker = new TraderTransactionFavorTracker(_logger, _worldService, this, _config);
         _traderTransactionFavorTracker.Initialize();
 
+        // Initialize Toolsmith compatibility tracker if emitter was set
+        if (_toolsmithEventEmitter != null)
+        {
+            _toolsmithFavorTracker = new ToolsmithFavorTracker(
+                _logger, _worldService, _playerProgressionDataManager, this, _toolsmithEventEmitter);
+            _toolsmithFavorTracker.Initialize();
+        }
+
         // Initialize patrol tracker only if dependencies were set
         if (_holySiteAreaTracker != null && _civilizationManager != null && _holySiteManager != null)
         {
@@ -177,11 +197,11 @@ public class FavorSystem : IFavorSystem
                 _messenger,
                 _eventService);
             _patrolFavorTracker.Initialize();
-            _logger.Notification("[DivineAscension] Initialized 13 favor trackers (including patrol)");
+            _logger.Notification("[DivineAscension] Initialized 14 favor trackers (including patrol and Toolsmith)");
         }
         else
         {
-            _logger.Notification("[DivineAscension] Initialized 12 favor trackers (patrol disabled - missing dependencies)");
+            _logger.Notification("[DivineAscension] Initialized 13 favor trackers (patrol disabled - missing dependencies)");
         }
     }
 
@@ -202,6 +222,7 @@ public class FavorSystem : IFavorSystem
         _explorationFavorTracker?.Dispose();
         _traderTransactionFavorTracker?.Dispose();
         _patrolFavorTracker?.Dispose();
+        _toolsmithFavorTracker?.Dispose();
     }
 
     public void AwardFavorForAction(IServerPlayer player, string actionType, float amount, DeityDomain sourceDomain)
