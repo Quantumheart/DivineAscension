@@ -1,0 +1,9 @@
+[
+  {
+    "op": "addmerge",
+    "path": "/behaviors/-",
+    "value": { "name": "DivineAscensionWhetstone" },
+    "file": "toolsmith:itemtypes/whetstone.json",
+    "side": "Server"
+  }
+]
