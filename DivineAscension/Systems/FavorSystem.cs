@@ -10,6 +10,7 @@ using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.HolySite;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Toolsmith;
+using DivineAscension.Systems.Butchering;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
@@ -58,6 +59,8 @@ public class FavorSystem : IFavorSystem
     private TraderTransactionFavorTracker? _traderTransactionFavorTracker;
     private ToolsmithFavorTracker? _toolsmithFavorTracker;
     private ToolsmithEventEmitter? _toolsmithEventEmitter;
+    private ButcheringFavorTracker? _butcheringFavorTracker;
+    private ButcheringEventEmitter? _butcheringEventEmitter;
 
     public FavorSystem(ILoggerWrapper logger,
         IEventService eventService,
@@ -90,6 +93,15 @@ public class FavorSystem : IFavorSystem
     public void SetToolsmithEventEmitter(ToolsmithEventEmitter emitter)
     {
         _toolsmithEventEmitter = emitter ?? throw new ArgumentNullException(nameof(emitter));
+    }
+
+    /// <summary>
+    /// Sets the ButcheringEventEmitter for Butchering mod compatibility favor tracking.
+    /// Must be called before Initialize().
+    /// </summary>
+    public void SetButcheringEventEmitter(ButcheringEventEmitter emitter)
+    {
+        _butcheringEventEmitter = emitter ?? throw new ArgumentNullException(nameof(emitter));
     }
 
     /// <summary>
@@ -182,6 +194,15 @@ public class FavorSystem : IFavorSystem
             _toolsmithFavorTracker.Initialize();
         }
 
+        // Initialize Butchering compatibility tracker if emitter was set
+        if (_butcheringEventEmitter != null)
+        {
+            _butcheringFavorTracker = new ButcheringFavorTracker(
+                _logger, _eventService, _worldService, _playerProgressionDataManager, this,
+                _butcheringEventEmitter);
+            _butcheringFavorTracker.Initialize();
+        }
+
         // Initialize patrol tracker only if dependencies were set
         if (_holySiteAreaTracker != null && _civilizationManager != null && _holySiteManager != null)
         {
@@ -197,11 +218,11 @@ public class FavorSystem : IFavorSystem
                 _messenger,
                 _eventService);
             _patrolFavorTracker.Initialize();
-            _logger.Notification("[DivineAscension] Initialized 14 favor trackers (including patrol and Toolsmith)");
+            _logger.Notification("[DivineAscension] Initialized 15 favor trackers (including patrol, Toolsmith and Butchering)");
         }
         else
         {
-            _logger.Notification("[DivineAscension] Initialized 13 favor trackers (patrol disabled - missing dependencies)");
+            _logger.Notification("[DivineAscension] Initialized 14 favor trackers (patrol disabled - missing dependencies)");
         }
     }
 
@@ -223,6 +244,7 @@ public class FavorSystem : IFavorSystem
         _traderTransactionFavorTracker?.Dispose();
         _patrolFavorTracker?.Dispose();
         _toolsmithFavorTracker?.Dispose();
+        _butcheringFavorTracker?.Dispose();
     }
 
     public void AwardFavorForAction(IServerPlayer player, string actionType, float amount, DeityDomain sourceDomain)
