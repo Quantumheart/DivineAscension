@@ -134,11 +134,6 @@ public class DivineAscensionModSystem : ModSystem
         api.RegisterBlockBehaviorClass("DivineAscensionBlessedCrop", typeof(BlockBehaviorBlessedCrop));
         api.RegisterCollectibleBehaviorClass("ChiselTracking", typeof(CollectibleBehaviorChiselTracking));
 
-        // Toolsmith compatibility behaviors (self-gating via JSON patches targeting toolsmith:* files)
-        api.RegisterBlockBehaviorClass("DivineAscensionGrindstone", typeof(BlockBehaviorDivineGrindstone));
-        api.RegisterBlockBehaviorClass("DivineAscensionWorkbench", typeof(BlockBehaviorDivineWorkbench));
-        api.RegisterCollectibleBehaviorClass("DivineAscensionWhetstone", typeof(CollectibleBehaviorDivineWhetstone));
-
         BootNotify(api.Logger, "[DivineAscension] Block and Collectible behavior classes registered");
 
         // Register with ConfigLib if available
@@ -314,13 +309,8 @@ public class DivineAscensionModSystem : ModSystem
         _altarEventEmitter = result.AltarEventEmitter;
         _toolsmithEventEmitter = result.ToolsmithEventEmitter;
 
-        // Wire Toolsmith compatibility behaviors to the event emitter (service locator pattern)
-        if (_toolsmithEventEmitter != null)
-        {
-            BlockBehaviorDivineGrindstone.SetEventEmitter(_toolsmithEventEmitter);
-            BlockBehaviorDivineWorkbench.SetEventEmitter(_toolsmithEventEmitter);
-            CollectibleBehaviorDivineWhetstone.SetEventEmitter(_toolsmithEventEmitter);
-        }
+        // Apply conditional Harmony patches for Toolsmith compatibility (checks IsModEnabled internally)
+        ToolsmithPatches.Initialize(api, _toolsmithEventEmitter);
         _lecternEventEmitter = result.LecternEventEmitter;
         _lecternInteractionHandler = result.LecternInteractionHandler;
         _playerDataNetworkHandler = result.PlayerDataNetworkHandler;
@@ -414,9 +404,7 @@ public class DivineAscensionModSystem : ModSystem
         // Clear static events
         _altarEventEmitter?.ClearSubscribers();
         _toolsmithEventEmitter?.ClearSubscribers();
-        BlockBehaviorDivineGrindstone.ClearSubscribers();
-        BlockBehaviorDivineWorkbench.ClearSubscribers();
-        CollectibleBehaviorDivineWhetstone.ClearSubscribers();
+        ToolsmithPatches.ClearSubscribers();
         _lecternEventEmitter?.ClearSubscribers();
         PitKilnPatches.ClearSubscribers();
         AnvilPatches.ClearSubscribers();
